@@ -1,0 +1,21 @@
+connections:
+- - [motordriver, eOut]
+  - [motor, eIn]
+  - {}
+constants: {}
+constraints: []
+interfaces:
+  PWMin: {interface: PWMin, subcomponent: motordriver}
+  inInt: {interface: inInt, subcomponent: motordriver}
+parameters: {}
+subcomponents:
+  motor:
+    class: Motor
+    constants: {}
+    containers: {}
+    parameters: {}
+  motordriver:
+    class: MotorDriver
+    constants: {}
+    containers: {}
+    parameters: {}

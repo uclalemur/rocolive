@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Robot Control</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_bluetooth_debug">Bluetooth Debugger</string>
+    <string name="action_connect">Connect Robot</string>
+    <string name="action_disconnect">Disconnect Robot</string>
+    
+    <string name="hello_world">Hello world!</string>
+    <string name="btDebug_bluetooth">Bluetooth</string>
+    <string name="btDebug_button_enable">Enable Bluetooth</string>
+    <string name="btDebug_tv_findDeviceTitle">Find Device</string>
+    <string name="btDebug_button_scan">Scan for Devices</string>
+    <string name="btDebug_tv_deviceInfoTitle">Device List</string>
+    <string name="btDebug_tv_connectTitle">Connect to Device</string>
+    <string name="btDebug_button_connect">Connect</string>
+    <string name="btDebug_tv_sendTitle">Send to Device</string>
+    <string name="btDebug_tv_valueTitle">Value</string>
+    <string name="btDebug_et_value_hint">Enter data to send as text</string>
+    <string name="btDebug_button_sendZero">Send Zero</string>
+    <string name="btDebug_button_sendValue">Send Value</string>
+    <string name="btDebug_tv_receiveTitle">Received From Device</string>
+    <string name="btDebug_button_clearData">Clear Received Data</string>
+    <string name="title_activity_robot_ui">RobotUI</string>
+
+</resources>

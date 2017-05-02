@@ -1,0 +1,12 @@
+connections: []
+constants:
+  meta:
+    cpp:
+      arguments: {}
+      body: std::string inStr;\nstd::cin >> inStr;\nreturn inStr;\n
+      parameters: {}
+  target: cpp
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents: {}

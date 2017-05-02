@@ -1,0 +1,31 @@
+connections:
+- - [rgb_driver, rOut]
+  - [rgbled, red]
+  - {}
+- - [rgb_driver, gOut]
+  - [rgbled, green]
+  - {}
+- - [rgb_driver, bOut]
+  - [rgbled, blue]
+  - {}
+constants: {}
+constraints: []
+interfaces:
+  bPWM: {interface: bPWM, subcomponent: rgb_driver}
+  gPWM: {interface: gPWM, subcomponent: rgb_driver}
+  inBlue: {interface: inBlue, subcomponent: rgb_driver}
+  inGreen: {interface: inGreen, subcomponent: rgb_driver}
+  inRed: {interface: inRed, subcomponent: rgb_driver}
+  rPWM: {interface: rPWM, subcomponent: rgb_driver}
+parameters: {}
+subcomponents:
+  rgb_driver:
+    class: RGBLEDDriver
+    constants: {}
+    containers: {}
+    parameters: {}
+  rgbled:
+    class: RGBLED
+    constants: {}
+    containers: {}
+    parameters: {}

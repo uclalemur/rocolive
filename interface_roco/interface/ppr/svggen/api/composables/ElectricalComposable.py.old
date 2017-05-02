@@ -1,0 +1,145 @@
+from Composable import Composable
+
+
+class ElectricalComposable(Composable):
+
+    def new(self):
+        newComposable = ElectricalComposable({
+            "name": "",
+            "numPins": 0,
+            "interfaces": None,
+            "power": None,
+            "connections": None
+        })
+
+        newComposable.platform = self.platform
+        newComposable.logical = self.logical
+        newComposable.physical = self.physical
+        return newComposable
+
+    def __init__(self, physical, platform="ArduinoUno"):
+        self.platform = platform
+
+        self.logical = {
+            physical["name"]: {
+                "inputs": list(),
+                "outputs": list()
+            }
+        }
+        self.physical = {
+            physical["name"]: {
+                "interfaces": physical["interfaces"],
+                "power": physical["power"],
+                "connections": [None] * physical["numPins"]
+            }
+        }
+
+        #TODO: Replace with more portable solution
+        if self.platform == "ArduinoUno":
+            self.physical["mcu"] = {
+                "interfaces": {
+                    "Analog": ([14, 15, 16, 17, 18, 19], []),
+                    "Digital": ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+                                [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]),
+                    "PWM": ([], [3, 5, 6, 9, 10, 11])
+                },
+                "connections": [None, None, None, None, None, None, None, None, None, None, None, None, None, None,
+                                None, None, None, None, None]
+            }
+
+    def attach(self, fromPort, toPort, kwargs):
+        toConnection = (toPort.getType(), toPort.getName())
+        fromConnection = (fromPort.getType(), fromPort.getName())
+
+        if fromConnection not in self.logical[fromPort.getName()]["outputs"]:
+            self.logical[fromPort.getName()]["outputs"].append(fromConnection)
+        if toConnection not in self.logical[toPort.getName()]["inputs"]:
+            self.logical[toPort.getName()]["inputs"].append(toConnection)
+
+    def append(self, newComposable, newPrefix):
+        self.logical.update(newComposable.logical)
+        self.physical.update(newComposable.physical)
+
+    def generatePhysical(self):
+        # get allocation order
+        inputTypes =  [x[0] for x in sorted(self.physical["mcu"]["interfaces"].items(), key=lambda v: len(v[1][0]))]
+        outputTypes = [x[0] for x in sorted(self.physical["mcu"]["interfaces"].items(), key=lambda v: len(v[1][1]))]
+
+        for (key, val) in self.logical.iteritems():
+            val["outputs"] = sorted(val["outputs"], key=lambda v: outputTypes.index(v[0]))
+            for idx, connection in enumerate(val["outputs"]):
+                itype = connection[0]
+                mcu_pin = 0
+                kpin = 0
+
+                for num, mcu_pin in enumerate(self.physical["mcu"]["interfaces"][itype][0]):
+                    if self.physical["mcu"]["connections"][mcu_pin] is None:
+                        break
+                for num, kpin in enumerate(self.physical[key]["interfaces"][itype][1]):
+                    if self.physical[key]["connections"][kpin] is None:
+                        break
+
+                self.physical["mcu"]["connections"][mcu_pin] = (key, kpin, "input")
+                self.physical[key]["connections"][kpin] = ("mcu", mcu_pin, "output")
+
+            val["inputs"] = sorted(val["inputs"], key=lambda v: inputTypes.index(v[0]))
+            for idx, connection in enumerate(val["inputs"]):
+                itype = connection[0]
+                mcu_pin = 0
+                kpin = 0
+
+                for num, mcu_pin in enumerate(self.physical["mcu"]["interfaces"][itype][1]):
+                    if self.physical["mcu"]["connections"][mcu_pin] is None:
+                        break
+                for num, kpin in enumerate(self.physical[key]["interfaces"][itype][0]):
+                    if self.physical[key]["connections"][kpin] is None:
+                        break
+
+                self.physical["mcu"]["connections"][mcu_pin] = (key, kpin, "output")
+                self.physical[key]["connections"][kpin] = ("mcu", mcu_pin, "input")
+
+    def makeOutput(self, filedir, **kwargs):
+        self.generatePhysical()
+
+        filename = "%s/wiring_instructions.txt" % filedir
+        f = open(filename, "w")
+
+        f.write("Wiring Instructions:\n")
+        num = 1
+
+        for idx, connection in enumerate(self.physical["mcu"]["connections"]):
+            if connection is None:
+                continue
+            f.write("%d. Connect pin %d of microcontroller to pin %d of %s\n" % (num, idx, connection[1],
+                                                                                 connection[0].replace("Component.", "")))
+            num += 1
+
+        for (key, val) in self.physical.iteritems():
+            if key == "mcu":
+                continue
+            for idx, connection in enumerate(val["connections"]):
+                if connection is None:
+                    continue
+                if connection[0] == "mcu":
+                    continue
+                f.write("%d. Connect pin %d of %s to %d of %s" % (num, idx, key.replace("Component.", ""),
+                                                                  connection[1], connection[0].replace("Component.", "")))
+                num += 1
+
+            for vPin in val["power"]["Vin"]:
+                f.write("%d. Connect pin %d of %s to 5V\n" % (num, vPin, key.replace("Component.", "")))
+                num += 1
+
+            for gPin in val["power"]["Ground"]:
+                if val["power"]["pullDown"]:
+                    f.write("%d. Connect pin %d of %s to Resistor\n" % (num, gPin, key.replace("Component.", "")))
+                    f.write("%d. Connect Resistor to Ground\n" % (num + 1))
+                    num += 2
+                else:
+                    f.write("%d. Connect pin %d of %s to Ground\n" % (num, gPin, key.replace("Component.", "")))
+                    num += 1
+        f.close()
+
+
+
+

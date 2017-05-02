@@ -1,0 +1,19 @@
+connections:
+- - [get_string, outStr]
+  - [print_string, inStr]
+  - {}
+constants: {}
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents:
+  get_string:
+    class: GetString
+    constants: {}
+    containers: {}
+    parameters: {}
+  print_string:
+    class: PrintString
+    constants: {}
+    containers: {}
+    parameters: {}

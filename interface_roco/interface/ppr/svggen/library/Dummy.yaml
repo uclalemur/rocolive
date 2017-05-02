@@ -1,0 +1,27 @@
+connections:
+- - [dummy1, dOut]
+  - [dummyp, vIn]
+  - {}
+- - [dummyp, vOut]
+  - [dummy2, dIn]
+  - {}
+constants: {}
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents:
+  dummy1:
+    class: Dummy1
+    constants: {}
+    containers: {}
+    parameters: {}
+  dummy2:
+    class: Dummy2
+    constants: {}
+    containers: {}
+    parameters: {}
+  dummyp:
+    class: DummyPassThrough
+    constants: {}
+    containers: {}
+    parameters: {}

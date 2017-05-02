@@ -1,0 +1,62 @@
+import os
+from svggen import SVGGEN_DIR
+from svggen.api.composables.CppComposable import CppComposable
+from svggen.api.composables.PythonComposable import PythonComposable
+from svggen.api.composables.ArduinoComposable import ArduinoComposable
+from svggen.api.ports.CodePort import CodePort
+
+from svggen.api.component import Component
+
+class CodeComponent(Component):
+
+    def define(self, **kwargs):
+        try:
+            self.addParameter("target", kwargs["target"], isSymbol=False)
+        except KeyError:
+            self.addParameter("target", "cpp", isSymbol=False)
+        self.addParameter("meta", dict(), False)
+
+    def assemble(self):
+        target = self.getParameter("target")
+        meta = self.getParameter("meta")
+        code = None
+
+        for iface in self.interfaces:
+            if isinstance(iface, CodePort):
+                iface.setName(self.getName())
+        try:
+            if target == "cpp":
+                code = CppComposable(meta["cpp"])
+            elif target == "python":
+                code = PythonComposable(meta["python"])
+            elif target == "Arduino":
+                code = ArduinoComposable(meta["Arduino"])
+        except KeyError:
+            print("Error: Target Not Supported!")
+            code = None
+        finally:
+            self.composables['code'] = code
+
+
+    def setContainer(self, virtual, container, virtualParams, containerParams, types=None):
+        for type in types:
+            if type == 'code':
+                self.composables['code'].setContainer(container.composables['code'])
+
+        for (key, val) in virtualParams.iteritems():
+            self.setParameter(key, val, forceConstant=True)
+
+    def setParameter(self, n, v, forceConstant=False):
+        Component.setParameter(self, n, v, forceConstant)
+
+        try:
+            self.updateMeta()
+            target = self.getParameter("target")
+            meta = self.getParameter("meta")
+            self.composables['code'].updateMeta(self.getName(), meta[target])
+        except AttributeError:
+            return
+
+    def getCodeComposable(self):
+        return self.composables['code']
+

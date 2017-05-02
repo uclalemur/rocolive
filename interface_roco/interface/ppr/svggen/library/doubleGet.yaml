@@ -1,0 +1,19 @@
+connections:
+- - [get1, outStr]
+  - [get2, outStr]
+  - {}
+constants: {}
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents:
+  get1:
+    class: GetString
+    constants: {}
+    containers: {}
+    parameters: {}
+  get2:
+    class: GetString
+    constants: {}
+    containers: {}
+    parameters: {}

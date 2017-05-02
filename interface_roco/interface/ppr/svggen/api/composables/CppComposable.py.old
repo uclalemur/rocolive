@@ -1,0 +1,107 @@
+from Composable import Composable
+from CodeComposable import CodeComposable
+
+
+class CppComposable(CodeComposable):
+
+    def new(self):
+        new_composable = self.__class__({
+            "name": "",
+            "source": "",
+            "declaration": "",
+            "invocation": ""
+        }, set())
+
+        new_composable.meta = self.meta
+        new_composable.needs = self.needs
+        return new_composable
+
+    def __init__(self, meta, needs=None):
+        CodeComposable.__init__(self, meta, needs)
+
+    def updateMeta(self, name, newMeta):
+        meta = self.sanitize(newMeta)
+
+        self.meta[name] = {
+                "source": meta["source"],
+                "invocation": meta["invocation"],
+                "arguments": dict(),
+                "parameters": dict(),
+                "callers": list(),
+                "declaration": meta["declaration"]
+        }
+        try:
+            needs = meta["needs"]
+            self.needs = set(needs)
+        except KeyError:
+            return
+
+    def sanitize(self, meta):
+        if "." in meta["name"] and len(meta["source"]):
+            name = meta["name"].split(".")[1]
+            meta["invocation"] = self.replace_name(meta["invocation"], name)
+            rtype = meta["declaration"].split(" ")[0]
+            meta["declaration"] = rtype + " " + self.replace_name(meta["declaration"], name)
+
+            first_line = meta["source"].split("\n")[0]
+            new_first_line = rtype + " " + self.replace_name(first_line, name)
+            meta["source"] = meta["source"].replace(first_line, new_first_line)
+        return meta
+
+    def check_new_meta(self, newComposable):
+        for (new_name, new_meta) in newComposable.meta.iteritems():
+            if not new_meta["source"] or any(new_meta["parameters"]):
+                continue
+            for (old_name, old_meta) in self.meta.iteritems():
+                if not old_meta["source"] or any(old_meta["parameters"]):
+                    continue
+                if new_name == old_name:
+                    break
+
+                idx = new_meta["source"].find("\n")
+                new_source = new_meta["source"][idx + 1:]
+                idx = old_meta["source"].find("\n")
+                old_source = old_meta["source"][idx + 1:]
+
+                if new_source == old_source:
+                    name = old_name.split(".")[1]
+                    new_meta["source"] = ""
+                    new_meta["declaration"] = ""
+                    new_meta["invocation"] = self.replace_name(new_meta["invocation"], name)
+                    break
+
+        return newComposable.needs, newComposable.meta
+
+    def makeOutput(self, filedir, **kwargs):
+        CodeComposable.makeOutput(self, filedir, **kwargs)
+
+        roots = self.find_roots()
+        for root in roots:
+            self.replace_tokens(root, self.meta[root])
+
+        filename = "%s/main.cpp" % filedir
+        f = open(filename, "w")
+
+        for include in self.needs:
+            f.write("#include <" + include + ">\n")
+
+        f.write("\n")
+
+        for (key, val) in self.meta.iteritems():
+            if len(val["declaration"]):
+                f.write(val["declaration"] + "\n")
+
+        f.write(
+            "\nint main()\n" +
+            "{\n" +
+            "    %s;" % "".join([self.meta[root]["invocation"] + ";\n" for root in roots]) +
+            "    return 0;\n" +
+            "}\n\n")
+
+        for (key, val) in self.meta.iteritems():
+            f.write(val["source"] + "\n")
+        f.close()
+
+
+
+

@@ -1,0 +1,39 @@
+connections:
+- - [rgb_driver, rOut]
+  - [rgbled, red]
+  - {}
+- - [rgb_driver, gOut]
+  - [rgbled, green]
+  - {}
+- - [rgb_driver, bOut]
+  - [rgbled, blue]
+  - {}
+- - [arduino, pwm1]
+  - [rgb_driver, rPWM]
+  - {}
+- - [arduino, pwm2]
+  - [rgb_driver, gPWM]
+  - {}
+- - [arduino, pwm3]
+  - [rgb_driver, bPWM]
+  - {}
+constants: {}
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents:
+  arduino:
+    class: ArduinoUno
+    constants: {}
+    containers: {}
+    parameters: {}
+  rgb_driver:
+    class: RGBLEDDriver
+    constants: {}
+    containers: {}
+    parameters: {}
+  rgbled:
+    class: RGBLED
+    constants: {}
+    containers: {}
+    parameters: {}

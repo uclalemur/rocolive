@@ -1,0 +1,29 @@
+connections:
+- - [string, outStr]
+  - [reverse_string, inStr]
+  - {}
+- - [reverse_string, outStr]
+  - [print_string, inStr]
+  - {}
+constants: {}
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents:
+  print_string:
+    class: PrintString
+    constants: {}
+    containers: {}
+    parameters: {}
+  reverse_string:
+    class: ReverseString
+    constants: {}
+    containers: {}
+    parameters: {}
+  string:
+    class: StringSource
+    constants: {contents: 'Hello World!
+
+        '}
+    containers: {}
+    parameters: {}

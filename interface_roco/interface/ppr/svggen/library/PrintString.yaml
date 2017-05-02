@@ -1,0 +1,13 @@
+connections: []
+constants:
+  meta:
+    cpp:
+      arguments:
+        toPrint: ['std::string', '@@Instr']
+      body: std::cout << toPrint << std::endl;\n
+      parameters: {}
+  target: cpp
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents: {}

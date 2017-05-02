@@ -1,0 +1,76 @@
+connections:
+- - [Pot, vOut]
+  - [InputDriver, ein]
+  - {}
+- - [RGBLEDDriver, rOut]
+  - [RGBLED, rIn]
+  - {}
+- - [RGBLEDDriver, gOut]
+  - [RGBLED, gIn]
+  - {}
+- - [RGBLEDDriver, bOut]
+  - [RGBLED, bIn]
+  - {}
+- - [InputDriver, aout]
+  - [Red, inInt]
+  - {}
+- - [InputDriver, aout]
+  - [Green, inInt]
+  - {}
+- - [InputDriver, aout]
+  - [Blue, inInt]
+  - {}
+- - [Red, outInt]
+  - [RGBLEDDriver, rPWM]
+  - {}
+- - [Green, outInt]
+  - [RGBLEDDriver, gPWM]
+  - {}
+- - [Blue, outInt]
+  - [RGBLEDDriver, bPWM]
+  - {}
+constants: {}
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents:
+  ArduinoUno:
+    class: ArduinoUno
+    constants: {}
+    containers: {}
+    parameters: {}
+  Blue:
+    class: Blue
+    constants: {target: Arduino}
+    containers: {}
+    parameters: {}
+  Green:
+    class: Green
+    constants: {target: Arduino}
+    containers: {}
+    parameters: {}
+  InputDriver:
+    class: InputDriver
+    constants: {interface: Analog}
+    containers: {code: ArduinoUno, electrical: ArduinoUno}
+    parameters: {}
+  Pot:
+    class: Pot
+    constants: {}
+    containers: {}
+    parameters: {}
+  RGBLED:
+    class: RGBLED
+    constants: {}
+    containers: {}
+    parameters: {}
+  RGBLEDDriver:
+    class: RGBLEDDriver
+    constants: {}
+    containers: {code: ArduinoUno, electrical: ArduinoUno}
+    parameters: {}
+  Red:
+    class: Red
+    constants: {target: Arduino}
+    containers: {}
+    parameters: {}

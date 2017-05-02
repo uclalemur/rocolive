@@ -1,0 +1,67 @@
+connections:
+- - [string1, outStr]
+  - [reverse_string1, inStr]
+  - {}
+- - [string2, outStr]
+  - [reverse_string2, inStr]
+  - {}
+- - [string3, outStr]
+  - [reverse_string3, inStr]
+  - {}
+- - [reverse_string1, outStr]
+  - [concatenate, inStr1]
+  - {}
+- - [reverse_string2, outStr]
+  - [concatenate, inStr2]
+  - {}
+- - [reverse_string3, outStr]
+  - [concatenate, inStr3]
+  - {}
+- - [concatenate, outStr]
+  - [print, inStr]
+  - {}
+constants: {}
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents:
+  concatenate:
+    class: ConcatenateString
+    constants: {NumStrings: 3}
+    containers: {}
+    parameters: {}
+  print:
+    class: PrintString
+    constants: {}
+    containers: {}
+    parameters: {}
+  reverse_string1:
+    class: ReverseString
+    constants: {}
+    containers: {}
+    parameters: {}
+  reverse_string2:
+    class: ReverseString
+    constants: {}
+    containers: {}
+    parameters: {}
+  reverse_string3:
+    class: ReverseString
+    constants: {}
+    containers: {}
+    parameters: {}
+  string1:
+    class: StringSource
+    constants: {contents: ' olleH'}
+    containers: {}
+    parameters: {}
+  string2:
+    class: StringSource
+    constants: {contents: dlroW}
+    containers: {}
+    parameters: {}
+  string3:
+    class: StringSource
+    constants: {contents: n\!!!!!}
+    containers: {}
+    parameters: {}

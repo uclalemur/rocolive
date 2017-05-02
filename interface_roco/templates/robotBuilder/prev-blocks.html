@@ -1,0 +1,117 @@
+{% load static %}
+<html>
+
+	<head>
+		<title>Blockly PPR</title>
+		<script>
+			var outputStubs = {};
+			var compDB = {};
+			var allowDuplicates = false;
+			var rootBlock;
+			var sessionName = "untitled";
+			var newSession = true;
+
+		</script>
+		<script src="{% static 'interface/blockly/appengine/storage.js' %}"></script>
+		<script src="{% static 'interface/blockly/blockly_compressed.js' %}"></script>
+		<script src="{% static 'interface/blockly/core/static_typing.js' %}"></script>
+		<script src="{% static 'interface/blockly/blocks_compressed.js' %}"></script>
+		<script src="{% static 'interface/blockly/javascript_compressed.js' %}"></script>
+		<script src="{% static 'interface/blockly/arduino_compressed.js' %}"></script>
+		<script src="{% static 'interface/blockly/msg/js/en.js' %}"></script>
+		<script src="{% static 'interface/download.js' %}"></script>
+		<script src="{% static 'interface/prevcomps.js' %}"></script>
+		<script src="{% static 'interface/prevsave.js' %}"></script>
+		<script src="{% static 'interface/prevCompCode.js' %}"></script>
+		<script src="{% static 'interface/blocks.js' %}"></script>
+		<script src="{% static 'interface/prevCodeGen.js' %}"></script>
+		<script src="{% static 'interface/python.js' %}"></script>
+		<link rel="stylesheet" type="text/css" href="{% static 'interface/styles.css' %}">
+
+
+	</head>
+
+	<body>
+		<div class="toolbar" id="toolbar">
+			<div class="title">
+				Make new blocks from existing blocks
+			</div>
+			<a class="link" href="..">
+				Blockly Primitives
+			</a>
+			<div class="dropdown">
+				<div class="dropbtn">File</div>
+				<div class="dropdown-content">
+					<div id="save" class="menuitem" onclick="prevSave()">
+						<div class="menuDiv">
+							<div class="nameDiv">
+								Save
+							</div>
+							<div class="dateDiv">
+								⌘S/Ctrl-S
+							</div>
+						</div>
+					</div>
+
+					<div id="saveas" class="menuitem" onclick="prevSaveAs()">
+						<div class="menuDiv">
+							<div class="nameDiv">
+								Save As
+							</div>
+							<div class="dateDiv">
+								⌘⇧S/Ctrl-⇧-S
+							</div>
+						</div>
+					</div>
+
+					<div id="open" class="menuitem" onclick="prevOpen()">
+						<div class="menuDiv">
+							<div class="nameDiv">
+								Open
+							</div>
+						</div>
+					</div>
+
+					<button class="hide" id="download" onclick="downloadCCSession()"></button>
+					<label for="download" class="menuitem">
+						Download Workspace
+					</label>
+
+					<input class="hide" type="file" id="input" onchange="uploadCCSession(this.files)">
+					<label for="input" class="menuitem">
+						Upload Workspace
+					</label>
+
+					<button class="hide" id="exportCodeComp" onclick="exportCodeComp()"></button>
+					<label for="exportCodeComp" class="menuitem">
+						Export Code Component
+					</label>
+
+					<button class="hide" id="getCode" onclick="getCode()"></button>
+					<label for="getCode" class="menuitem">
+						Download Code
+					</label>
+				</div>
+			</div>
+		</div>
+		<div class="opencont" id="openlist">
+			<div class="open" id="list"></div>
+			<!-- <div class="quote" id="quote"></div> -->
+		</div>
+		<div class="dim" onclick="abortOpen()" id="dim"></div>
+		<div id="blocklyDiv"></div>
+		<xml id="startBlocks" style="display: none">
+			<block type="component_create"></block>
+		</xml>
+		<div id="createdDiv" hidden="true"></div>
+
+		<xml id="startBlocks" style="display: none">
+			<block type="component_create"></block>
+		</xml>
+
+		<script src="{% static 'interface/init.js' %}"></script>
+		<script src="{% static 'interface/prevtoolbox.js' %}"></script>
+		<script src="{% static 'interface/prevevents.js' %}"></script>
+	</body>
+
+</html>

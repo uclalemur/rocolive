@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- See http://html-color-codes.info/ -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="green_dark">#0B610B</color>
+    <color name="green_light">#2EFE2E</color>
+    <color name="green">#04B404</color>
+    <color name="maroon">#8A0808</color>
+    <color name="red">#FF0000</color>
+    <color name="gray">#6E6E6E</color>
+    <color name="blue">#0101DF</color>
+</resources>

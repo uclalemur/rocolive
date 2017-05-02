@@ -1,0 +1,65 @@
+wifi:
+kyBJrgG6
+
+
+
+
+You did brew install mysql
+You did export PATH=$PATH:/usr/local/mysql/bin
+And finally, you did pip install MySQL-Python
+
+
+
+Familys-MacBook-Pro:pprsite Gopisuresh$ brew install mysql
+==> Downloading https://homebrew.bintray.com/bottles/mysql-5.7.13.el_capitan.bottle.tar.gz
+######################################################################## 100.0%
+==> Pouring mysql-5.7.13.el_capitan.bottle.tar.gz
+==> /usr/local/Cellar/mysql/5.7.13/bin/mysqld --initialize-insecure --user=Gopisuresh --basedir=/usr/local/Cellar/mysql/5.7.13 --datadir=/usr/local/var/mysql --tmpdir=/tmp
+==> Caveats
+We've installed your MySQL database without a root password. To secure it run:
+    mysql_secure_installation
+
+To connect run:
+    mysql -uroot
+
+To have launchd start mysql now and restart at login:
+  brew services start mysql
+Or, if you don't want/need a background service you can just run:
+  mysql.server start
+==> Summary
+🍺  /usr/local/Cellar/mysql/5.7.13: 13,344 files, 445.0M
+Familys-MacBook-Pro:pprsite Gopisuresh$ export PATH=$PATH:/usr/local/mysql/bin
+Familys-MacBook-Pro:pprsite Gopisuresh$ pip install MySQL-Python
+Collecting MySQL-Python
+  Using cached MySQL-python-1.2.5.zip
+Building wheels for collected packages: MySQL-Python
+  Running setup.py bdist_wheel for MySQL-Python ... done
+  Stored in directory: /Users/family/Library/Caches/pip/wheels/38/a3/89/ec87e092cfb38450fc91a62562055231deb0049a029054dc62
+Successfully built MySQL-Python
+Installing collected packages: MySQL-Python
+Successfully installed MySQL-Python-1.2.5
+
+
+
+
+
+
+
+1. Install MySQL mac: http://stackoverflow.com/questions/25459386/mac-os-x-environmenterror-mysql-config-not-found
+mysql.server start
+
+2. MacSQLdb python api: http://mysql-python.sourceforge.net/MySQLdb.html#connection-objects
+
+3. Create a new user for yourself: https://www.digitalocean.com/community/tutorials/how-to-create-a-new-user-and-grant-permissions-in-mysql
+
+4. Location of database on mac: http://serverfault.com/questions/137580/where-does-mysql-store-its-database-files-on-os-x
+
+5. problem with loading dynamic library for mysql python: add symbolic link to mysql folder where python looks for the dynamic library http://stackoverflow.com/questions/6383310/python-mysqldb-library-not-loaded-libmysqlclient-18-dylib
+
+6. link tables mysql: http://stackoverflow.com/questions/17371639/how-to-store-arrays-in-mysql
+					  http://www.plus2net.com/sql_tutorial/sql_linking_table.php
+					  https://dba.stackexchange.com/questions/10355/rows-with-a-variable-number-of-columns/10356#10356?newreg=90f31dfdfce646e29a0a005de74dc3c0
+
+7. set root password for the first time: http://stackoverflow.com/questions/33467337/reset-mysql-root-password-using-alter-user-statement-after-install-on-mac
+
+8. mysqldb api: http://mysql-python.sourceforge.net/MySQLdb.html

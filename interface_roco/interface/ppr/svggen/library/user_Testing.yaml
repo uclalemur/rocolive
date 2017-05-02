@@ -1,0 +1,43 @@
+connections:
+- - [slider, outInt]
+  - [servo, inInt]
+  - {}
+- - [esp8266, do0]
+  - [servo, PWMin]
+  - {}
+- - [button, outInt]
+  - [led, inInt]
+  - {}
+- - [esp8266, do1]
+  - [led, Din]
+  - {}
+constants: {}
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents:
+  button:
+    class: UIButton
+    constants: {}
+    containers: {}
+    parameters: {text: b}
+  esp8266:
+    class: NodeMCU
+    constants: {}
+    containers: {}
+    parameters: {}
+  led:
+    class: DrivenLED
+    constants: {}
+    containers: {}
+    parameters: {}
+  servo:
+    class: DrivenServo
+    constants: {}
+    containers: {}
+    parameters: {}
+  slider:
+    class: UISlider
+    constants: {}
+    containers: {}
+    parameters: {max: 180, min: 0}

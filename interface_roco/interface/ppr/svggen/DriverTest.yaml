@@ -1,0 +1,27 @@
+connections:
+- - [PotDriver, dataOut]
+  - [LEDDriver, dataIn]
+  - {}
+- - [PotDriver, aout]
+  - [MCU, a1]
+  - {}
+- - [MCU, pwm1]
+  - [LEDDriver, ain]
+  - {}
+constants: {}
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents:
+  LEDDriver:
+    class: OutputDriver
+    constants: {interface: Analog}
+    parameters: {}
+  MCU:
+    class: ArduinoUno
+    constants: {}
+    parameters: {}
+  PotDriver:
+    class: InputDriver
+    constants: {interface: Analog}
+    parameters: {}

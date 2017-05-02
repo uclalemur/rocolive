@@ -1,0 +1,14 @@
+from svggen.api.component import Component
+from svggen.api.composables.CodeComposable import CodeComposable
+
+from svggen.api.ports.CodePort import InStringPort
+from svggen.api.ports.CodePort import OutStringPort
+from svggen.api.CodeComponent import CodeComponent
+
+class SortString(CodeComponent):
+
+    def define(self, **kwargs):
+        CodeComponent.define(self, **kwargs)
+
+    def assemble(self):
+        CodeComponent.assemble(self)

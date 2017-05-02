@@ -1,0 +1,28 @@
+1.  line 155-156 blockly/generators/arduino.js
+
+    //REMOVE the loop brace in arduino translation
+    // code = 'void loop() \n{\n' + code + '\n}';
+
+    CHANGE: commented out line 156
+
+
+
+2.  line 652 blockly/core/block_svg.js
+
+    enabled: allowDuplicates, // MODIFIED, original enabled: true,
+
+    CHANGE: removed true and replaced with allowDuplicates
+
+
+
+3.  line 297-298 blockly/core/mutator.js
+
+    // lets event handler access the rootblock
+    rootBlock = this.rootBlock_;
+
+    CHANGE: Added 2 lines.
+
+
+4.  blockly/core
+
+    CHANGE: Added static-typing.js

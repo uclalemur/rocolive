@@ -1,0 +1,31 @@
+connections:
+- - [str1, outStr]
+  - [remove, inStr1]
+  - {}
+- - [str2, outStr]
+  - [remove, inStr2]
+  - {}
+- - [remove, outStr]
+  - [printString, inStr]
+  - {}
+constants: {}
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents:
+  str1:
+    class: StringSource
+    constants: { contents: "Hello World"}
+    parameters: {}
+  str2:
+    class: StringSource
+    constants: { contents: "llo W"}
+    parameters: {}
+  remove:
+    class: RemoveSubString
+    constants: {}
+    parameters: {}
+  printString:
+    class: PrintString
+    constants: {}
+    parameters: {}

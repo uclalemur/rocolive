@@ -1,0 +1,29 @@
+connections:
+- - [string, outStr]
+  - [reverse_sort, inStr]
+  - {}
+- - [reverse_sort, outStr]
+  - [print_string, inStr]
+  - {}
+constants: {}
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents:
+  print_string:
+    class: PrintString
+    constants: {}
+    containers: {}
+    parameters: {}
+  reverse_sort:
+    class: ReverseSort
+    constants: {}
+    containers: {}
+    parameters: {}
+  string:
+    class: StringSource
+    constants: {contents: 'Hello World!
+
+        '}
+    containers: {}
+    parameters: {}

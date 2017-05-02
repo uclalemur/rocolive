@@ -1,0 +1,19 @@
+connections:
+- - [print1, inStr]
+  - [print2, inStr]
+  - {}
+constants: {}
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents:
+  print1:
+    class: PrintString
+    constants: {}
+    containers: {}
+    parameters: {}
+  print2:
+    class: PrintString
+    constants: {}
+    containers: {}
+    parameters: {}

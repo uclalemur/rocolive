@@ -1,0 +1,17 @@
+connections:
+- - [button, digitalOut]
+  - [led, digitalIn]
+  - {}
+constants: {}
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents:
+  button:
+    class: Button
+    constants: {}
+    parameters: {}
+  led:
+    class: LED
+    constants: {}
+    parameters: {}

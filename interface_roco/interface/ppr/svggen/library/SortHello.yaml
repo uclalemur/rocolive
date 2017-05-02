@@ -1,0 +1,29 @@
+connections:
+- - [string, outStr]
+  - [sort_string, inStr]
+  - {}
+- - [sort_string, outStr]
+  - [print_string, inStr]
+  - {}
+constants: {}
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents:
+  print_string:
+    class: PrintString
+    constants: {}
+    containers: {}
+    parameters: {}
+  sort_string:
+    class: SortString
+    constants: {}
+    containers: {}
+    parameters: {}
+  string:
+    class: StringSource
+    constants: {contents: 'Hello World!
+
+        '}
+    containers: {}
+    parameters: {}

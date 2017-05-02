@@ -1,0 +1,27 @@
+connections:
+- - [esp8266, do0]
+  - [led, Din]
+  - {}
+- - [button, outInt]
+  - [led, inInt]
+  - {}
+constants: {}
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents:
+  button:
+    class: UIButton
+    constants: {}
+    containers: {}
+    parameters: {text: Button}
+  esp8266:
+    class: NodeMCU
+    constants: {}
+    containers: {}
+    parameters: {}
+  led:
+    class: DrivenLED
+    constants: {}
+    containers: {}
+    parameters: {}

@@ -1,0 +1,21 @@
+connections:
+- - [rev, outStr]
+  - [sort, inStr]
+  - {}
+constants: {}
+constraints: []
+interfaces:
+  in: {interface: inStr, subcomponent: rev}
+  out: {interface: outStr, subcomponent: sort}
+parameters: {}
+subcomponents:
+  rev:
+    class: ReverseString
+    constants: {}
+    containers: {}
+    parameters: {}
+  sort:
+    class: SortString
+    constants: {}
+    containers: {}
+    parameters: {}

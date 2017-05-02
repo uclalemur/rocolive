@@ -1,0 +1,39 @@
+from svggen.api.component import Component
+from svggen.api.composables.CodeComposable import CodeComposable
+
+from svggen.api.ports.CodePort import InStringPort
+from svggen.api.ports.CodePort import OutStringPort
+from svggen.api.CodeComponent import CodeComponent
+
+class ReverseString(CodeComponent):
+
+    def define(self, **kwargs):
+        CodeComponent.define(self, **kwargs)
+        name = self.getName()
+
+        self.setParameter("meta", {
+            "cpp": {
+                "name": name,
+                "invocation": "%s(@@InStr@@)" % name,
+                "declaration": "std::string %s(std::string str);" % name,
+                "source": \
+                    "std::string %s(std::string str)\n" % name + \
+                    "{\n" + \
+                    "    size_t len = str.length();\n\n" + \
+                    "    for (int i = 0;i < len / 2;++i)\n" + \
+                    "    {\n" + \
+                    "        char c = str[i];\n" + \
+                    "        str[i] = str[len - i - 1];\n" + \
+                    "        str[len - i - 1] = c;\n" + \
+                    "    }\n\n" + \
+                    "    return str;\n" + \
+                    "}\n",
+                "needs": ["iostream", "string"]
+            }
+        }, forceConstant=True)
+        self.addInterface("outStr", OutStringPort(self, name))
+        self.addInterface("inStr", InStringPort(self, name, "InStr", True))
+
+
+if __name__ == "__main__":
+    pass

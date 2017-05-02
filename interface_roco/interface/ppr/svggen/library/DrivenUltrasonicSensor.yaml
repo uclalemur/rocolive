@@ -1,0 +1,25 @@
+connections:
+- - [udriver, tOut]
+  - [sensor, trigger]
+  - {}
+- - [udriver, eOut]
+  - [sensor, echo]
+  - {}
+constants: {}
+constraints: []
+interfaces:
+  echoIn: {interface: echoIn, subcomponent: udriver}
+  outInt: {interface: outInt, subcomponent: udriver}
+  triggerIn: {interface: triggerIn, subcomponent: driver}
+parameters: {}
+subcomponents:
+  sensor:
+    class: UltrasonicSensor
+    constants: {}
+    containers: {}
+    parameters: {}
+  udriver:
+    class: UltrasonicSensorDriver
+    constants: {}
+    containers: {}
+    parameters: {}

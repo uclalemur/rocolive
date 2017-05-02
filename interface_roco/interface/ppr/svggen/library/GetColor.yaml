@@ -1,0 +1,58 @@
+connections:
+- - [Split, out1]
+  - [Red, inInt]
+  - {}
+- - [Split, out2]
+  - [Green1, inInt]
+  - {}
+- - [Split, out3]
+  - [Green2, inInt]
+  - {}
+- - [Split, out4]
+  - [Blue, inInt]
+  - {}
+- - [Green1, outInt]
+  - [add, inInt1]
+  - {}
+- - [Green2, outInt]
+  - [add, inInt2]
+  - {}
+constants: {}
+constraints: []
+interfaces:
+  blue: {interface: outInt, subcomponent: Blue}
+  green: {interface: outInt, subcomponent: add}
+  inInt: {interface: in, subcomponent: Split}
+  red: {interface: outInt, subcomponent: Red}
+parameters: {}
+subcomponents:
+  Blue:
+    class: LinearInterpolate
+    constants: {}
+    containers: {}
+    parameters: {inEnd: 1023, inStart: 511, outEnd: 255, outStart: 0}
+  Green1:
+    class: LinearInterpolate
+    constants: {}
+    containers: {}
+    parameters: {inEnd: 511, inStart: 0, outEnd: 255, outStart: 0}
+  Green2:
+    class: LinearInterpolate
+    constants: {}
+    containers: {}
+    parameters: {inEnd: 1023, inStart: 511, outEnd: 0, outStart: 255}
+  Red:
+    class: LinearInterpolate
+    constants: {}
+    containers: {}
+    parameters: {inEnd: 511, inStart: 0, outEnd: 0, outStart: 255}
+  Split:
+    class: SplitFour
+    constants: {}
+    containers: {}
+    parameters: {}
+  add:
+    class: Add
+    constants: {}
+    containers: {}
+    parameters: {}

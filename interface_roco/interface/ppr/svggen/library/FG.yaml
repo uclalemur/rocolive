@@ -1,0 +1,22 @@
+connections:
+- - [f, output1]
+  - [g, input1]
+  - {}
+- - [f, output2]
+  - [g, input2]
+  - {}
+constants: {}
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents:
+  f:
+    class: F
+    constants: {}
+    containers: {}
+    parameters: {}
+  g:
+    class: G
+    constants: {}
+    containers: {}
+    parameters: {}

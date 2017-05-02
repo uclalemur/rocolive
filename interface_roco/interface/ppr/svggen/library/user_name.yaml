@@ -1,0 +1,11 @@
+connections: []
+constants: {}
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents:
+  user_clock0:
+    class: user_clock
+    constants: {}
+    containers: {}
+    parameters: {}

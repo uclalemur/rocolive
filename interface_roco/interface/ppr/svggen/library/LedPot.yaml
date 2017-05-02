@@ -1,0 +1,40 @@
+connections:
+- - [Pot, vOut]
+  - [InputDriver, ein]
+  - {}
+- - [OutputDriver, eout]
+  - [LED, ein]
+  - {}
+- - [InputDriver, aout]
+  - [OutputDriver, ain]
+  - {}
+constants: {}
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents:
+  ArduinoUno:
+    class: ArduinoUno
+    constants: {}
+    containers: {}
+    parameters: {}
+  InputDriver:
+    class: InputDriver
+    constants: {interface: Analog}
+    containers: {code: ArduinoUno, electrical: ArduinoUno}
+    parameters: {}
+  LED:
+    class: LED
+    constants: {}
+    containers: {}
+    parameters: {}
+  OutputDriver:
+    class: OutputDriver
+    constants: {interface: Analog}
+    containers: {code: ArduinoUno, electrical: ArduinoUno}
+    parameters: {}
+  Pot:
+    class: Pot
+    constants: {}
+    containers: {}
+    parameters: {}

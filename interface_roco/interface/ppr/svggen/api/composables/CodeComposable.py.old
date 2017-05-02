@@ -1,0 +1,157 @@
+from svggen.api.composables.Composable import Composable
+from svggen.api.composables.CodeContainer import CodeContainer
+from svggen.api.composables.VirtualComposable import VirtualComposable
+from svggen.api.ports.CodePort import CodePort
+
+
+## Add target class
+##      Target class implements static methods which correspond to append, attach, makeoutput
+##      Adding a target means subclassing Target 
+
+class CodeComposable(VirtualComposable):
+
+    def new(self):
+        new_composable = self.__class__({
+            "name": "",
+            "source": "",
+            "invocation": ""
+        }, set())
+
+        new_composable.meta = self.meta
+        new_composable.needs = self.needs
+
+        return new_composable
+
+    def __init__(self, meta, needs=None):
+        VirtualComposable.__init__(self)
+        self.meta = dict()
+        self.updateMeta(meta["name"], meta)
+        self.needs = set()
+        self.tokenSubs = dict()
+        self.tokenConstraints = set()
+
+    @staticmethod
+    def tokenize(token_str):
+        return "@@" + token_str + "@@"
+
+    @staticmethod
+    def replace_name(snippet, name):
+        new_snippet = name + "("
+        for str in snippet.split("(")[1:]:
+            new_snippet += str
+        return new_snippet
+
+    def addSubstitution(self, token, tokenReplacement):
+        self.tokenSubs[token] = tokenReplacement
+
+    def addTokenConstraint(self, token):
+        pass
+
+    def updateMeta(self, name, newMeta):
+        meta = self.sanitize(newMeta)
+        name = self.removePrefix(name)
+
+        self.meta[name] = {
+                "source": meta["source"],
+                "invocation": meta["invocation"],
+                "arguments": dict(),
+                "parameters": dict(),
+                "callers": list()
+        }
+
+        try:
+            needs = meta["needs"]
+            self.needs = set(needs)
+        except KeyError:
+            return
+
+
+    def sanitize(self, meta):
+        pass
+
+    def check_new_meta(self, newComposable):
+        for (new_name, new_meta) in newComposable.meta.iteritems():
+            if not new_meta["source"] or any(new_meta["parameters"]):
+                continue
+            for (old_name, old_meta) in self.meta.iteritems():
+                if not old_meta["source"] or any(old_meta["parameters"]):
+                    continue
+                if new_name == old_name:
+                    break
+                if self.removePrefix(new_name) == self.removePrefix(old_name):
+                    break
+
+                idx = new_meta["source"].find("\n")
+                new_source = new_meta["source"][idx + 1:]
+                idx = old_meta["source"].find("\n")
+                old_source = old_meta["source"][idx + 1:]
+
+                if new_source == old_source:
+                    name = old_name.split(".")[1]
+                    new_meta["source"] = ""
+                    new_meta["invocation"] = self.replace_name(new_meta["invocation"], name)
+                    break
+
+        return newComposable.needs, newComposable.meta
+
+    def append(self, newComposable, newPrefix):
+        if isinstance(newComposable, CodeContainer):
+            return
+
+        needs, meta = self.check_new_meta(newComposable)
+        self.needs.update(needs)
+        self.meta.update(meta)
+
+    def insert_param(self, key, caller, token, to_replace):
+        modified_source = ""
+        for line in caller["source"].splitlines():
+            replacement_line = line.replace(self.tokenize(token), to_replace)
+            modified_source += replacement_line + "\n"
+        self.meta[key]["source"] = modified_source
+
+    def insert_arg(self, key, caller, token, to_replace):
+        caller["invocation"] = caller["invocation"].replace(self.tokenize(token), to_replace)
+        self.meta[key] = caller
+
+    def replace_tokens(self, key, caller):
+        for (invoked, token) in caller["arguments"].iteritems():
+            self.replace_tokens(invoked, self.meta[invoked])
+
+        for (invoked, token) in caller["parameters"].iteritems():
+            self.replace_tokens(invoked, self.meta[invoked])
+
+        for (invoked, token) in caller["arguments"].iteritems():
+            self.insert_arg(key, caller, token, self.meta[invoked]["invocation"])
+
+        for (invoked, token) in caller["parameters"].iteritems():
+            self.insert_param(key, caller, token, self.meta[invoked]["invocation"])
+
+    def attach(self, fromPort, toPort, kwargs):
+        if not isinstance(fromPort, CodePort) or not isinstance(toPort, CodePort):
+            return
+
+        if not fromPort.canMate(toPort):
+            raise Exception("%s cannot mate with %s!" % (fromPort.__class__.__name__, toPort.__class__.__name__))
+
+        invoked = fromPort.getName()
+        token = toPort.getToken()
+        caller = toPort.getName()
+
+        if toPort.isArgument():
+            self.meta[caller]["arguments"].update({invoked: token})
+        else:
+            self.meta[caller]["parameters"].update({invoked: token})
+
+        self.meta[invoked]["callers"].append(caller)
+
+    def find_roots(self):
+        roots = list()
+        for (name, info) in self.meta.iteritems():
+            if not info["callers"]:
+                roots.append(name)
+        return roots
+
+    # Make the final output
+    def makeOutput(self, filedir, **kwargs):
+        VirtualComposable.makeOutput(self, filedir, **kwargs)
+        pass

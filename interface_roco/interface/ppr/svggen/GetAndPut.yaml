@@ -1,0 +1,19 @@
+connections:
+- - [gs, outStr]
+  - [ps, inStr]
+  - {}
+constants: {}
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents:
+  gs:
+    class: GetString
+    constants: {}
+    containers: {}
+    parameters: {}
+  ps:
+    class: PrintString
+    constants: {}
+    containers: {}
+    parameters: {}

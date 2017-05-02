@@ -1,0 +1,50 @@
+connections:
+- - [pot, outInt]
+  - [getColor, in]
+  - {}
+- - [getColor, out1]
+  - [rgbled, inRed]
+  - {}
+- - [getColor, out2]
+  - [rgbled, inGreen]
+  - {}
+- - [getColor, out3]
+  - [rgbled, inBlue]
+  - {}
+- - [pot, aOut]
+  - [arduino, a1]
+  - {}
+- - [rgbled, rPWM]
+  - [arduino, pwm1]
+  - {}
+- - [rgbled, gPWM]
+  - [arduino, pwm2]
+  - {}
+- - [rgbled, bPWM]
+  - [arduino, pwm3]
+  - {}
+constants: {}
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents:
+  arduino:
+    class: ArduinoUno
+    constants: {}
+    containers: {}
+    parameters: {}
+  getColor:
+    class: SplitThree
+    constants: {}
+    containers: {}
+    parameters: {}
+  pot:
+    class: DrivenPot
+    constants: {}
+    containers: {}
+    parameters: {}
+  rgbled:
+    class: DrivenRGBLED
+    constants: {}
+    containers: {}
+    parameters: {}

@@ -1,0 +1,36 @@
+*.pyc
+*.bbl
+*.blg
+*.aux
+*.blg
+*.log
+*.sw[a-z]
+*.svg
+*.dxf
+*.studio
+*.ps
+*.??????-????
+*~
+
+# output
+output/
+svggen/output/*
+svggen/tests/output/*
+svggen/library/output/*
+
+# virtualenv
+ENV/*
+
+# built documentation
+doc/build/*
+
+# PyCharm files
+.idea/*
+svggen/.idea/*
+
+# project files
+.project
+.pydevproject
+
+# old stuff
+.old/

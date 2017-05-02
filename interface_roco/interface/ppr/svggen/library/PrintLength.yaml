@@ -1,0 +1,35 @@
+connections:
+- - [string1, outStr]
+  - [len, inStr]
+  - {}
+- - [len, outInt]
+  - [itoStr, inInt]
+  - {}
+- - [itoStr, outStr]
+  - [print, inStr]
+  - {}
+constants: {}
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents:
+  itoStr:
+    class: IntToString
+    constants: {}
+    containers: {}
+    parameters: {}
+  len:
+    class: Len
+    constants: {}
+    containers: {}
+    parameters: {}
+  print:
+    class: PrintString
+    constants: {}
+    containers: {}
+    parameters: {}
+  string1:
+    class: StringSource
+    constants: {contents: Hello World!}
+    containers: {}
+    parameters: {}

@@ -1,0 +1,163 @@
+<ScrollView
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scrollView">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:baselineAligned="true">
+
+        <TextView
+            android:id="@+id/btDebug_bluetooth" 
+            android:text="@string/btDebug_bluetooth"
+            style="?android:attr/listSeparatorTextViewStyle"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/btDebug_button_enableBluetooth"
+            android:text="@string/btDebug_button_enable"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+			android:onClick="enableBluetooth" />
+
+        <TextView
+            android:id="@+id/btDebug_tv_findDeviceTitle"
+            android:text="@string/btDebug_tv_findDeviceTitle"
+            style="?android:attr/listSeparatorTextViewStyle"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/activity_vertical_margin_quarter" />
+
+        <TextView
+            android:id="@+id/btDebug_tv_scanStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/btDebug_button_scan"
+            android:text="@string/btDebug_button_scan"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:onClick="scan" />
+
+        <TextView
+            android:id="@+id/btDebug_tv_deviceInfoTitle"
+            android:text="@string/btDebug_tv_deviceInfoTitle"
+            style="?android:attr/listSeparatorTextViewStyle"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/activity_vertical_margin_quarter" />
+
+        <LinearLayout
+            android:id="@+id/btDebug_ll_deviceInfo"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/btDebug_tv_connectTitle"
+            android:text="@string/btDebug_tv_connectTitle"
+            style="?android:attr/listSeparatorTextViewStyle"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/activity_vertical_margin_quarter" />
+
+        <TextView
+            android:id="@+id/btDebug_tv_connectionStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/btDebug_button_connect"
+            android:text="@string/btDebug_button_connect"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:enabled="false"
+            android:onClick="connect" />
+
+        <TextView
+            android:id="@+id/btDebug_tv_sendTitle"
+            android:text="@string/btDebug_tv_sendTitle"
+            style="?android:attr/listSeparatorTextViewStyle"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/activity_vertical_margin_quarter" />
+
+        <EditText
+            android:id="@+id/btDebug_et_value"
+            android:hint="@string/btDebug_et_value_hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <!-- <TextView
+            android:id="@+id/btDebug_tv_valueTitle"
+            android:text="@string/btDebug_tv_valueTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <view
+            android:id="@+id/btDebug_editData"
+            class="com.example.rfduinotest.EditData"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" /> -->
+
+        <LinearLayout
+            android:id="@+id/btDebug_ll_sendButtons"
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent" >
+
+            <Button
+                android:id="@+id/btDebug_button_sendZero"
+                android:text="@string/btDebug_button_sendZero"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="sendZero" />
+
+            <Button
+                android:id="@+id/btDebug_button_sendValue"
+                android:text="@string/btDebug_button_sendValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="sendValue" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/btDebug_tv_receiveTitle"
+            android:text="@string/btDebug_tv_receiveTitle"
+            style="?android:attr/listSeparatorTextViewStyle"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/activity_vertical_margin_quarter" />
+
+        <Button
+            android:id="@+id/btDebug_button_clearData"
+            android:text="@string/btDebug_button_clearData"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginTop="@dimen/activity_vertical_margin_eighth"
+            android:singleLine="false"
+            android:onClick="clearReceivedData" />
+        
+        <TextView
+            android:id="@+id/btDebug_tv_data"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+</ScrollView>

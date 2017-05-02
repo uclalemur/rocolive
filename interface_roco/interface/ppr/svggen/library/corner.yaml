@@ -1,0 +1,30 @@
+connections:
+- - [rect1, r]
+  - [rect2, l]
+  - {angle: 90}
+- - [rect2, b]
+  - [rect3, r]
+  - {angle: 90}
+- - [rect3, t]
+  - [rect1, b]
+  - {angle: 90}
+constants: {}
+constraints: []
+interfaces: {}
+parameters: {}
+subcomponents:
+  rect1:
+    class: Rectangle
+    constants: {}
+    containers: {}
+    parameters: {}
+  rect2:
+    class: Rectangle
+    constants: {}
+    containers: {}
+    parameters: {}
+  rect3:
+    class: Rectangle
+    constants: {}
+    containers: {}
+    parameters: {}

@@ -1,0 +1,21 @@
+connections:
+- - [pot, vOut]
+  - [potDriver, vIn]
+  - {}
+constants: {}
+constraints: []
+interfaces:
+  aOut: {interface: aOut, subcomponent: potDriver}
+  outInt: {interface: outInt, subcomponent: potDriver}
+parameters: {}
+subcomponents:
+  pot:
+    class: Pot
+    constants: {}
+    containers: {}
+    parameters: {}
+  potDriver:
+    class: PotDriver
+    constants: {}
+    containers: {}
+    parameters: {}
