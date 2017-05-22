@@ -3,10 +3,10 @@ from django.http import HttpResponse
 from rest_framework.decorators import api_view
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
-from svggen.library import allComponents, getComponent, buildDatabase, filterComponents, filterDatabase
+from svggen.library import all_components, get_component, build_database, filter_components, filter_database
 from svggen.api import FoldedComponent
 from svggen.api.ports import EdgePort
-from svggen.utils.utils import schemeList
+from svggen.utils.utils import scheme_list
 import sympy
 import copy_reg
 import types
@@ -40,7 +40,7 @@ def componentList(request):
          #   l.append(c)
         #response = json.dumps({"response": l})
         #print response
-        components = filterDatabase()
+        components = filter_database()
         response = []
         for c in components:
             response.append([c.name, [x.encode('ascii','ignore') for x in c.interfaces.keys()]])
@@ -58,7 +58,11 @@ def fixEdgeInterface(request):
         compName = data['name']
         interface = data['interface']
         value = int(data['value'])
-        fc.fixEdgeInterface(compName, interface, value)
+        #fc.fix_edge_interface_help(compName, interface, value)
+        ep = fc.getInterfaces(compName, interface)
+        if isinstance(ep, EdgePort):
+          fc.fix_variable(fc.get_variable_sub(ep.getParameter("length")).name, value)
+         ######
         request.session.modified = True
         return HttpResponse('Edge associated with interface {}.{} fixed to {}'.format(compName, interface, value))
     return HttpResponse(status=501)
@@ -71,7 +75,7 @@ def constrainParameter(request):
         sc = data['sc']
         parameter = data['parameter']
         constraint = data['constraint']
-        fc.addParameterConstraint((sc, parameter), fc._strToSympy(constraint))
+        fc.add_parameter_constraint((sc, parameter), fc._strToSympy(constraint))
         request.session.modified = True
         return HttpResponse(sc + "_" + "parameter" + " constrained to " + constraint)
     return HttpResponse(status=501)
@@ -113,10 +117,14 @@ def addSubcomponent(request):
 
             #Add the subcomponent to the session component
             sessionComponent = request.session['component']
-            sessionComponent.addFoldedSubcomponent(scname,type)
+            ##sessionComponent.add_folded_subcomponent(scname,type)
+            sc = {"class": type, "parameters": {}, "constants": None, "baseclass": "FoldedComponent", "component": None}
+            sessionComponent.subcomponents.set_default(scname, sc)
+            sessionComponent.resolve_subcomponent(scname)
+            ########
 
             #Return information about subcomponent
-            c = getComponent(type, baseclass="FoldedComponent")
+            c = get_component(type, baseclass="FoldedComponent")
             c.makeOutput(remake=False, placeOnly=True)
             #print "Before extract"
             responseDict = extractFromComponent(c)
@@ -147,7 +155,7 @@ def delSubcomponent(request):
             scname = data['name']
 
             sessionComponent = request.session['component']
-            sessionComponent.delSubcomponent(scname)
+            sessionComponent.del_subcomponent(scname)
             request.session.modified = True
             print "Subcomponent {} deleted".format(scname)
             return HttpResponse("Subcomponent {} deleted".format(scname))
@@ -167,7 +175,7 @@ def addConnection(request):
             sc2 = data['sc2']
             port2 = data['port2']
             angle = int(data['angle'])
-            fc.addConnection((sc1,port1),(sc2,port2), angle=angle)
+            fc.add_connection((sc1,port1),(sc2,port2), angle=angle)
             request.session.modified = True
             print 'Connection from {}:{} to {}:{} Added to Component {}'.format(sc1,port1,sc2,port2,"")
             return HttpResponse('Connection from {}:{} to {}:{} Added to Component {}'.format(sc1,port1,sc2,port2,""))
@@ -186,7 +194,7 @@ def addTabConnection(request):
             sc2 = data['sc2']
             port2 = data['port2']
             angle = int(data['angle'])
-            fc.addTabConnection((sc1,port1),(sc2,port2), angle=angle)
+            fc.add_tab_connection((sc1,port1),(sc2,port2), angle=angle)
             request.session.modified = True
             print 'Connection from {}:{} to {}:{} Added to Component {}'.format(sc1,port1,sc2,port2,"")
             return HttpResponse('Connection from {}:{} to {}:{} Added to Component {}'.format(sc1,port1,sc2,port2,""))
@@ -202,7 +210,7 @@ def addParameter(request):
             fc = request.session['component']
             name = data['name']
             default = data['def']
-            fc.addParameter(name, default)
+            fc.add_parameter(name, default)
             request.session.modified = True
             print 'Parameter ' + name + ' added with default value ' + default
             return HttpResponse('Parameter ' + name + ' added with default value ' + default)
@@ -217,7 +225,7 @@ def delParameter(request):
             data = ast.literal_eval(request.body)
             fc = request.session['component']
             name = data['name']
-            fc.delParameter(name)
+            fc.del_parameter(name)
             request.session.modified = True
             print 'Parameter ' + name + ' deleted'
             return HttpResponse('Parameter ' + name + ' deleted')
@@ -232,7 +240,7 @@ def delInterface(request):
             data = ast.literal_eval(request.body)
             fc = request.session['component']
             name = data['name']
-            fc.delInterface(name)
+            fc.del_interface(name)
             request.session.modified = Trues
             print 'Interface ' + name + ' deleted'
             return HttpResponse('Interface ' + name + ' deleted')
@@ -280,7 +288,8 @@ def getSVG(request):
         try:
             fc = request.session['component']
             #pdb.set_trace()
-            svg = fc.getGraph().makeOutput(filedir=".",svgString = True)
+            #####
+            svg = fc.composables[fc.GRAPH].make_output(filedir=".",svgString = True)
             request.session['svg'] = svg[0]
 
             svg = svg[1].__str__().replace('"',"'")
