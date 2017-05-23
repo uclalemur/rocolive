@@ -3,10 +3,11 @@ from django.http import HttpResponse
 from rest_framework.decorators import api_view
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
-from svggen.library import all_components, get_component, build_database, filter_components, filter_database
-from svggen.api import FoldedComponent
-from svggen.api.ports import EdgePort
-from svggen.utils.utils import scheme_list
+from roco.library import all_components, get_component, build_database, filter_components, filter_database
+from roco.api import component
+from roco.api.utils.variable import Variable
+from roco.derived.ports import edge_port
+from roco.utils.utils import scheme_list
 import sympy
 import copy_reg
 import types
@@ -52,19 +53,15 @@ def componentList(request):
 
 @api_view(['GET', 'POST'])
 def fixEdgeInterface(request):
-    if request.method == 'GET' or request.method == 'POST':
-        data = ast.literal_eval(request.body)
-        fc = request.session['component']
-        compName = data['name']
-        interface = data['interface']
-        value = int(data['value'])
-        #fc.fix_edge_interface_help(compName, interface, value)
-        ep = fc.getInterfaces(compName, interface)
-        if isinstance(ep, EdgePort):
-          fc.fix_variable(fc.get_variable_sub(ep.getParameter("length")).name, value)
-         ######
-        request.session.modified = True
-        return HttpResponse('Edge associated with interface {}.{} fixed to {}'.format(compName, interface, value))
+    #f request.method == 'GET' or request.method == 'POST':
+    #    data = ast.literal_eval(request.body)
+    #    fc = request.session['component']
+    #    compName = data['name']
+    #    interface = data['interface']
+    #    value = int(data['value'])
+    #    fc.fixEdgeInterface(compName, interface, value)
+    #    request.session.modified = True
+    #    return HttpResponse('Edge associated with interface {}.{} fixed to {}'.format(compName, interface, value))
     return HttpResponse(status=501)
 
 @api_view(['GET', 'POST'])
@@ -75,7 +72,7 @@ def constrainParameter(request):
         sc = data['sc']
         parameter = data['parameter']
         constraint = data['constraint']
-        fc.add_parameter_constraint((sc, parameter), fc._strToSympy(constraint))
+        fc.constrain_subcomponent_parameter((sc, parameter), fc._str_to_sympy(constraint))
         request.session.modified = True
         return HttpResponse(sc + "_" + "parameter" + " constrained to " + constraint)
     return HttpResponse(status=501)
@@ -87,7 +84,7 @@ def createComponent(request):
     """
     if request.method == 'GET' or request.method == 'POST':
         #pdb.set_trace()
-        sessionComponent = FoldedComponent.FoldedComponent() #Create component
+        sessionComponent = component.Component() #Create component
         name = id(sessionComponent)
         try:
             #Delete old components stored in session if they still exist
@@ -117,15 +114,15 @@ def addSubcomponent(request):
 
             #Add the subcomponent to the session component
             sessionComponent = request.session['component']
-            ##sessionComponent.add_folded_subcomponent(scname,type)
-            sc = {"class": type, "parameters": {}, "constants": None, "baseclass": "FoldedComponent", "component": None}
-            sessionComponent.subcomponents.set_default(scname, sc)
-            sessionComponent.resolve_subcomponent(scname)
+            sessionComponent.add_subcomponent(scname,type)
+            #sc = {"class": type, "parameters": {}, "constants": None, "baseclass": "FoldedComponent", "component": None}
+            #sessionComponent.subcomponents.set_default(scname, sc)
+            #sessionComponent.resolve_subcomponent(scname)
             ########
 
             #Return information about subcomponent
             c = get_component(type, baseclass="FoldedComponent")
-            c.makeOutput(remake=False, placeOnly=True)
+            c.make_output(remake=False, placeOnly=True)
             #print "Before extract"
             responseDict = extractFromComponent(c)
             #print "After extract"
@@ -194,7 +191,7 @@ def addTabConnection(request):
             sc2 = data['sc2']
             port2 = data['port2']
             angle = int(data['angle'])
-            fc.add_tab_connection((sc1,port1),(sc2,port2), angle=angle)
+            fc.add_connection((sc1,port1),(sc2,port2), tab=True, angle=angle)
             request.session.modified = True
             print 'Connection from {}:{} to {}:{} Added to Component {}'.format(sc1,port1,sc2,port2,"")
             return HttpResponse('Connection from {}:{} to {}:{} Added to Component {}'.format(sc1,port1,sc2,port2,""))
@@ -241,7 +238,7 @@ def delInterface(request):
             fc = request.session['component']
             name = data['name']
             fc.del_interface(name)
-            request.session.modified = Trues
+            request.session.modified = True
             print 'Interface ' + name + ' deleted'
             return HttpResponse('Interface ' + name + ' deleted')
         except KeyError:
@@ -257,7 +254,7 @@ def make(request):
         try:
             #pdb.set_trace()
             fc = request.session['component']
-            fc.makeOutput(placeOnly=True)
+            fc.make_output(placeOnly=True)
             #print fc.__dict__
             #print "made"
             print "Before component extraction"
@@ -326,7 +323,7 @@ def downloadSVG(request):
 def downloadYaml(request):
     if request.method == 'GET' or request.method == 'POST':
         try:
-            yaml = request.session['component'].toYaml()
+            yaml = request.session['component'].to_yaml()
             yaml = yaml.replace('"',"'")
             yaml = yaml.replace('\n', '\\n')
             response = '{"response": "' + yaml +'"}'
@@ -345,7 +342,7 @@ def componentSave(request):
             fc = request.session['component']
             name = data['name']
             fc.toYaml("library/" + name + ".yaml")
-            buildDatabase([getComponent(name, baseclass="FoldedComponent")])
+            build_database([get_component(name, baseclass="FoldedComponent")])
             print "{} saved to library".format(name)
             return HttpResponse("{} saved to library".format(name))
         except Exception as e:
@@ -363,7 +360,7 @@ def inheritInterface(request):
             name = data['name']
             scname = data['scname']
             interface = data['interface']
-            fc.inheritInterface(name, (scname, interface))
+            fc.inherit_interface(name, (scname, interface))
             request.session.modified = True
             print "Interface {} from {} inherited as {}".format(interface, scname, name)
             return HttpResponse("Interface {} from {} inherited as {}".format(interface, scname, name))
@@ -387,30 +384,27 @@ def getList(object):
 
 def extractFromComponent(c):
     output = {}
-    output["variables"] = [x.name for x in c.getVariables()]
-    #output["relations"] = c.getRelations()
-    output["defaults"] = c.getAllDefaults()
+    output["solved"] = {x : x.get_value() for x in c.parameters if isinstance(x, Variable)}
     output["faces"] = {}
-    vsubs = c.getAllSubs()
     for i in c.composables['graph'].faces:
-        tdict = copy.deepcopy(i.getTriangleDict())
+        tdict = copy.deepcopy(i.get_triangle_dict())
         for vertex in range(len(tdict["vertices"])):
             try:
                 tpl = tdict["vertices"][vertex]
                 tdict["vertices"][vertex] = [tpl[0], tpl[1]]
                 if isinstance(tdict["vertices"][vertex][0], sympy.Basic):
-                    tdict["vertices"][vertex][0] = schemeList(tdict["vertices"][vertex][0].xreplace(vsubs))
+                    tdict["vertices"][vertex][0] = scheme_list(tdict["vertices"][vertex][0])
                 if isinstance(tdict["vertices"][vertex][1], sympy.Basic):
-                    tdict["vertices"][vertex][1] = schemeList(tdict["vertices"][vertex][1].xreplace(vsubs))
+                    tdict["vertices"][vertex][1] = scheme_list(tdict["vertices"][vertex][1])
             except:
                 try:
-                    tdict["vertices"][vertex][1] = schemeList(tdict["vertices"][vertex][1].xreplace(vsubs))
+                    tdict["vertices"][vertex][1] = scheme_list(tdict["vertices"][vertex][1])
                 except:
 
                     pass
-        output["faces"][i.name] = [[schemeList(i.transform3D[x].xreplace(vsubs)) for x in range(getLen(i.transform3D))], tdict]
+        output["faces"][i.name] = [[scheme_list(i.transform_3D[x]) for x in range(get_len(i.transform_3D))], tdict]
         #print i.transform2D.tolist()
-        trans2D = [[schemeList(p.xreplace(vsubs)) for p in j] for j in getList(i.transform2D)]
+        trans2D = [[scheme_list(p) for p in j] for j in get_list(i.transform_2D)]
         #print trans2D
         output["faces"][i.name].append(trans2D)
     output["edges"] = {}
@@ -420,21 +414,21 @@ def extractFromComponent(c):
             output["edges"][i.name].append([])
             for x in range(3):
                 try:
-                    if isinstance(i.pts3D[v][x], sympy.Basic):
-                        output["edges"][i.name][v].append(schemeList(i.pts3D[v][x].xreplace(vsubs)))
+                    if isinstance(i.pts_3D[v][x], sympy.Basic):
+                        output["edges"][i.name][v].append(scheme_list(i.pts_3D[v][x]))
                 except:
                     pass
     output["interfaceEdges"] = {}
     for k,v in c.interfaces.iteritems():
-        obj = c.getInterface(k)
-        if isinstance(obj,EdgePort.EdgePort):
+        obj = c.get_interface(k)
+        if isinstance(obj,edge_port.EdgePort):
             output["interfaceEdges"][k] = []
-            for i in obj.getEdges():
+            for i in obj.get_edges():
                 try:
                     output["interfaceEdges"][k].append(i)
                 except:
                     pass
-    output["solved"] = c.getAllDefaults()
+
     return output
 
 def compDictToJSON(responseDict, component):
