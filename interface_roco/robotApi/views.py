@@ -123,6 +123,7 @@ def addSubcomponent(request):
             #Return information about subcomponent
             c = get_component(type, baseclass="FoldedComponent")
             c.make_output(remake=False, placeOnly=True)
+            print c.parameters
             #print "Before extract"
             responseDict = extractFromComponent(c)
             #print "After extract"
@@ -286,7 +287,7 @@ def getSVG(request):
             fc = request.session['component']
             #pdb.set_trace()
             #####
-            svg = fc.composables[fc.GRAPH].make_output(filedir=".",svgString = True)
+            svg = fc.composables['graph'].make_output(filedir=".",svgString = True)
             request.session['svg'] = svg[0]
 
             svg = svg[1].__str__().replace('"',"'")
@@ -384,7 +385,8 @@ def getList(object):
 
 def extractFromComponent(c):
     output = {}
-    output["solved"] = {x : x.get_value() for x in c.parameters if isinstance(x, Variable)}
+    output["solved"] = {str(x) : x.get_value() for x in c.parameters.values() if isinstance(x, Variable)}
+    print output["solved"]
     output["faces"] = {}
     for i in c.composables['graph'].faces:
         tdict = copy.deepcopy(i.get_triangle_dict())
@@ -402,9 +404,9 @@ def extractFromComponent(c):
                 except:
 
                     pass
-        output["faces"][i.name] = [[scheme_list(i.transform_3D[x]) for x in range(get_len(i.transform_3D))], tdict]
+        output["faces"][i.name] = [[scheme_list(i.transform_3D[x]) for x in range(getLen(i.transform_3D))], tdict]
         #print i.transform2D.tolist()
-        trans2D = [[scheme_list(p) for p in j] for j in get_list(i.transform_2D)]
+        trans2D = [[scheme_list(p) for p in j] for j in getList(i.transform_2D)]
         #print trans2D
         output["faces"][i.name].append(trans2D)
     output["edges"] = {}
@@ -419,15 +421,17 @@ def extractFromComponent(c):
                 except:
                     pass
     output["interfaceEdges"] = {}
+    print c.interfaces
     for k,v in c.interfaces.iteritems():
-        obj = c.get_interface(k)
-        if isinstance(obj,edge_port.EdgePort):
-            output["interfaceEdges"][k] = []
-            for i in obj.get_edges():
-                try:
-                    output["interfaceEdges"][k].append(i)
-                except:
-                    pass
+        ports = c.get_interface(k).get_ports()
+        for port in ports:
+            if isinstance(port,edge_port.EdgePort):
+                output["interfaceEdges"][k] = []
+                for i in port.get_edges():
+                    try:
+                        output["interfaceEdges"][k].append(i)
+                    except:
+                        pass
 
     return output
 
