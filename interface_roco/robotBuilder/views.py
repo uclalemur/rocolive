@@ -9,3 +9,7 @@ def test(request):
     template = loader.get_template('robotBuilder/test.html')
     context = {}
     return HttpResponse(template.render(context, request))
+def new_index(request):
+    template = loader.get_template('robotBuilder/new_index.html')
+    context = {}
+    return HttpResponse(template.render(context, request))

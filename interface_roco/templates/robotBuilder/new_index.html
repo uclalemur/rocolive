@@ -1,0 +1,37 @@
+{% load static %}
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Robot Builder</title>
+        <link href="{% static "robotBuilder/css/styles.css" %}" rel="stylesheet">
+    </head>
+    <body>
+
+        <div class="main">
+            <div class="work" id="tabs">
+                <div class="tab" id="tabButtons">
+                    <button class="tablinks" id="defaultOpen" onclick="openInterface(event, 'start')">Start</button>
+                    <!-- <button class="tablinks" onclick="openCity(event, 'Base Components')">Base Components</button>
+                    <button class="tablinks" onclick="openCity(event, 'Composite Component')">Composite Components</button> -->
+                </div>
+                <div id="start" class="tabcontent">
+                    <h3>Starting page</h3>
+                </div>
+
+                <!-- <div id="Base Components" class="tabcontent">
+                    <h3>Base Component Stuff</h3>
+                </div>
+
+                <div id="Composite Component" class="tabcontent">
+                    <h3>Composite Component Stuff</h3>
+                </div> -->
+            </div>
+            <div class="components">
+                Components:
+                ============================
+            </div>
+        </div>
+        <script src="{% static "robotBuilder/js/action.js" %}"></script>
+        <script src="{% static "robotBuilder/js/tabs.js" %}"></script>
+    </body>
+</html>

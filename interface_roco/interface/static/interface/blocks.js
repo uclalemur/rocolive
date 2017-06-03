@@ -1,2 +1,0 @@
-var BlockList = new Map();
-

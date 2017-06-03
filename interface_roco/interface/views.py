@@ -25,10 +25,16 @@ from genBuilder import saveBuilder
 
 path = os.path.join(os.getcwd(), "interface/ppr/")
 sys.path.append(path)
-from svggen.library import allComponents, getComponent, instanceOf, buildDatabase, queryDatabase, filterComponents, filterDatabase, updateComponentsLists
-from svggen.api.component import Component
-from svggen.api.ports import CodePort
-from svggen.api.CodeComponent import CodeComponent
+
+from roco.library import all_components, get_component, instance_of, build_database, query_database, filter_components, filter_database, update_component_lists
+# from svggen.library import allComponents, getComponent, instanceOf, buildDatabase, queryDatabase, filterComponents, filterDatabase, updateComponentsLists
+from roco.api.component import Component
+# from svggen.api.component import Component
+from roco.derived.ports.code_port import CodePort
+from roco.derived.ports import code_ports
+# from svggen.api.ports import CodePort
+from roco.derived.components.code_component import CodeComponent
+# from svggen.api.CodeComponent import CodeComponent
 
 # Create your views here.
 
