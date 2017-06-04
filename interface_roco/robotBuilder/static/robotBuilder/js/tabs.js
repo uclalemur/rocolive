@@ -1,5 +1,4 @@
-lastTabDiv = document.getElementById("start");
-lastTab = document.getElementById("defaultOpen");
+numTabs = 0;
 
 class Tab {
     constructor(type, name, div, button) {
@@ -36,9 +35,45 @@ class Tab {
     }
 }
 
+startTabDiv = document.getElementById("start");
+startTab = document.getElementById("defaultOpen");
+
+var tabs = [new Tab("Starting Page", "start", startTabDiv, startTab)];
+
+lastTab = document.getElementById("dropbtn");
+
 function addTab(t) {
     // create new button for interface in the tabs list
     t.div.style.display="none";
-    document.getElementById("tabButtons").insertBefore(t.button, null);
+    document.getElementById("tabButtons").insertBefore(t.button, lastTab);
     document.getElementById("tabs").insertBefore(t.div, null);
+}
+
+function showOptions() {
+    document.getElementById("rocoInterfaces").classList.toggle("show");
+
+}
+
+window.onclick = function(e) {
+  if (!e.target.matches('.dropbtn')) {
+    var rocoInterfaces = document.getElementById("rocoInterfaces");
+      if (rocoInterfaces.classList.contains('show')) {
+        rocoInterfaces.classList.remove('show');
+      }
+  }
+}
+
+function newInterface(event, type) {
+    var t = "";
+    if(type == 'm'){
+        t = "mechanical";
+    } else if (type == 'cc') {
+        t = "composite";
+    } else if (type == 'bc') {
+        t = "base";
+    }
+    var name = "untitled" + (numTabs==0?"":numTabs);
+    numTabs++;
+    tabs.push(new Tab(t, name));
+    addTab(tabs[tabs.length - 1]);
 }
