@@ -3,7 +3,7 @@ numTabs = 0;
 class Tab {
     constructor(type, name, div, button) {
 
-        // type is the kind of interface out of: start page, mechanical, code, and composite
+        // type is the kind of interface out of: start page, mechanical, base, and composite
         this.type = type;
         // name is the name of the tab.
         this.name = name;
@@ -29,6 +29,11 @@ class Tab {
             this.button.addEventListener("click", function (evt) {
                 openInterface(evt, type);
             });
+
+            // code to convert button to text field on double click?
+            // this.button.addEventListener("dblclick", function (evt) {
+            //     this.
+            // })
         } else {
             this.button = button;
         }
@@ -46,12 +51,29 @@ function addTab(t) {
     // create new button for interface in the tabs list
     t.div.style.display="none";
     document.getElementById("tabButtons").insertBefore(t.button, lastTab);
+    populateTab(t); // put your interface in the div of this tab.
     document.getElementById("tabs").insertBefore(t.div, null);
+}
+
+function populateTab(t) {
+    switch (t.type) {
+        case "base":
+            populateBase(t);
+            break;
+        case "composite":
+            populateComp(t);
+            break;
+        case "mechanical":
+            populateMech(t);
+            break;
+        default:
+            console.log("Something bad happenned. Invalid type name for tab. ");
+
+    }
 }
 
 function showOptions() {
     document.getElementById("rocoInterfaces").classList.toggle("show");
-
 }
 
 window.onclick = function(e) {
