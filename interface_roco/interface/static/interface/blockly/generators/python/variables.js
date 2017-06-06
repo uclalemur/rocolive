@@ -33,7 +33,7 @@ Blockly.Python['variables_get'] = function(block) {
   // Variable getter.
   var code = Blockly.Python.variableDB_.getName(block.getFieldValue('VAR'),
       Blockly.Variables.NAME_TYPE);
-  return [mangler+code, Blockly.Python.ORDER_ATOMIC];
+  return [code, Blockly.Python.ORDER_ATOMIC];
 };
 
 Blockly.Python['variables_set'] = function(block) {
@@ -42,22 +42,5 @@ Blockly.Python['variables_set'] = function(block) {
       Blockly.Python.ORDER_NONE) || '0';
   var varName = Blockly.Python.variableDB_.getName(block.getFieldValue('VAR'),
       Blockly.Variables.NAME_TYPE);
-  return mangler+varName + ' = ' + argument0 + '\n';
-};
-
-Blockly.Python['variables_set_type'] = function(block) {
-  var argument0 = Blockly.Python.valueToCode(block, 'VARIABLE_SETTYPE_INPUT',
-      Blockly.Arduino.ORDER_ASSIGNMENT) || '0';
-  var varType = Blockly.Arduino.getArduinoType_(
-      Blockly.StaticTyping.blocklyType[block.getFieldValue(
-          'VARIABLE_SETTYPE_TYPE')]);
-  var code = "";
-  if(varType == "int"){
-    code = "int(" + argument0 + ")";
-  } else if (varType == "double") {
-    code = "float(" + argument0 + ")";
-  } else{
-    code = argument0;
-  }
-  return [code, Blockly.Python.ORDER_ATOMIC];
+  return varName + ' = ' + argument0 + '\n';
 };

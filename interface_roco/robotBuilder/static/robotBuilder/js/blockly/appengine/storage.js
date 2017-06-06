@@ -72,7 +72,7 @@ BlocklyStorage.link = function(opt_workspace) {
   var workspace = opt_workspace || Blockly.getMainWorkspace();
   var xml = Blockly.Xml.workspaceToDom(workspace);
   var data = Blockly.Xml.domToText(xml);
-  BlocklyStorage.makeRequest_('save/', 'xml', data, workspace);
+  BlocklyStorage.makeRequest_('/storage', 'xml', data, workspace);
 };
 
 /**
@@ -82,7 +82,7 @@ BlocklyStorage.link = function(opt_workspace) {
  */
 BlocklyStorage.retrieveXml = function(key, opt_workspace) {
   var workspace = opt_workspace || Blockly.getMainWorkspace();
-  BlocklyStorage.makeRequest_('recall_session/', 'key', key, workspace);
+  BlocklyStorage.makeRequest_('/storage', 'key', key, workspace);
 };
 
 /**

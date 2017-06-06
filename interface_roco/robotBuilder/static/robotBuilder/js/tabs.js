@@ -1,4 +1,4 @@
-numTabs = 0;
+var numTabs = 0;
 
 class Tab {
     constructor(type, name, div, button) {
@@ -12,9 +12,13 @@ class Tab {
             // create new interface in a div
             this.div = document.createElement("div");
             // populate interface with relevant content
-            this.div.innerHTML = type;
-            this.div.setAttribute("id", type);
+            // this.div.innerHTML = type;
+            this.id = type + numTabs;
+            this.div.setAttribute("id", this.id);
             this.div.classList.add("tabcontent");
+            this.div.style.width="100%";
+            this.div.style.height="100%";
+            this.div.classList.add("interface");
         } else {
             this.div = div;
         }
@@ -26,8 +30,9 @@ class Tab {
             this.button.classList.add("tablinks");
 
             // attach button to div
+            var id = this.id;
             this.button.addEventListener("click", function (evt) {
-                openInterface(evt, type);
+                openInterface(evt, id);
             });
 
             // code to convert button to text field on double click?
@@ -51,8 +56,9 @@ function addTab(t) {
     // create new button for interface in the tabs list
     t.div.style.display="none";
     document.getElementById("tabButtons").insertBefore(t.button, lastTab);
-    populateTab(t); // put your interface in the div of this tab.
     document.getElementById("tabs").insertBefore(t.div, null);
+    populateTab(t); // put your interface in the div of this tab.
+
 }
 
 function populateTab(t) {

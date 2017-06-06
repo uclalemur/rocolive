@@ -31,10 +31,11 @@ goog.require('goog.math');
 
 /**
  * Class for an editable number field.
- * @param {string} value The initial content of the field.
- * @param {number|string|undefined} opt_min Minimum value.
- * @param {number|string|undefined} opt_max Maximum value.
- * @param {number|string|undefined} opt_precision Precision for value.
+ * @param {(string|number)=} opt_value The initial content of the field. The value
+ *     should cast to a number, and if it does not, '0' will be used.
+ * @param {(string|number)=} opt_min Minimum value.
+ * @param {(string|number)=} opt_max Maximum value.
+ * @param {(string|number)=} opt_precision Precision for value.
  * @param {Function=} opt_validator An optional function that is called
  *     to validate any constraints on what the user entered.  Takes the new
  *     text as an argument and returns either the accepted text, a replacement
@@ -42,9 +43,11 @@ goog.require('goog.math');
  * @extends {Blockly.FieldTextInput}
  * @constructor
  */
-Blockly.FieldNumber =
-    function(value, opt_min, opt_max, opt_precision, opt_validator) {
-  Blockly.FieldNumber.superClass_.constructor.call(this, value, opt_validator);
+Blockly.FieldNumber = function(opt_value, opt_min, opt_max, opt_precision,
+    opt_validator) {
+  opt_value = (opt_value && !isNaN(opt_value)) ? String(opt_value) : '0';
+  Blockly.FieldNumber.superClass_.constructor.call(
+      this, opt_value, opt_validator);
   this.setConstraints(opt_min, opt_max, opt_precision);
 };
 goog.inherits(Blockly.FieldNumber, Blockly.FieldTextInput);
@@ -67,36 +70,7 @@ Blockly.FieldNumber.prototype.setConstraints = function(min, max, precision) {
   this.min_ = isNaN(min) ? -Infinity : min;
   max = parseFloat(max);
   this.max_ = isNaN(max) ? Infinity : max;
-  this.setValue(this.numberValidator(this.getValue));
-};
-
-/**
- * Sets a new change handler for number field.
- * @param {Function} handler New change handler, or null.
- */
-Blockly.FieldNumber.prototype.setValidator = function(handler) {
-  var wrappedHandler;
-  if (handler) {
-    // Wrap the user's change handler together with the angle validator.
-    wrappedHandler = function(value) {
-      var v1 = handler.call(this, value);
-      if (v1 === null) {
-        var v2 = v1;
-      } else {
-        if (v1 === undefined) {
-          v1 = value;
-        }
-        var v2 = this.numberValidator(v1);
-        if (v2 === undefined) {
-          v2 = v1;
-        }
-      }
-      return v2 === value ? undefined : v2;
-    };
-  } else {
-    wrappedHandler = this.numberValidator;
-  }
-  Blockly.FieldNumber.superClass_.setValidator.call(this, wrappedHandler);
+  this.setValue(this.callValidator(this.getValue()));
 };
 
 /**
@@ -104,7 +78,7 @@ Blockly.FieldNumber.prototype.setValidator = function(handler) {
  * @param {string} text The user's text.
  * @return {?string} A string representing a valid number, or null if invalid.
  */
-Blockly.FieldNumber.prototype.numberValidator = function(text) {
+Blockly.FieldNumber.prototype.classValidator = function(text) {
   if (text === null) {
     return null;
   }
@@ -120,7 +94,7 @@ Blockly.FieldNumber.prototype.numberValidator = function(text) {
     return null;
   }
   // Round to nearest multiple of precision.
-  if (this.precision_ && Number.isFinite(n)) {
+  if (this.precision_ && isFinite(n)) {
     n = Math.round(n / this.precision_) * this.precision_;
   }
   // Get the value in range.

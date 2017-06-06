@@ -24,8 +24,13 @@
  */
 'use strict';
 
+/**
+ * Events fired as a result of actions in Blockly's editor.
+ * @namespace Blockly.Events
+ */
 goog.provide('Blockly.Events');
 
+goog.require('goog.array');
 goog.require('goog.math.Coordinate');
 
 
@@ -229,7 +234,7 @@ Blockly.Events.getGroup = function() {
  */
 Blockly.Events.setGroup = function(state) {
   if (typeof state == 'boolean') {
-    Blockly.Events.group_ = state ? Blockly.genUid() : '';
+    Blockly.Events.group_ = state ? Blockly.utils.genUid() : '';
   } else {
     Blockly.Events.group_ = state;
   }
@@ -302,7 +307,7 @@ Blockly.Events.Abstract = function(block) {
  */
 Blockly.Events.Abstract.prototype.toJson = function() {
   var json = {
-    'type': this.type,
+    'type': this.type
   };
   if (this.blockId) {
     json['blockId'] = this.blockId;
@@ -349,7 +354,12 @@ Blockly.Events.Create = function(block) {
     return;  // Blank event to be populated by fromJson.
   }
   Blockly.Events.Create.superClass_.constructor.call(this, block);
-  this.xml = Blockly.Xml.blockToDomWithXY(block);
+
+  if (block.workspace.rendered) {
+    this.xml = Blockly.Xml.blockToDomWithXY(block);
+  } else {
+    this.xml = Blockly.Xml.blockToDom(block);
+  }
   this.ids = Blockly.Events.getDescendantIds_(block);
 };
 goog.inherits(Blockly.Events.Create, Blockly.Events.Abstract);
@@ -418,7 +428,12 @@ Blockly.Events.Delete = function(block) {
     throw 'Connected blocks cannot be deleted.';
   }
   Blockly.Events.Delete.superClass_.constructor.call(this, block);
-  this.oldXml = Blockly.Xml.blockToDomWithXY(block);
+
+  if (block.workspace.rendered) {
+    this.oldXml = Blockly.Xml.blockToDomWithXY(block);
+  } else {
+    this.oldXml = Blockly.Xml.blockToDom(block);
+  }
   this.ids = Blockly.Events.getDescendantIds_(block);
 };
 goog.inherits(Blockly.Events.Delete, Blockly.Events.Abstract);
@@ -554,8 +569,7 @@ Blockly.Events.Change.prototype.run = function(forward) {
       if (field) {
         // Run the validator for any side-effects it may have.
         // The validator's opinion on validity is ignored.
-        var validator = field.getValidator();
-        validator && validator.call(field, value);
+        field.callValidator(value);
         field.setValue(value);
       } else {
         console.warn("Can't set non-existant field: " + this.name);
@@ -802,10 +816,10 @@ Blockly.Events.disableOrphans = function(event) {
     var block = workspace.getBlockById(event.blockId);
     if (block) {
       if (block.getParent() && !block.getParent().disabled) {
-        do {
-          block.setDisabled(false);
-          block = block.getNextBlock();
-        } while (block);
+        var children = block.getDescendants();
+        for (var i = 0, child; child = children[i]; i++) {
+          child.setDisabled(false);
+        }
       } else if ((block.outputConnection || block.previousConnection) &&
                  Blockly.dragMode_ == Blockly.DRAG_NONE) {
         do {

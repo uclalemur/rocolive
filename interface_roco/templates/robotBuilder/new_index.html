@@ -11,9 +11,9 @@
             <div class="work" id="tabs">
                 <div class="tab" id="tabButtons">
                     <button class="tablinks" id="defaultOpen" onclick="openInterface(event, 'start')">Start</button>
-                    <div class="dropdown" id="dropbtn">
+                    <div class="add-dropdown" id="dropbtn">
                         <button class="dropbtn" onclick="showOptions()">+</button>
-                        <div class="dropdown-content" id="rocoInterfaces">
+                        <div class="add-dropdown-content" id="rocoInterfaces">
                             <button class="newInt" id="mechInt" onclick="newInterface(event, 'm')">Mechanical Interface</button>
                             <button class="newInt" id="bcInt" onclick="newInterface(event, 'bc')">Base Code Interface</button>
                             <button class="newInt" id="ccInt" onclick="newInterface(event, 'cc')">Composite Code Interface</button>
@@ -35,6 +35,24 @@
         <script src="{% static "robotBuilder/js/tabs.js" %}"></script>
 
         <!-- JS imports for Blockly Base Code Component interface -->
+        <script src="{% static "robotBuilder/js/blockly/appengine/storage.js" %}"></script>
+		<script src="{% static 'robotBuilder/js/blockly/blockly_compressed.js' %}"></script>
+		<script src="{% static 'robotBuilder/js/blockly/core/static_typing.js' %}"></script>
+		<script src="{% static 'robotBuilder/js/blockly/blocks_compressed.js' %}"></script>
+		<script src="{% static 'robotBuilder/js/blockly/javascript_compressed.js' %}"></script>
+		<script src="{% static 'robotBuilder/js/blockly/python_compressed.js' %}"></script>
+		<script src="{% static 'robotBuilder/js/blockly/arduino_compressed.js' %}"></script>
+		<script src="{% static "robotBuilder/js/blockly/msg/js/en.js" %}"></script>
+		<script src="{% static "robotBuilder/js/comps.js" %}"></script>
+		<script src="{% static "robotBuilder/js/indextoolbox.js" %}"></script>
+		<script src="{% static "robotBuilder/js/indexPortsBlocks.js" %}"></script>
+		<script src="{% static "robotBuilder/js/indexPortsXML.js" %}"></script>
+		<script src="{% static "robotBuilder/js/portCodeGen.js" %}"></script>
+		<script src="{% static "robotBuilder/js/indexsave.js" %}"></script>
+		<script src="{% static "robotBuilder/js/indexcodegen.js" %}"></script>
+		<script src="{% static "robotBuilder/js/python.js" %}"></script>
+        <script src="{% static "robotBuilder/js/blocks.js" %}"></script>
+		<script src="{% static "robotBuilder/js/blockly/msg/js/en.js" %}"></script>
         <script src="{% static "robotBuilder/js/populateBase.js" %}"></script> <!-- TODO: FILL this file out. -->
 
         <!-- JS imports for Blockly Composite Component interface -->
