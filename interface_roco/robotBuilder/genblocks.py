@@ -52,7 +52,7 @@ class CustomBlockFile:
     def writeInit(self, comps, ports):
         categories = {}
         for comp in comps:
-            port = ports[comp.getName()]
+            port = ports[comp.get_name()]
             suffix = "|0"
             # if "out" in port.keys():
             #     suffix = "|0"
@@ -64,12 +64,13 @@ class CustomBlockFile:
                 # print ET.dump(self.tree)
 
             ET.SubElement(categories[category], "block", {
-                          "type": (comp.getName() + suffix)})
+                          "type": (comp.get_name() + suffix)})
             # print ET.dump(self.tree)
-        self.initFile.write("var toolbox = '" + ET.tostring(self.tree) + "';\n")
-
-        self.initFile.write("var workspace = Blockly.inject('{}', {{toolbox: toolbox}});\n".format("blocklyDiv"))
-        self.initFile.write("Blockly.Xml.domToWorkspace(document.getElementById('startBlocks'), workspace);\n")
+        self.initFile.write("function getToolbox(t){\n")
+        self.initFile.write("\tt.toolbox = '" + ET.tostring(self.tree) + "';\n")
+        self.initFile.write("}\n")
+        # self.initFile.write("var workspace = Blockly.inject('{}', {{toolbox: toolbox}});\n".format("blocklyDiv"))
+        # self.initFile.write("Blockly.Xml.domToWorkspace(document.getElementById('startBlocks'), workspace);\n")
         self.blockFile.write("var BlockList = new Map();\n\n")
 
     def writeStringSourceInit(self):
@@ -88,7 +89,7 @@ class CustomBlockFile:
 
     # blocks.js
     def writeComponent(self, comp, ports):
-        name = comp.getName()
+        name = comp.get_name()
 
         if "out" in ports.keys():
             self.componentsWithOutputs.append(name)
@@ -121,13 +122,13 @@ class CustomBlockFile:
         paramArr = "["
 
         for k, v in comp.parameters.iteritems():
-            a = v
+            a = str(v.default)
             if v == "":
                 a = "\"\""
-            elif v == "0":
+            elif a == "0":
                 a = "\"0\""
-            elif not v.isdigit():
-                a = "\"" + v + "\""
+            elif not a.isdigit():
+                a = "\"" + a + "\""
             if "target" not in k:
                 paramArr += "[\"{}\", {}], ".format(k, a)
         paramArr += "]"
@@ -281,7 +282,7 @@ class CustomBlockFile:
 
     # prevCompCode.js
     def writePrevCompCode(self, comp, ports):
-        name = comp.getName()
+        name = comp.get_name()
         if "out" in ports.keys():
             self.componentCodeWithOutputs.append(name)
         else:

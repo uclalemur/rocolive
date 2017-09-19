@@ -11,6 +11,11 @@ div.tab {
     width: 100%;
 }
 
+div.injectionDiv {
+    width: 100%;
+    height: 100%;
+}
+
 /* Style the buttons inside the tab */
 div.tab button {
     background-color: inherit;

@@ -13,8 +13,6 @@ function populateBase(t) {
     t.startBlocks.innerHTML = '<block type="component_create"></block>';
     t.startBlocks.style.display = "none";
 
-    t.div.setAttribute();
-
     var workspace = Blockly.inject(t.id, {
         toolbox: Toolbox.xmlTree
     });

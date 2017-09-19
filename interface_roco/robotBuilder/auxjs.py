@@ -45,3 +45,45 @@ def writeIndexFiles():
     c.writePorts(p)
     c.writeXML(p)
     c.writePortCodeGen(p)
+
+def writePrevFiles():
+    # c = CustomBlockFile()
+    comps = filter_components(["electrical", "code"])
+    print comps
+    print "Number of Components: ", len(comps)
+    print comps
+
+    build_database(comps)
+
+    ports = {}
+
+    for i in comps:
+        item = {}
+        # print i.getName(), i.interfaces
+        # import pdb; pdb.set_trace()
+        for k, v in i.interfaces.iteritems():
+            if "out" in k.lower() or "out" in v.name.lower() or "do" in k.lower() or "do" in v.name.lower():
+                if 'out' not in item.keys():
+                    item['out'] = {}
+                item['out'][k] = v
+            elif "in" in k.lower() or "in" in v.name.lower() or "di" in k.lower() or "di" in v.name.lower() or ("a" in v.name.lower() and v.name.lower()[1:].isdigit()):
+                if 'in' not in item.keys():
+                    item['in'] = {}
+                item['in'][k] = v
+        ports[i.get_name()] = item
+
+    blockfile = "blocks.js"
+    initfile = "init.js"
+
+    files = (blockfile, initfile)
+    blockjs = CustomBlockFile(blockfile)
+
+    # write file that defines the toolbox
+    blockjs.writeInit(comps, ports)
+
+    # Write block.js file that describes blockly blocks.
+    for i in comps:
+        blockjs.writeComponent(i, ports[i.get_name()])
+        blockjs.writePrevCompCode(i, ports[i.get_name()])
+    blockjs.finishComponents()
+    blockjs.finishComponentCode()

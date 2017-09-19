@@ -57,6 +57,7 @@ function addTab(t) {
     t.div.style.display="none";
     document.getElementById("tabButtons").insertBefore(t.button, lastTab);
     document.getElementById("tabs").insertBefore(t.div, null);
+    t.button.click();
     populateTab(t); // put your interface in the div of this tab.
 
 }
@@ -73,7 +74,7 @@ function populateTab(t) {
             populateMech(t);
             break;
         default:
-            console.log("Something bad happenned. Invalid type name for tab. ");
+            console.log("Something bad happened. Invalid type name for tab. ");
 
     }
 }
