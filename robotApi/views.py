@@ -68,7 +68,7 @@ def fixEdgeInterface(request):
 def constrainParameter(request):
     if request.method == 'GET' or request.method == 'POST':
         data = ast.literal_eval(request.body)
-        fc = request.session['component']
+        fc = request.session['component'][data['id']]
         sc = data['sc']
         parameter = data['parameter']
         constraint = data['constraint']
@@ -86,13 +86,19 @@ def createComponent(request):
         #pdb.set_trace()
         sessionComponent = component.Component() #Create component
         name = id(sessionComponent)
+        data = ast.literal_eval(request.body)
         try:
-            #Delete old components stored in session if they still exist
-            del request.session['component']
+            try:
+                request.session['component']
+            except:
+                request.session['component'] = {}
+            del request.session['component'][data['id']]
         except Exception as e:
-            traceback.print_exc()
+            pass
+            #traceback.print_exc()
         #Store session component
-        request.session['component'] = sessionComponent
+        request.session['component'][data['id']] = sessionComponent
+        print request.session['component']
         request.session.modified = True
         return HttpResponse('FoldedComponent {} Created'.format(name))
 
@@ -113,7 +119,7 @@ def addSubcomponent(request):
             type = data['type']
 
             #Add the subcomponent to the session component
-            sessionComponent = request.session['component']
+            sessionComponent = request.session['component'][data['id']]
             sessionComponent.add_subcomponent(scname,type)
             #sc = {"class": type, "parameters": {}, "constants": None, "baseclass": "FoldedComponent", "component": None}
             #sessionComponent.subcomponents.set_default(scname, sc)
@@ -152,7 +158,7 @@ def delSubcomponent(request):
             data = ast.literal_eval(request.body)
             scname = data['name']
 
-            sessionComponent = request.session['component']
+            sessionComponent = request.session['component'][data['id']]
             sessionComponent.del_subcomponent(scname)
             request.session.modified = True
             print "Subcomponent {} deleted".format(scname)
@@ -167,7 +173,7 @@ def addConnection(request):
     if request.method == 'GET' or request.method == 'POST':
         try:
             data = ast.literal_eval(request.body)
-            fc = request.session['component']
+            fc = request.session['component'][data['id']]
             sc1 = data['sc1']
             port1 = data['port1']
             sc2 = data['sc2']
@@ -186,7 +192,7 @@ def addTabConnection(request):
     if request.method == 'GET' or request.method == 'POST':
         try:
             data = ast.literal_eval(request.body)
-            fc = request.session['component']
+            fc = request.session['component'][data['id']]
             sc1 = data['sc1']
             port1 = data['port1']
             sc2 = data['sc2']
@@ -205,7 +211,7 @@ def addParameter(request):
     if request.method == 'GET' or request.method == 'POST':
         try:
             data = ast.literal_eval(request.body)
-            fc = request.session['component']
+            fc = request.session['component'][data['id']]
             name = data['name']
             default = data['def']
             fc.add_parameter(name, default)
@@ -221,7 +227,7 @@ def delParameter(request):
     if request.method == 'GET' or request.method == 'POST':
         try:
             data = ast.literal_eval(request.body)
-            fc = request.session['component']
+            fc = request.session['component'][data['id']]
             name = data['name']
             fc.del_parameter(name)
             request.session.modified = True
@@ -236,7 +242,7 @@ def delInterface(request):
     if request.method == 'GET' or request.method == 'POST':
         try:
             data = ast.literal_eval(request.body)
-            fc = request.session['component']
+            fc = request.session['component'][data['id']]
             name = data['name']
             fc.del_interface(name)
             request.session.modified = True
@@ -254,7 +260,8 @@ def make(request):
     if request.method == 'GET' or request.method == 'POST':
         try:
             #pdb.set_trace()
-            fc = request.session['component']
+            data = ast.literal_eval(request.body)
+            fc = request.session['component'][data['id']]
             fc.make_output(placeOnly=True)
             #print fc.__dict__
             #print "made"
@@ -284,7 +291,8 @@ def getSVG(request):
     #pdb.set_trace()
     if request.method == 'GET' or request.method == 'POST':
         try:
-            fc = request.session['component']
+            data = ast.literal_eval(request.body)
+            fc = request.session['component'][data['id']]
             #pdb.set_trace()
             #####
             svg = fc.composables['graph'].make_output(filedir=".",svgString = True)
@@ -324,7 +332,8 @@ def downloadSVG(request):
 def downloadYaml(request):
     if request.method == 'GET' or request.method == 'POST':
         try:
-            yaml = request.session['component'].to_yaml()
+            data = ast.literal_eval(request.body)
+            yaml = request.session['component'][data['id']].to_yaml()
             yaml = yaml.replace('"',"'")
             yaml = yaml.replace('\n', '\\n')
             response = '{"response": "' + yaml +'"}'
@@ -340,7 +349,7 @@ def componentSave(request):
     if request.method == 'GET' or request.method == 'POST':
         try:
             data = ast.literal_eval(request.body)
-            fc = request.session['component']
+            fc = request.session['component'][data['id']]
             name = data['name']
             fc.toYaml("library/" + name + ".yaml")
             build_database([get_component(name, baseclass="FoldedComponent")])
@@ -357,7 +366,7 @@ def inheritInterface(request):
     if request.method == 'GET' or request.method == 'POST':
         try:
             data = ast.literal_eval(request.body)
-            fc = request.session['component']
+            fc = request.session['component'][data['id']]
             name = data['name']
             scname = data['scname']
             interface = data['interface']

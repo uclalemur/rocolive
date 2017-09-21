@@ -1,7 +1,10 @@
 var debugObj;
+var idGenerator = 0;
 
 class MechanicalInterface {
     constructor (tabDom, container, svgcontainer) {
+        this.id = idGenerator++;
+        console.log(this.id);
         this.container = container;
         this.svgcontainer = svgcontainer;
         this.tabDom = tabDom;
@@ -88,7 +91,7 @@ class MechanicalInterface {
         this.orbit = new THREE.OrbitControls( this.camera, this.renderer.domElement );
         this.loadGui();
         this.getComponents();
-        createComponent();
+        createComponent(this.id);
         this.renderer.domElement.addEventListener( 'mousemove', onDocumentMouseMove(this), false );
         this.renderer.domElement.addEventListener( 'mousedown', onDocumentMouseDown(this), false );
         this.renderer.domElement.addEventListener( 'mouseup', onDocumentMouseUp, false );
@@ -101,7 +104,7 @@ class MechanicalInterface {
 
     downloadSVG() {
         var name = this.componentName + ".dxf";
-        this.getSVGDownload(function(response){
+        this.getSVGDownload(this.id, function(response){
             var data = JSON.parse(response).response;
             this.download(name, data)
         });
@@ -121,14 +124,14 @@ class MechanicalInterface {
 
     downloadYaml() {
         var name = this.componentName + ".yaml"
-        this.getYamlDownload(function(response){
+        this.getYamlDownload(this.id, function(response){
             var data = JSON.parse(response).response;
             this.download(name, data);
         })
     }
 
     saveComponent() {
-        this.componentSave(this.componentName, function(){});
+        this.componentSave(this.id,this.componentName, function(){});
     }
 
     fixEdgeInterface() {
@@ -144,7 +147,7 @@ class MechanicalInterface {
 		        interfaceToFix = this.SELECTED.name;
             }
             var value = window.prompt("Value to fix interface to");
-            this.fixComponentEdgeInterface(name, interfaceToFix, value);
+            this.fixComponentEdgeInterface(this.id,name, interfaceToFix, value);
         }
     }
 
@@ -199,7 +202,7 @@ class MechanicalInterface {
                 c: pars,
                 constrain:function(){
                     var value = window.prompt("Set " + objMesh.name + "_" + this.c + " to: ");
-                    constrainParameter(objMesh.name, this.c, value);
+                    constrainParameter(this.id, objMesh.name, this.c, value);
                     this.controller.name(this.c + " = " + value);
                 }
             }
@@ -294,7 +297,7 @@ class MechanicalInterface {
                         '<span class="blink_me">LOADING...</span>' +
                         '</div>';
                 $(over).appendTo('body');
-                delSubcomponent(this.delName, function(response){$('#overlay').remove();});
+                delSubcomponent(this.id, this.delName, function(response){$('#overlay').remove();});
             }
         }
         removeButton.mechInterface = this;
@@ -428,7 +431,7 @@ class MechanicalInterface {
                             '</div>';
                         $(over).appendTo('body');
                         var mechInterface = this.mechInterface;
-                        addSubcomponent(n, this.mechInterface.compName, function(response){
+                        addSubcomponent(this.id, n, this.mechInterface.compName, function(response){
                             response = JSON.parse(response).response;
                             mechInterface.tempParams = {};
                             mechInterface.loadSymbolic(response, n);
@@ -542,7 +545,7 @@ class MechanicalInterface {
                                 '<span class="blink_me">LOADING...</span>' +
                                 '</div>';
                         $(over).appendTo('body');
-                    addComponentConnection(s1pname,s1name,s2pname,s2name, angle, function(){$('#overlay').remove();});//function(){buildComponent()});
+                    addComponentConnection(this.id,s1pname,s1name,s2pname,s2name, angle, function(){$('#overlay').remove();});//function(){buildComponent()});
                     this.mechInterface.connections.push(newConn);
                     this.mechInterface.SELECTED.parent.connectedInterfaces[this.mechInterface.SELECTED.name] = newConn.interface2;
                     this.mechInterface.SELECTED_2.parent.connectedInterfaces[this.mechInterface.SELECTED_2.name] = newConn.interface1;
@@ -553,7 +556,7 @@ class MechanicalInterface {
                         s1name: s1name,
                         fixConnection:function(){
                             var value = window.prompt("Value to fix interface to");
-                            fixComponentEdgeInterface(this.s1pname, this.s1name, value);
+                            fixComponentEdgeInterface(this.id,this.s1pname, this.s1name, value);
                         }
                     }
                     folder.add(newConn,"interface2").name(newConn.interface1);
@@ -613,7 +616,7 @@ class MechanicalInterface {
                         s2pname = this.mechInterface.SELECTED_2.parent.name;
                         s2name = this.mechInterface.SELECTED_2.name;
                     }
-                    addTabConnection(s1pname,s1name,s2pname,s2name, angle, function(){});//function(){buildComponent()});
+                    addTabConnection(this.id,s1pname,s1name,s2pname,s2name, angle, function(){});//function(){buildComponent()});
                     connections.push(newConn);
                     this.mechInterface.SELECTED.parent.connectedInterfaces[SELECTED.name] = newConn.interface2;
                     this.mechInterface.SELECTED_2.parent.connectedInterfaces[SELECTED_2.name] = newConn.interface1;
@@ -666,7 +669,7 @@ class MechanicalInterface {
                     return;
                 this.mechInterface.parameters[fieldName] = pdef;
                 this.mechInterface.comp.parameters.add(this.mechInterface.parameters, fieldName).name(fieldName);
-                addParameter(fieldName, pdef);
+                addParameter(this.id,fieldName, pdef);
             },
             parameterDelete:function(){
                 var delName = window.prompt("Name of parameter to delete","");
@@ -677,7 +680,7 @@ class MechanicalInterface {
                 if(this.mechInterface.comp.parameters.__controllers[i].__li.firstElementChild.firstElementChild.innerHTML == delName)
                     this.mechInterface.comp.parameters.remove(this.mechInterface.comp.parameters.__controllers[i]);
                 }
-                delParameter(delName);
+                delParameter(this.id,delName);
             },
             interfaceAdd:function(){
                 if(this.mechInterface.SELECTED != undefined && this.mechInterface.SELECTED.parent != "Scene")
@@ -697,7 +700,7 @@ class MechanicalInterface {
                     }
                     this.mechInterface.interfaces[name] = s1pname + "." + s1name;
                     this.mechInterface.comp.interfaces.add(this.mechInterface.interfaces, name).name(name);
-                    inheritInterface(name, s1pname, s1name);
+                    inheritInterface(this.id,name, s1pname, s1name);
                 }
             },
             interfaceDelete:function(){
@@ -709,7 +712,7 @@ class MechanicalInterface {
                 if(this.mechInterface.comp.interfaces.__controllers[i].__li.firstElementChild.firstElementChild.innerHTML == delName)
                     this.mechInterface.comp.interfaces.remove(this.mechInterface.comp.interfaces.__controllers[i]);
                 }
-                delInterface(delName);
+                delInterface(this.id,delName);
             }
         }
         objectbuttons.mechInterface = this;
@@ -736,7 +739,7 @@ class MechanicalInterface {
         thisComponent.parameters = this.parameters;
         thisComponent.connections = this.connections;
         var mechInterface = this;
-        makeComponent(function(response){
+        makeComponent(this.id, function(response){
             response = JSON.parse(response).response;
             if(mechInterface.SELECTED != undefined){
                 mechInterface.control.detach(mechInterface.SELECTED);
@@ -776,7 +779,7 @@ class MechanicalInterface {
         $(over).appendTo('body');
         var mechInterface = this;
         var drawing_div = this.tabDom.getElementsByClassName('svg-view')[0];
-         getSVG(function(response){
+         getSVG(this.id, function(response){
             response = JSON.parse(response).response;
             drawing_div.style.backgroundColor = 'white'
             //drawing_div.style.padding = "2%";
