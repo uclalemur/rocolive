@@ -313,6 +313,8 @@ Blockly.Mutator.prototype.workspaceChanged_ = function() {
     block.rendered = false;
     // Allow the source block to rebuild itself.
     block.compose(this.rootBlock_);
+    // lets event handler access the rootblock
+    getActiveTab().rootBlock = this.rootBlock_;
     // Restore rendering and show the changes.
     block.rendered = savedRendered;
     // Mutation may have added some elements that need initializing.
