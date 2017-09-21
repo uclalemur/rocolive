@@ -18,7 +18,13 @@ function openInterface(evt, interfaceName) {
 
     // Show the current tab, and add an "active" class to the button that opened the tab
     document.getElementById(interfaceName).style.display = "block";
-    evt.currentTarget.className += " active";
+    if(evt)
+	evt.currentTarget.className += " active";
 }
 
 document.getElementById("defaultOpen").click();
+window.onresize = function() {
+    $('.tabcontent').each(function(i, obj) {
+	obj.style.height = window.innerHeight - $("#tabButtons").outerHeight();
+    });
+};

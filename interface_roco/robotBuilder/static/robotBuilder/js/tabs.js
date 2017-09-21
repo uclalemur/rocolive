@@ -57,9 +57,10 @@ function addTab(t) {
     t.div.style.display="none";
     document.getElementById("tabButtons").insertBefore(t.button, lastTab);
     document.getElementById("tabs").insertBefore(t.div, null);
-    t.button.click();
-    populateTab(t); // put your interface in the div of this tab.
-
+    openInterface(null, t.id);
+    t.button.className += " active";
+    populateTab(t);
+    t.div.style.height = window.innerHeight - $("#tabButtons").outerHeight();
 }
 
 function populateTab(t) {

@@ -2,13 +2,14 @@ html{
     height: 100%;
 }
 
-body{
+.mech_wrapper{
     height: 100%;
+    width: 100%;
     background-color: black;
     margin: 0;
 }
 
-#content{
+.content{
     height: 100%;
     width: 100%;
     margin: 0;
@@ -19,7 +20,7 @@ body{
     padding: 0;
 }
 
-#left-panel,#right-panel,#componentView{
+.left-panel,.right-panel,.componentView{
    height: 100%;
    width: 100%;
 }

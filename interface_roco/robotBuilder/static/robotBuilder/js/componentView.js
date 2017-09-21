@@ -1,39 +1,935 @@
-var container, svgcontainer;
-var camera, svgcamera, control, orbit, scene, svgscene, renderer, svgrenderer, stl_loader, gui, rightpanel, subprops, componentName;
-var subcomponents = [];
-var connectedSubcomponents = [];
-var componentObj;
-var componentLibrary = {};
-var componentMenus = {};
-var parameters = {};
-var interfaces = {};
-var connections = [];
-var tempParams = {};
-var componentCount = 0;
+var debugObj;
 
-var raycaster = new THREE.Raycaster();
-raycaster.linePrecision = 3;
-var mouse = new THREE.Vector2(),
-    offset = new THREE.Vector3(),
-    SELECTED_2, SELECTED;
+class MechanicalInterface {
+    constructor (tabDom, container, svgcontainer) {
+        this.container = container;
+        this.svgcontainer = svgcontainer;
+        this.tabDom = tabDom;
+        this.scene = null;
+        this.svgscene = null;
+        this.camera = null;
+        this.svgcamera = null;
+        this.stl_loader = null;
+        this.renderer = null;
+        this.svgrenderer = null;
+        this.control = null;
+        this.orbit = null;
+        this.gui = null;
+        this.searchFilters = null;
+        this.rightpanel = null;
+        this.subprops = null;
+        this.componentName = null;
+        this.subcomponents = [];
+        this.connectedSubcomponents = [];
+        this.componentObj = null;
+        this.componentLibrary = {};
+        this.componentMenus = {};
+        this.parameters = {};
+        this.interfaces = {};
+        this.connections = [];
+        this.tempParams = {};
+        this.componentCount = 0;
+        this.comp = null;
+        this.compName = null;
+        this.componentsFolder = null;
+        this.raycaster = new THREE.Raycaster();
+        this.raycaster.linePrecision = 3;
+        this.mouse = new THREE.Vector2();
+        this.offset = new THREE.Vector3();
+        this.SELECTED_2 = null;
+        this.SELECTED = null;
 
-$("#dialog").dialog({autoOpen: false});
-componentName = ""
-do{
-    componentName = window.prompt("Name the component", "");
+        setInterval(this.blinker, 1500);
+    }
+
+    mechanicalGo() {
+        this.componentName = "";
+        do {
+            this.componentName = window.prompt("Name the component", "");
+        } while(this.componentName == "" || this.componentName == null);
+
+        this.init();
+    }
+
+    init() {
+        this.scene = new THREE.Scene();
+        this.svgscene = new THREE.Scene();
+        this.camera = new THREE.PerspectiveCamera( 75, this.container.clientWidth / this.container.clientHeight, 0.1, 100000 );
+        //camera = new THREE.OrthographicCamera(container.offsetWidth / -2, container.offsetWidth / 2, container.offsetHeight / 2, container.offsetHeight / -2, 0.1, 100000);
+        this.svgcamera = new THREE.OrthographicCamera(this.svgcontainer.offsetWidth / -2, this.svgcontainer.offsetWidth / 2, this.svgcontainer.offsetHeight / 2, this.svgcontainer.offsetHeight / -2, 1, 1000);
+
+        this.stl_loader = new THREE.STLLoader();
+        this.renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
+        this.renderer.setSize( this.container.clientWidth, this.container.clientHeight);
+        this.renderer.setClearColor( 0x000000,0);
+        this.svgrenderer = new THREE.WebGLRenderer({alpha:true,antialias: true});
+        this.svgrenderer.setSize(this.svgcontainer.clientWidth, this.svgcontainer.clientHeight);
+        this.svgrenderer.setClearColor(0x000000,0);
+        this.container.appendChild( this.renderer.domElement );
+        this.svgcontainer.appendChild(this.svgrenderer.domElement);
+        this.scene.add( new THREE.GridHelper( 500, 100 ) );
+        this.camera.position.set( 1000, 500, 1000 );
+        this.camera.lookAt( new THREE.Vector3( 0, 200, 0 ) );
+        this.svgcamera.position.set(0,1000,0);
+        this.svgcamera.lookAt(new THREE.Vector3(0,0,0));
+        var light = new THREE.DirectionalLight( 0xffffff );
+        light.position.set( 1, 1, 1 );
+        this.scene.add( light );
+
+        light = new THREE.DirectionalLight( 0x002288 );
+        light.position.set( -1, -1, -1 );
+        this.scene.add( light );
+
+        light = new THREE.AmbientLight( 0x222222 );
+        this.scene.add( light );
+
+        this.control = new THREE.TransformControls( this.camera, this.renderer.domElement );
+        this.control.addEventListener( 'change', this.render );
+        this.orbit = new THREE.OrbitControls( this.camera, this.renderer.domElement );
+        this.loadGui();
+        this.getComponents();
+        createComponent();
+        this.renderer.domElement.addEventListener( 'mousemove', onDocumentMouseMove(this), false );
+        this.renderer.domElement.addEventListener( 'mousedown', onDocumentMouseDown(this), false );
+        this.renderer.domElement.addEventListener( 'mouseup', onDocumentMouseUp, false );
+    }
+
+    blinker() {
+        $('.blink_me').fadeOut(750);
+        $('.blink_me').fadeIn(750);
+    }
+
+    downloadSVG() {
+        var name = this.componentName + ".dxf";
+        this.getSVGDownload(function(response){
+            var data = JSON.parse(response).response;
+            this.download(name, data)
+        });
+    }
+
+    splitComponent() {
+        this.scene.remove(this.componentObj);
+        delete this.componentObj;
+        this.componentObj = undefined;
+        while(this.connectedSubcomponents.length > 0) {
+	        this.scene.add(this.connectedSubcomponents[this.connectedSubcomponents.length-1]);
+	        this.subcomponents.push(this.connectedSubcomponents[this.connectedSubcomponents.length-1]);
+	        this.connectedSubcomponents.splice(this.connectedSubcomponents.length-1,1);
+        }
+        this.tabDom.getElementsByClassName("sComp")[0].disabled = true;
+    }
+
+    downloadYaml() {
+        var name = this.componentName + ".yaml"
+        this.getYamlDownload(function(response){
+            var data = JSON.parse(response).response;
+            this.download(name, data);
+        })
+    }
+
+    saveComponent() {
+        this.componentSave(this.componentName, function(){});
+    }
+
+    fixEdgeInterface() {
+        var name, interfaceToFix, value;
+        if(this.SELECTED != undefined && this.SELECTED.parent != "Scene") {
+            if(this.SELECTED.parent.type == "MasterComponent") {
+                var spl = this.SELECTED.name.split("_");
+		        name = spl[0];
+		        interfaceToFix = spl[1];
+            }
+            else {
+                name = this.SELECTED.parent.name;
+		        interfaceToFix = this.SELECTED.name;
+            }
+            var value = window.prompt("Value to fix interface to");
+            this.fixComponentEdgeInterface(name, interfaceToFix, value);
+        }
+    }
+
+    downloadModel() {
+        if(UrlExists("models/" + this.componentName + "/graph-model.stl"))
+	        window.open("models/" + this.componentName + "/graph-model.stl");
+    }
+
+    onComponentSymbolic(obj) {
+        if(this.componentObj)
+            this.scene.remove(this.componentObj);
+            //.replaceAll("**","^");
+        debugObj = obj;
+        this.componentObj = createMeshFromObject(obj);
+        this.componentObj.type = "MasterComponent";
+        this.componentObj.interfaceEdges = obj["interfaceEdges"]
+        this.componentObj.connectedInterfaces = {};
+        for(var i = 0, len = this.connectedSubcomponents.length; i < len; i++) {
+            for(var interfaceEdge in this.connectedSubcomponents[i].interfaceEdges) {
+                obj.interfaceEdges[this.connectedSubcomponents[i].name + "_" + interfaceEdge] = []
+                for(var edge = 0, edges = this.connectedSubcomponents[i].interfaceEdges[interfaceEdge].length; edge < edges; edge++) {
+                    obj.interfaceEdges[this.connectedSubcomponents[i].name + "_" + interfaceEdge].push(this.connectedSubcomponents[i].name + "_" + this.connectedSubcomponents[i].interfaceEdges[interfaceEdge][edge]);
+                }
+            }
+        }
+        for(var i = 0, len = this.connections.length; i < len; i++) {
+            this.componentObj.connectedInterfaces[this.connections[i].interface1.replaceAll(".", "_")] = true;
+            this.componentObj.connectedInterfaces[this.connections[i].interface2.replaceAll(".", "_")] = true;
+        }
+        highlightInterfaces(this.componentObj);
+        this.scene.add(this.componentObj);
+    }
+
+    loadSymbolic(obj, n) {
+        debugObj = obj;
+        var objMesh = createMeshFromObject(obj);
+
+        objMesh.name = n;
+        objMesh.className = this.compName;
+        objMesh.interfaces = {};
+        objMesh.interfaceEdges = obj["interfaceEdges"];
+        objMesh.connectedInterfaces = {};
+        objMesh.parameterfuncs = {};
+        this.subcomponents.push(objMesh);
+        highlightInterfaces(objMesh);
+        this.comp.subcomponents[objMesh.name] = this.comp.subcomponents.addFolder(objMesh.name);
+        var constrs = this.comp.subcomponents[objMesh.name].addFolder("Constrain Parameters");
+        objMesh.parameters = obj['parameters'];
+        for(var pars in objMesh.parameters){
+            var constraintButton = {
+                controller: undefined,
+                c: pars,
+                constrain:function(){
+                    var value = window.prompt("Set " + objMesh.name + "_" + this.c + " to: ");
+                    constrainParameter(objMesh.name, this.c, value);
+                    this.controller.name(this.c + " = " + value);
+                }
+            }
+            var controller = constrs.add(constraintButton, "constrain");
+            constraintButton.controller = controller;
+            controller.name(pars);
+            //if(objMesh.parameters[i] == null)
+            //    objMesh.parameters[i] = "";
+
+            //objMesh.parameterfuncs[i] = "";
+            //f.add(constraintButton, "constrain").name("Constrain");
+            //f.add(objMesh.parameters,i).name("Value");
+            //f.add(objMesh.parameterfuncs,i).name("Function");
+        }
+        /*var ints = comp.subcomponents[objMesh.name].addFolder("Inherit Interfaces");
+        for(var i in componentLibrary[objMesh.className].interfaces){
+            var inheritButton = {
+                controller: undefined,
+                name: objMesh.name,
+                interface: componentLibrary[objMesh.className].interfaces[i],
+                inherit: function(){
+                    var intName = window.prompt("Name for inherited interface: ");
+                    this.controller.name(this.interface + ": Inherited as " + intName);
+                    inheritInterface(intName, this.name, this.interface);
+                }
+            }
+            var controller = ints.add(inheritButton, "inherit");
+            inheritButton.controller = controller;
+            controller.name(inheritButton.interface);
+            //objMesh.interfaces[componentLibrary[objMesh.className].interfaces[i]] = false;
+        }*/
+        this.scene.add(objMesh);
+        /*for(i in objMesh.interfaces){
+            var contr = ints.add(objMesh.interfaces,i)
+            contr.name(i);
+        }*/
+        var removeButton = {
+            mechInterface: null,
+            delName: objMesh.name,
+            remove: function(){
+                for(var i = 0, len = this.mechInterface.subcomponents.length; i < len; i++){
+                    if(this.mechInterface.subcomponents[i].name == this.delName){
+                        if(this.mechInterface.SELECTED != undefined && this.mechInterface.SELECTED.name == this.mechInterface.subcomponents[i].name){
+                            this.mechInterface.control.detach(this.mechInterface.subcomponents[i].name);
+                            this.mechInterface.SELECTED = undefined;
+                        }
+                        this.mechInterface.scene.remove(this.mechInterface.subcomponents[i]);
+                        this.mechInterface.subcomponents.splice(i,1);
+                        break;
+                    }
+                }
+                removeByName(this.mechInterface.connectedSubcomponents, this.delName);
+                this.mechInterface.comp.subcomponents.removeFolder(this.delName);
+                for(var i = 0, len = this.mechInterface.connections.length; i < len; i++){
+                    if(this.mechInterface.connections[i].interface1.substr(0, this.mechInterface.connections[i].interface1.indexOf(".")) == this.delName)
+                    {
+                        var otherName = this.mechInterface.connections[i].interface2.substr(0, this.mechInterface.connections[i].interface2.indexOf("."));
+                        console.log(otherName);
+                        for(var j = 0, slen = this.mechInterface.subcomponents.length; j < slen; j++){
+                            if(this.mechInterface.subcomponents[j].name == otherName)
+                                delete this.mechInterface.subcomponents[j].connectedInterfaces[this.mechInterface.connections[i].interface2.substr(this.mechInterface.connections[i].interface2.indexOf(".")+1)];
+                        }
+                        for(var j = 0, slen = this.mechInterface.connectedSubcomponents.length; j < slen; j++){
+                            if(this.mechInterface.connectedSubcomponents[j].name == otherName)
+                                delete this.mechInterface.connectedSubcomponents[j].connectedInterfaces[this.mechInterface.connections[i].interface1.substr(this.mechInterface.connections[i].interface1.indexOf(".")+1)];
+                        }
+                        this.mechInterface.comp.connections.removeFolder(this.mechInterface.connections[i].name);
+                        this.mechInterface.connections.splice(i, 1);
+                        i--;
+                        len--;
+                    }
+                    else if(this.mechInterface.connections[i].interface2.substr(0, this.mechInterface.connections[i].interface2.indexOf(".")) == this.delName)
+                    {
+                        var otherName = this.mechInterface.connections[i].interface1.substr(0, this.mechInterface.connections[i].interface1.indexOf("."));
+                        console.log(otherName);
+                        for(var j = 0, slen = this.mechInterface.subcomponents.length; j < slen; j++){
+                            if(this.mechInterface.subcomponents[j].name == otherName)
+                                delete this.mechInterface.subcomponents[j].connectedInterfaces[this.mechInterface.connections[i].interface1.substr(this.mechInterface.connections[i].interface1.indexOf(".")+1)];
+                        }
+                        for(var j = 0, slen = this.mechInterface.connectedSubcomponents.length; j < slen; j++){
+                            if(this.mechInterface.connectedSubcomponents[j].name == otherName)
+                                delete this.mechInterface.connectedSubcomponents[j].connectedInterfaces[this.mechInterface.connections[i].interface1.substr(this.mechInterface.connections[i].interface1.indexOf(".")+1)];
+                        }
+                        this.mechInterface.comp.connections.removeFolder(this.mechInterface.connections[i].name);
+                        this.mechInterface.connections.splice(i, 1);
+                        i--;
+                        len--;
+                    }
+                }
+                console.log("deleting: " + this.delName);
+                var over = '<div id="overlay">' +
+                        '<span class="blink_me">LOADING...</span>' +
+                        '</div>';
+                $(over).appendTo('body');
+                delSubcomponent(this.delName, function(response){$('#overlay').remove();});
+            }
+        }
+        removeButton.mechInterface = this;
+        this.comp.subcomponents[objMesh.name].add(removeButton, "remove").name("Delete");
+    }
+
+    // CURRENTLY UNUSED
+    /*onLoadSTL(geometry) {
+        var n = window.prompt("Subcomponent Name","");
+        if(n == "" || n == null)
+        return;
+        var joined = this.subcomponents.concat(this.connectedSubcomponents);
+        for(var iter = 0,len = joined.length; iter < len; iter++){
+            if(joined[iter].name == n){
+                window.alert('Subcomponent with name "' + n + '" already exists');
+                return;
+            }
+        }
+        var material = new THREE.MeshPhongMaterial( { color:0xffffff, shading: THREE.FlatShading } );
+        var obj = new THREE.Mesh(geometry,material);
+        obj.name = n;
+        obj.className = this.compName;
+        obj.interfaces = {};
+        obj.interfaceEdges = this.interfaceEdges;
+        obj.parameterfuncs = {};
+        this.subcomponents.push(obj);
+        for(i in obj.interfaceEdges){
+            for(j in this.interfaceEdges[i]){
+                if(this.interfaceEdges[i][j] == null)
+                continue;
+                var material = new THREE.LineBasicMaterial({
+                    color: 0xff0000
+                });
+                var geometry = new THREE.Geometry();
+                geometry.vertices.push(
+                           new THREE.Vector3( interfaceEdges[i][j][0][0], interfaceEdges[i][j][0][1], interfaceEdges[i][j][0][2] ),
+                           new THREE.Vector3( interfaceEdges[i][j][1][0], interfaceEdges[i][j][1][1], interfaceEdges[i][j][1][2] )
+                           );
+                var line = new THREE.Line( geometry, material );
+                line.name = i;
+                obj.add(line);
+            }
+        }
+        this.comp.subcomponents[obj.name] = this.comp.subcomponents.addFolder(obj.name);
+        var constrs = this.comp.subcomponents[obj.name].addFolder("Constraints");
+        /*picoModule.getParameters(this.compName,function(response){
+        obj.parameters = response;
+        for(i in obj.parameters){
+            var f = constrs.addFolder(i);
+            if(obj.parameters[i] == null)
+            obj.parameters[i] = "";
+            obj.parameterfuncs[i] = "";
+            f.add(obj.parameters,i).name("Value");
+            f.add(obj.parameterfuncs,i).name("Function");
+        }
+        });*/
+    /*    for(i in this.componentLibrary[obj.className].interfaces) {
+            obj.interfaces[componentLibrary[obj.className].interfaces[i]] = false;
+        }
+        this.scene.add(obj);
+        var ints = this.comp.subcomponents[obj.name].addFolder("Inherit Interfaces");
+        for(i in obj.interfaces){
+            var contr = ints.add(obj.interfaces,i)
+            contr.name(i);
+        }
+    }*/
+
+    // CURRENTLY UNUSED
+    /* onComponentSTL(geometry) {
+        if(this.componentObj)
+            this.scene.remove(this.componentObj);
+        material = new THREE.MeshPhongMaterial( {color:0xffffff,shading:THREE.FlatShading});
+        this.componentObj = new THREE.Mesh(geometry,material);
+        this.scene.add(this.componentObj);
+    }*/
+
+    handleError(e) {
+        var ind = e.exception.search("Parameter ");
+        if(ind != -1){
+            var param = [];
+            if(e.exception.charAt(ind+10) == '[')
+                param = eval(e.exception.substring(ind+10,e.exception.search(']')+1))
+            else{
+                var strip = e.exception.substring(ind+10);
+                param.push(strip.substring(0,strip.search(' ')));
+            }
+            for(var i = 0, len = param.length; i < len; i++){
+                var val = window.prompt("Set value for parameter " + param[i]);
+                if(val == "" || val == null)
+                return;
+                this.tempParams[param[i]] = parseInt(val);
+            }
+            var args = [this.compName,this.tempParams];
+            /*picoModule.generate_stl(args, function(response){
+                tempParams = {};
+                console.log(response);
+                interfaceEdges = response;
+                stl_loader.load('models/' + compName + '/graph-model.stl',onLoadSTL);
+            });*/
+        }
+        else
+            window.alert(e.exception);
+    }
+
+    getComponents() {
+        //for(var key in componentMenus){
+            var mech = this;
+            getComponentList("" ,function(response){
+            response = JSON.parse(response).response;
+            for(var i = 0; i < response.length; i++){
+                mech.componentLibrary[response[i][0]] = { interfaces: response[i][1] };
+                var button = {
+                    mechInterface: undefined,
+                    compName: response[i][0],
+                    add: function() {
+                        this.mechInterface.compName = this.compName;
+                        var args = [this.compName,this.mechInterface.tempParams];
+                        this.mechInterface.componentCount++;
+                        var n = window.prompt("Subcomponent Name","");
+                        if(n == "" || n == null)
+                            return;
+                        var joined = this.mechInterface.subcomponents.concat(this.mechInterface.connectedSubcomponents);
+                        for(var iter = 0, len = joined.length; iter < len; iter++){
+                            if(joined[iter].name == n){
+                                window.alert('Subcomponent with name "' + n + '" already exists');
+                                return;
+                            }
+                        }
+                        var over = '<div id="overlay">' +
+                            '<span class="blink_me">LOADING...</span>' +
+                            '</div>';
+                        $(over).appendTo('body');
+                        var mechInterface = this.mechInterface;
+                        addSubcomponent(n, this.mechInterface.compName, function(response){
+                            response = JSON.parse(response).response;
+                            mechInterface.tempParams = {};
+                            mechInterface.loadSymbolic(response, n);
+                            /*interfaceEdges = response;
+                              stl_loader.load('models/' + compName + '/graph-model.stl',onLoadSTL);*/
+                            $('#overlay').remove();
+                        });
+                    }
+                }
+                button.mechInterface = mech;
+                mech.componentsFolder.add(button,"add").name(response[i][0]);
+            }
+            });
+        //}
+
+    }
+
+    loadGui() {
+        var search = {
+            Search: ""
+        };
+        var filters = {
+            Mechanical: true,
+            Electrical: true,
+            Software: true
+        };
+        this.gui = new dat.GUI({ autoPlace: false, width: this.tabDom.getElementsByClassName('left-panel')[0].clientWidth, scrollable: true });
+        this.gui.domElement.removeChild(this.gui.__closeButton);
+        this.tabDom.getElementsByClassName('left-panel')[0].appendChild(this.gui.domElement);
+        this.gui.add(search, "Search");
+        this.searchFilters = this.gui.addFolder("Filters");
+        this.searchFilters.add(filters, "Mechanical");
+        this.searchFilters.add(filters, "Electrical");
+        this.searchFilters.add(filters, "Software");
+        this.componentsFolder = this.gui.addFolder('Components');
+        this.componentsFolder.open();
+        //componentMenus["mechanical"] = componentsFolder.addFolder("Mechanical");
+        //componentMenus["device"] = componentsFolder.addFolder("Device");
+        //componentMenus["actuator"] = componentsFolder.addFolder("Actuators");
+        //componentMenus["sensor"] = componentsFolder.addFolder("Sensors");
+        //componentMenus["UI"] = componentsFolder.addFolder("UI");
+        this.rightpanel = new dat.GUI({ autoPlace: false, width: this.tabDom.getElementsByClassName('right-panel')[0].clientWidth, scrollable: true });
+        this.rightpanel.domElement.removeChild(this.rightpanel.__closeButton);
+        this.tabDom.getElementsByClassName('right-panel')[0].appendChild(this.rightpanel.domElement);
+        this.comp = this.rightpanel.addFolder(this.componentName);
+        this.comp.open();
+        this.comp.parameters = this.comp.addFolder("Parameters");
+        this.comp.interfaces = this.comp.addFolder("Interfaces");
+        this.comp.subcomponents = this.comp.addFolder("Subcomponents");
+        this.comp.connections = this.comp.addFolder("Connections");
+
+        var objectbuttons = {
+            mechInterface: undefined,
+            subcomponentDelete: function(){
+                var delName = window.prompt("Name of subcomponent to delete","");
+                if(delName == "" || delName == null)
+                return;
+                for(var i = 0, len = this.mechInterface.subcomponents.length; i < len; i++){
+                    if(this.mechInterface.subcomponents[i].name == delName){
+                        if(this.mechInterface.SELECTED.name == this.mechInterface.subcomponents[i].name){
+                            this.mechInterface.control.detach(this.mechInterface.subcomponents[i].name);
+                            this.mechInterface.SELECTED = undefined;
+                        }
+                        this.mechInterface.scene.remove(this.mechInterface.subcomponents[i]);
+                        this.mechInterface.subcomponents.splice(i,1);
+                        break;
+                    }
+                }
+                removeByName(this.mechInterface.connectedSubcomponents, delName);
+                this.mechInterface.comp.subcomponents.removeFolder(delName);
+            },
+            connectionAdd: function(){
+                if(this.mechInterface.SELECTED != undefined && this.mechInterface.SELECTED_2 != undefined && this.mechInterface.SELECTED.parent != "Scene" && this.mechInterface.SELECTED_2.parent != "Scene") {
+                    var newConn = {};
+                    newConn.name = window.prompt("Connection Name: ");
+                    if(newConn.name == "" || newConn.name == null)
+                        return;
+                    for(var iter = 0, len = this.mechInterface.connections.length; iter < len; iter++){
+                        if(this.mechInterface.connections[iter].name == newConn.name){
+                            window.alert('Connection with name "' + newConn.name + '" already exists');
+                            return;
+                        }
+                    }
+                    var angle = window.prompt("Connection Angle: ");
+                    if(angle == "" || angle == null || isNaN(angle))
+                        return;
+                    var s1pname, s1name, s2pname, s2name;
+                    if(this.mechInterface.SELECTED.parent.type == "MasterComponent"){
+                        newConn.interface1 = this.mechInterface.SELECTED.name.replaceAll("_", ".");
+                        var spl = this.mechInterface.SELECTED.name.split("_");
+                        s1pname = spl[0];
+                        s1name = spl[1];
+                    }
+                    else {
+                        newConn.interface1 = this.mechInterface.SELECTED.parent.name + "." + this.mechInterface.SELECTED.name;
+                        s1pname = this.mechInterface.SELECTED.parent.name;
+                        s1name = this.mechInterface.SELECTED.name;
+                    }
+                    if(this.mechInterface.SELECTED_2.parent.type == "MasterComponent") {
+                        newConn.interface2 = this.mechInterface.SELECTED_2.name.replaceAll("_", ".");
+                        var spl = this.mechInterface.SELECTED_2.name.split("_");
+                        s2pname = spl[0];
+                        s2name = spl[1];
+                    }
+                    else {
+                        newConn.interface2 = this.mechInterface.SELECTED_2.parent.name + "." + this.mechInterface.SELECTED_2.name;
+                        s2pname = this.mechInterface.SELECTED_2.parent.name;
+                        s2name = this.mechInterface.SELECTED_2.name;
+                    }
+                    var over = '<div id="overlay">' +
+                                '<span class="blink_me">LOADING...</span>' +
+                                '</div>';
+                        $(over).appendTo('body');
+                    addComponentConnection(s1pname,s1name,s2pname,s2name, angle, function(){$('#overlay').remove();});//function(){buildComponent()});
+                    this.mechInterface.connections.push(newConn);
+                    this.mechInterface.SELECTED.parent.connectedInterfaces[this.mechInterface.SELECTED.name] = newConn.interface2;
+                    this.mechInterface.SELECTED_2.parent.connectedInterfaces[this.mechInterface.SELECTED_2.name] = newConn.interface1;
+                    var folder = this.mechInterface.comp.connections.addFolder(newConn.name);
+                    newConn.args = "";
+                    var connFixButton = {
+                        s1pname: s1pname,
+                        s1name: s1name,
+                        fixConnection:function(){
+                            var value = window.prompt("Value to fix interface to");
+                            fixComponentEdgeInterface(this.s1pname, this.s1name, value);
+                        }
+                    }
+                    folder.add(newConn,"interface2").name(newConn.interface1);
+                    folder.add(connFixButton, "fixConnection").name("Set Length");
+                }
+                /*else{
+                var joinedList = subcomponents.concat(connectedSubcomponents);
+                for(i in joinedList){
+                    for(inter in joinedList[i].interfaces){
+                    var opt = document.createElement("option");
+                    var opt2 = document.createElement("option");
+                    var str = joinedList[i].name + "." + inter;
+                    opt.val = str; opt2.val = str;
+                    opt.innerHTML = str; opt2.innerHTML = str;
+                    document.getElementById('interface1').appendChild(opt);
+                    document.getElementById('interface2').appendChild(opt2);
+                    }
+                }
+                $("#dialog").dialog("open");
+                }*/
+            },
+            connectionAddTab: function(){
+                if(this.mechInterface.SELECTED != undefined && this.mechInterface.SELECTED_2 != undefined && this.mechInterface.SELECTED.parent != "Scene" && this.mechInterface.SELECTED_2.parent != "Scene") {
+                    var newConn = {};
+                    newConn.name = window.prompt("Connection Name: ");
+                    if(newConn.name == "" || newConn.name == null)
+                        return;
+                    for(var iter = 0, len = this.mechInterface.connections.length; iter < len; iter++){
+                        if(this.mechInterface.connections[iter].name == newConn.name){
+                        window.alert('Connection with name "' + newConn.name + '" already exists');
+                        return;
+                        }
+                    }
+                    var angle = window.prompt("Connection Angle: ");
+                    if(angle == "" || angle == null || isNaN(angle))
+                        return;
+                    var s1pname, s1name, s2pname, s2name;
+                    if(this.mechInterface.SELECTED.parent.type == "MasterComponent"){
+                        newConn.interface1 = this.mechInterface.SELECTED.name.replaceAll("_", ".");
+                        var spl = this.mechInterface.SELECTED.name.split("_");
+                        s1pname = spl[0];
+                        s1name = spl[1];
+                    }
+                    else {
+                        newConn.interface1 = this.mechInterface.SELECTED.parent.name + "." + this.mechInterface.SELECTED.name;
+                        s1pname = this.mechInterface.SELECTED.parent.name;
+                        s1name = this.mechInterface.SELECTED.name;
+                    }
+                    if(this.mechInterface.SELECTED_2.parent.type == "MasterComponent") {
+                        newConn.interface2 = this.mechInterface.SELECTED_2.name.replaceAll("_", ".");
+                        var spl = this.mechInterface.SELECTED_2.name.split("_");
+                        s2pname = spl[0];
+                        s2name = spl[1];
+                    }
+                    else {
+                        newConn.interface2 = this.mechInterface.SELECTED_2.parent.name + "." + this.mechInterface.SELECTED_2.name;
+                        s2pname = this.mechInterface.SELECTED_2.parent.name;
+                        s2name = this.mechInterface.SELECTED_2.name;
+                    }
+                    addTabConnection(s1pname,s1name,s2pname,s2name, angle, function(){});//function(){buildComponent()});
+                    connections.push(newConn);
+                    this.mechInterface.SELECTED.parent.connectedInterfaces[SELECTED.name] = newConn.interface2;
+                    this.mechInterface.SELECTED_2.parent.connectedInterfaces[SELECTED_2.name] = newConn.interface1;
+                    var folder = this.mechInterface.comp.connections.addFolder(newConn.name);
+                    newConn.args = "";
+                    var connFixButton = {
+                        s1pname: s1pname,
+                        s1name: s1name,
+                        fixConnection:function(){
+                            var value = window.prompt("Value to fix interface to");
+                            fixComponentEdgeInterface(this.s1pname, this.s1name, value);
+                        }
+                    }
+                    folder.add(newConn,"interface2").name(newConn.interface1);
+                    folder.add(connFixButton, "fixConnection").name("Set Length");
+                }
+                /*else{
+                var joinedList = subcomponents.concat(connectedSubcomponents);
+                for(i in joinedList){
+                    for(inter in joinedList[i].interfaces){
+                    var opt = document.createElement("option");
+                    var opt2 = document.createElement("option");
+                    var str = joinedList[i].name + "." + inter;
+                    opt.val = str; opt2.val = str;
+                    opt.innerHTML = str; opt2.innerHTML = str;
+                    document.getElementById('interface1').appendChild(opt);
+                    document.getElementById('interface2').appendChild(opt2);
+                    }
+                }
+                $("#dialog").dialog("open");
+                }*/
+            },
+            connectionDelete:function(){
+                var delName = window.prompt("Name of connection to delete","");
+                if(delName == "" || delName == null)
+                return;
+                removeByName(this.mechInterface.connections,delName);
+                this.mechInterface.comp.connections.removeFolder(delName);
+            },
+            parameterAdd:function(){
+                var fieldName = window.prompt("Parameter name","");
+                if(fieldName == "" || fieldName == null)
+                return;
+                if(this.mechInterface.parameters[fieldName] != undefined){
+                window.alert('Parameter "' + fieldName + '" already exists');
+                return;
+                }
+                var pdef = window.prompt("Default value: ");
+                if(pdef == "" || pdef == null || isNaN(pdef))
+                    return;
+                this.mechInterface.parameters[fieldName] = pdef;
+                this.mechInterface.comp.parameters.add(this.mechInterface.parameters, fieldName).name(fieldName);
+                addParameter(fieldName, pdef);
+            },
+            parameterDelete:function(){
+                var delName = window.prompt("Name of parameter to delete","");
+                if(delName == "" || delName == null)
+                return;
+                delete this.mechInterface.parameters[delName];
+                for(var i = 2, len = this.mechInterface.comp.parameters.__controllers.length; i < len; i++){
+                if(this.mechInterface.comp.parameters.__controllers[i].__li.firstElementChild.firstElementChild.innerHTML == delName)
+                    this.mechInterface.comp.parameters.remove(this.mechInterface.comp.parameters.__controllers[i]);
+                }
+                delParameter(delName);
+            },
+            interfaceAdd:function(){
+                if(this.mechInterface.SELECTED != undefined && this.mechInterface.SELECTED.parent != "Scene")
+                {
+                    var name = window.prompt("Name for inherited interface: ");
+                    if(name == "" || name == null)
+                        return;
+                    var s1pname, s1name;
+                    if(this.mechInterface.SELECTED.parent.type == "MasterComponent"){
+                        var spl = this.mechInterface.SELECTED.name.split("_");
+                        s1pname = spl[0];
+                        s1name = spl[1];
+                    }
+                    else {
+                        s1pname = this.mechInterface.SELECTED.parent.name;
+                        s1name = this.mechInterface.SELECTED.name;
+                    }
+                    this.mechInterface.interfaces[name] = s1pname + "." + s1name;
+                    this.mechInterface.comp.interfaces.add(this.mechInterface.interfaces, name).name(name);
+                    inheritInterface(name, s1pname, s1name);
+                }
+            },
+            interfaceDelete:function(){
+                var delName = window.prompt("Name of interface to delete","");
+                if(delName == "" || delName == null)
+                return;
+                delete this.mechInterface.interfaces[delName];
+                for(var i = 2, len = this.mechInterface.comp.interfaces.__controllers.length; i < len; i++){
+                if(this.mechInterface.comp.interfaces.__controllers[i].__li.firstElementChild.firstElementChild.innerHTML == delName)
+                    this.mechInterface.comp.interfaces.remove(this.mechInterface.comp.interfaces.__controllers[i]);
+                }
+                delInterface(delName);
+            }
+        }
+        objectbuttons.mechInterface = this;
+        //comp.subcomponents.add(objectbuttons,'subcomponentDelete').name("Remove");
+        this.comp.parameters.add(objectbuttons,'parameterAdd').name("Add");
+        this.comp.parameters.add(objectbuttons,'parameterDelete').name("Delete");
+        this.comp.connections.add(objectbuttons,'connectionAdd').name("Add");
+        this.comp.connections.add(objectbuttons,'connectionAddTab').name("Add Tab");
+        this.comp.interfaces.add(objectbuttons, 'interfaceAdd').name("Add");
+        this.comp.interfaces.add(objectbuttons, 'interfaceDelete').name("Delete");
+        //comp.connections.add(objectbuttons,'connectionDelete').name("Remove");
+    }
+
+    buildComponent() {
+        var over = '<div id="overlay">' +
+                '<span class="blink_me">LOADING...</span>' +
+                '</div>';
+        $(over).appendTo('body');
+        var thisComponent = {};
+        thisComponent.name = this.componentName;
+        thisComponent.subcomponents = [];
+        stripObjects(this.subcomponents,thisComponent.subcomponents);
+        stripObjects(this.connectedSubcomponents,thisComponent.subcomponents);
+        thisComponent.parameters = this.parameters;
+        thisComponent.connections = this.connections;
+        var mechInterface = this;
+        makeComponent(function(response){
+            response = JSON.parse(response).response;
+            if(mechInterface.SELECTED != undefined){
+                mechInterface.control.detach(mechInterface.SELECTED);
+                mechInterface.SELECTED = undefined;
+            }
+            for(var i = 0, len = mechInterface.connectedSubcomponents.length;i < len; i++)
+                mechInterface.connectedSubcomponents[i] = updateComponent(mechInterface.connectedSubcomponents[i],response);
+            while(mechInterface.subcomponents.length > 0){
+                mechInterface.scene.remove(mechInterface.subcomponents[mechInterface.subcomponents.length-1]);
+                mechInterface.subcomponents[mechInterface.subcomponents.length-1] = updateComponent(mechInterface.subcomponents[mechInterface.subcomponents.length-1],response);
+                mechInterface.connectedSubcomponents.push(mechInterface.subcomponents[mechInterface.subcomponents.length-1]);
+                mechInterface.subcomponents.splice(mechInterface.subcomponents.length-1,1);
+            }
+            mechInterface.onComponentSymbolic(response);
+        //	stl_loader.load('models/' + componentName + '/graph-model.stl',onComponentSTL);
+        //	document.getElementById('svg-view').src = 'models/' + componentName + '/graph-print.svg';
+
+            mechInterface.tabDom.getElementsByClassName('sComp')[0].disabled = false;
+            //document.getElementById('dModel').disabled = false;
+            //document.getElementById('sComp').disabled = false;
+            $('#overlay').remove();
+            mechInterface.viewSVG();
+        });
+    }
+
+    render() {
+        if(this.control)
+            this.control.update();
+        if(this.renderer)
+            this.renderer.render( this.scene, this.camera );
+    }
+
+    viewSVG(){
+        var over = '<div id="overlay">' +
+                        '<span class="blink_me">LOADING...</span>' +
+                        '</div>';
+        $(over).appendTo('body');
+        var mechInterface = this;
+        var drawing_div = this.tabDom.getElementsByClassName('svg-view')[0];
+         getSVG(function(response){
+            response = JSON.parse(response).response;
+            drawing_div.style.backgroundColor = 'white'
+            //drawing_div.style.padding = "2%";
+            drawing_div.innerHTML = response;
+            mechInterface.tabDom.getElementsByClassName('dSVG')[0].disabled = false;
+            $('#overlay').remove();
+          });
+    }
+
+    resize() {
+        this.camera.aspect = this.container.clientWidth / this.container.clientHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize( this.container.clientWidth, this.container.clientHeight );
+        this.tabDom.getElementsByClassName('left-panel')[0].style.height = window.innerHeight;
+    }
 }
-while(componentName == "" || componentName == null);
-init();
-render();
 
-function blinker() {
-    $('.blink_me').fadeOut(750);
-    $('.blink_me').fadeIn(750);
+function onKeyDown(event) {
+    var control = null;
+    for(var i = 0, len = tabs.length; i < len; i++) {
+        if (tabs[i].div.style.display != "none" && tabs[i].mechanicalInterface != undefined) {
+            control = tabs[i].mechanicalInterface.control;
+        }
+    }
+    if (control != null) {
+        switch ( event.keyCode ) {
+        /*    case 81: // Q
+              control.setSpace( control.space === "local" ? "world" : "local" );
+              break;
+        case 17: // Ctrl
+        control.setTranslationSnap( 100 );
+        control.setRotationSnap( THREE.Math.degToRad( 15 ) );
+        break;*/
+        case 87: // W
+            control.setMode( "translate" );
+            break;
+        case 69: // E
+            control.setMode( "rotate" );
+            break;
+        case 82: // R
+            control.setMode( "scale" );
+            break;
+        /*    case 187:
+        case 107: // +, =, num+
+        control.setSize( control.size + 0.1 );
+        break;
+        case 189:
+        case 109: // -, _, num-
+        control.setSize( Math.max( control.size - 0.1, 0.1 ) );
+        break;
+        case 66: // B
+        buildComponent();
+        break;*/
+        }
+    }
 }
 
-setInterval(blinker, 1500);
+function onWindowResize() {
+    for(var i = 0, len = tabs.length; i < len; i++) {
+        if (tabs[i].mechanicalInterface != undefined) {
+            tabs[i].mechanicalInterface.resize();
+        }
+    }
 
-function download(filename, text) {
+}
+
+function onDocumentMouseMove(mechInterface) {
+    return function(event) {
+        event.preventDefault();
+        mechInterface.mouse.x = ( (event.clientX - getLeftPos(mechInterface.container))/ mechInterface.container.clientWidth ) * 2 - 1;
+        mechInterface.mouse.y = - ( (event.clientY - document.getElementById("tabButtons").clientHeight) / mechInterface.container.clientHeight ) * 2 + 1;
+        mechInterface.raycaster.setFromCamera( mechInterface.mouse, mechInterface.camera );
+        var objs = mechInterface.subcomponents;
+        if(mechInterface.componentObj != undefined)
+        objs = mechInterface.subcomponents.concat(mechInterface.componentObj);
+        var intersects = mechInterface.raycaster.intersectObjects( objs,true );
+        if ( intersects.length > 0 ) {
+            mechInterface.container.style.cursor = 'pointer';
+        } else {
+            mechInterface.container.style.cursor = 'auto';
+        }
+    }
+}
+
+function onDocumentMouseDown(mechInterface) {
+    return function(event) {
+        event.preventDefault();
+        mechInterface.raycaster.setFromCamera( mechInterface.mouse, mechInterface.camera );
+        var objs = mechInterface.subcomponents;
+        if(mechInterface.componentObj != undefined)
+        objs = mechInterface.subcomponents.concat(mechInterface.componentObj);
+        var intersects = mechInterface.raycaster.intersectObjects( objs, true );
+        var obj;
+        if(!event.shiftKey)
+            obj = mechInterface.SELECTED;
+        else
+            obj = mechInterface.SELECTED_2;
+        if ( intersects.length > 0 ) {
+            if(obj != undefined && obj.parent.type != "Scene") {
+                obj.material.color = new THREE.Color(0xff0000);
+                if(!event.shiftKey)
+                    mechInterface.SELECTED = undefined;
+                else
+                    mechInterface.SELECTED_2 = undefined;
+            }
+        /*if(intersects[0].object.parent.type == "MasterComponent")
+            {
+            if(!event.shiftKey)
+                {
+                SELECTED = intersects[0].object.parent;
+                control.attach(SELECTED);
+                }
+            }*/
+            if(intersects[0].object.parent.type != "Scene"){
+                intersects[0].object.material.color = new THREE.Color(0x00ff00);
+                if(!event.shiftKey){
+                    if(mechInterface.SELECTED != undefined && mechInterface.SELECTED.parent.type == "Scene")
+                        mechInterface.control.detach(mechInterface.SELECTED);
+                    mechInterface.SELECTED = intersects[0].object;
+                }
+                else
+                    mechInterface.SELECTED_2 = intersects[0].object;
+            }
+            else
+            {
+                mechInterface.control.attach(intersects[0].object);
+                mechInterface.scene.add(mechInterface.control);
+                mechInterface.comp.subcomponents.open();
+                if(mechInterface.SELECTED != undefined && mechInterface.SELECTED != mechInterface.componentObj)
+                    mechInterface.comp.subcomponents[mechInterface.SELECTED.name].close();
+                mechInterface.SELECTED = intersects[0].object;
+                if(mechInterface.SELECTED != mechInterface.componentObj)
+                    mechInterface.comp.subcomponents[intersects[0].object.name].open();
+            }
+        }
+    }
+}
+
+function onDocumentMouseUp( event ) {
+    event.preventDefault();
+}
+
+function render() {
+    requestAnimationFrame(render);
+    for(var i = 0, len = tabs.length; i < len; i++) {
+        if (tabs[i].div.style.display != "none" && tabs[i].mechanicalInterface != undefined) {
+            tabs[i].mechanicalInterface.render();
+        }
+    }
+
+}
+
+function download (filename, text) {
     var element = document.createElement('a');
     element.setAttribute('name', filename);
     element.setAttribute('href', 'data:image/svg,' + encodeURIComponent(text));
@@ -46,66 +942,8 @@ function download(filename, text) {
 
     document.body.removeChild(element);
 }
-function downloadSVG() {
-    var name = componentName + ".dxf"
-    getSVGDownload(function(response){
-        var data = JSON.parse(response).response;
-        download(name, data)
-    })
 
-}
-
-function splitComponent()
-{
-    scene.remove(componentObj);
-    delete componentObj;
-    componentObj = undefined;
-    while(connectedSubcomponents.length > 0){
-	scene.add(connectedSubcomponents[connectedSubcomponents.length-1]);
-	subcomponents.push(connectedSubcomponents[connectedSubcomponents.length-1]);
-	connectedSubcomponents.splice(connectedSubcomponents.length-1,1);
-    }
-    document.getElementById("sComp").disabled = true;
-}
-
-
-function downloadYaml(){
-    var name = componentName + ".yaml"
-    getYamlDownload(function(response){
-        var data = JSON.parse(response).response;
-        download(name, data)
-    })
-}
-
-function saveComponent(){
-    componentSave(componentName, function(){})
-}
-
-function fixEdgeInterface(){
-    var name, interface, value;
-    if(SELECTED != undefined && SELECTED.parent != "Scene") {
-        if(SELECTED.parent.type == "MasterComponent") {
-            var spl = SELECTED.name.split("_");
-		    name = spl[0];
-		    interface = spl[1];
-        }
-        else {
-            name = SELECTED.parent.name;
-		    interface = SELECTED.name;
-        }
-        var value = window.prompt("Value to fix interface to");
-        fixComponentEdgeInterface(name, interface, value);
-    }
-}
-
-function downloadModel(){
-    if(UrlExists("models/" + componentName + "/graph-model.stl"))
-	window.open("models/" + componentName + "/graph-model.stl");
-}
-
-
-function UrlExists(url)
-{
+function UrlExists(url) {
     var http = new XMLHttpRequest();
     http.open('HEAD', url, false);
     http.send();
@@ -114,12 +952,12 @@ function UrlExists(url)
 
 function removeDuplicates(list){
     for(var ele = 0; ele < list.length; ele++){
-	for(var ele2 = 0; ele2 < list.length; ele2++){
-	    if(ele != ele2 && list[ele].x == list[ele2].x && list[ele].y == list[ele2].y && list[ele].z == list[ele2].z){
-		list.splice(ele2,1);
-		ele2--;
+	    for(var ele2 = 0; ele2 < list.length; ele2++){
+	        if(ele != ele2 && list[ele].x == list[ele2].x && list[ele].y == list[ele2].y && list[ele].z == list[ele2].z){
+		        list.splice(ele2,1);
+		        ele2--;
+	        }
 	    }
-	}
     }
 }
 
@@ -174,668 +1012,59 @@ function createMeshFromObject(obj)
     return mesh;
 }
 
-function onComponentSymbolic(obj){
-    if(componentObj)
-        scene.remove(componentObj);
-        //.replaceAll("**","^");
-    nupe = obj;
-    componentObj = createMeshFromObject(obj);
-    componentObj.type = "MasterComponent";
-    componentObj.interfaceEdges = obj["interfaceEdges"]
-    componentObj.connectedInterfaces = {};
-    for(var i = 0, len = connectedSubcomponents.length; i < len; i++) {
-        for(var interfaceEdge in connectedSubcomponents[i].interfaceEdges) {
-            obj.interfaceEdges[connectedSubcomponents[i].name + "_" + interfaceEdge] = []
-            for(var edge = 0, edges = connectedSubcomponents[i].interfaceEdges[interfaceEdge].length; edge < edges; edge++) {
-	            obj.interfaceEdges[connectedSubcomponents[i].name + "_" + interfaceEdge].push(connectedSubcomponents[i].name + "_" + connectedSubcomponents[i].interfaceEdges[interfaceEdge][edge]);
-	        }
-	    }
-	}
-    for(var i = 0, len = connections.length; i < len; i++) {
-        componentObj.connectedInterfaces[connections[i].interface1.replaceAll(".", "_")] = true;
-        componentObj.connectedInterfaces[connections[i].interface2.replaceAll(".", "_")] = true;
-    }
-	highlightInterfaces(componentObj);
-    scene.add(componentObj);
-}
-
-function loadSymbolic(obj, n){
-    nupe = obj;
-    var objMesh = createMeshFromObject(obj);
-
-    objMesh.name = n;
-    objMesh.className = compName;
-    objMesh.interfaces = {};
-    objMesh.interfaceEdges = obj["interfaceEdges"];
-    objMesh.connectedInterfaces = {};
-    objMesh.parameterfuncs = {};
-    subcomponents.push(objMesh);
-    highlightInterfaces(objMesh);
-    comp.subcomponents[objMesh.name] = comp.subcomponents.addFolder(objMesh.name);
-    var constrs = comp.subcomponents[objMesh.name].addFolder("Constrain Parameters");
-	objMesh.parameters = obj['parameters'];
-	for(var pars in objMesh.parameters){
-	    var constraintButton = {
-	        controller: undefined,
-	        c: pars,
-		    constrain:function(){
-		        var value = window.prompt("Set " + objMesh.name + "_" + this.c + " to: ");
-                constrainParameter(objMesh.name, this.c, value);
-                this.controller.name(this.c + " = " + value);
-		    }
-		}
-	    var controller = constrs.add(constraintButton, "constrain");
-	    constraintButton.controller = controller;
-	    controller.name(pars);
-	    //if(objMesh.parameters[i] == null)
-		//    objMesh.parameters[i] = "";
-
-	    //objMesh.parameterfuncs[i] = "";
-	    //f.add(constraintButton, "constrain").name("Constrain");
-	    //f.add(objMesh.parameters,i).name("Value");
-	    //f.add(objMesh.parameterfuncs,i).name("Function");
-	}
-    /*var ints = comp.subcomponents[objMesh.name].addFolder("Inherit Interfaces");
-    for(var i in componentLibrary[objMesh.className].interfaces){
-        var inheritButton = {
-            controller: undefined,
-            name: objMesh.name,
-            interface: componentLibrary[objMesh.className].interfaces[i],
-            inherit: function(){
-                var intName = window.prompt("Name for inherited interface: ");
-                this.controller.name(this.interface + ": Inherited as " + intName);
-                inheritInterface(intName, this.name, this.interface);
+function highlightInterfaces(objMesh) {
+    for(i in objMesh.interfaceEdges) {
+        if(objMesh.connectedInterfaces[i] == undefined){
+            for(var j = 0, len = objMesh.interfaceEdges[i].length; j < len; j++) {
+                if(objMesh.interfaceEdges[i][j] == null)
+                    continue;
+                var material = new THREE.LineBasicMaterial({
+                    color: 0xff0000
+                    });
+                var geometry = new THREE.Geometry();
+                var k = objMesh.interfaceEdges[i][j];
+                var p1 = [], p2 = [];
+                for(var p = 0; p < 2; p++){
+                    for(var c = 0; c < 3; c++){
+                    //objMesh["edges"][k][p][c] = objMesh["edges"][k][p][c]
+                    //objMesh["edges"][k][p][c] = objMesh["edges"][k][p][c].replaceAll("**","^").replaceAll("[", "(").replaceAll("]", ")");
+                    //.replaceAll("**","^");
+                    if(p == 0)
+                        p1.push(evalPrefix(objMesh["edges"][k][p][c],objMesh["solved"]).value);
+                    else
+                        p2.push(evalPrefix(objMesh["edges"][k][p][c],objMesh["solved"]).value);
+                    }
+                }
+                geometry.vertices.push(
+                               new THREE.Vector3( p1[0], p1[1], p1[2] ),
+                               new THREE.Vector3( p2[0], p2[1], p2[2] )
+                               );
+                var line = new THREE.Line( geometry, material );
+                line.name = i;
+                objMesh.add(line);
             }
         }
-        var controller = ints.add(inheritButton, "inherit");
-        inheritButton.controller = controller;
-        controller.name(inheritButton.interface);
-	    //objMesh.interfaces[componentLibrary[objMesh.className].interfaces[i]] = false;
-    }*/
-    scene.add(objMesh);
-    /*for(i in objMesh.interfaces){
-	    var contr = ints.add(objMesh.interfaces,i)
-	    contr.name(i);
-    }*/
-    var removeButton = {
-        delName: objMesh.name,
-        remove: function(){
-            for(var i = 0, len = subcomponents.length; i < len; i++){
-		        if(subcomponents[i].name == this.delName){
-		            if(SELECTED != undefined && SELECTED.name == subcomponents[i].name){
-			            control.detach(subcomponents[i].name);
-			            SELECTED = undefined;
-		            }
-		            scene.remove(subcomponents[i]);
-		            subcomponents.splice(i,1);
-		            break;
-		        }
-	        }
-	        removeByName(connectedSubcomponents,this.delName);
-	        comp.subcomponents.removeFolder(this.delName);
-	        for(var i = 0, len = connections.length; i < len; i++){
-	            if(connections[i].interface1.substr(0,connections[i].interface1.indexOf(".")) == this.delName)
-	            {
-	                var otherName = connections[i].interface2.substr(0,connections[i].interface2.indexOf("."));
-	                console.log(otherName);
-	                for(var j = 0, slen = subcomponents.length; j < slen; j++){
-	                    if(subcomponents[j].name == otherName)
-	                        delete subcomponents[j].connectedInterfaces[connections[i].interface2.substr(connections[i].interface2.indexOf(".")+1)];
-	                }
-	                for(var j = 0, slen = connectedSubcomponents.length; j < slen; j++){
-	                    if(connectedSubcomponents[j].name == otherName)
-	                        delete connectedSubcomponents[j].connectedInterfaces[connections[i].interface1.substr(connections[i].interface1.indexOf(".")+1)];
-	                }
-	                comp.connections.removeFolder(connections[i].name);
-	                connections.splice(i, 1);
-	                i--;
-	                len--;
-                }
-                else if(connections[i].interface2.substr(0,connections[i].interface2.indexOf(".")) == this.delName)
-                {
-                    var otherName = connections[i].interface1.substr(0,connections[i].interface1.indexOf("."));
-                    console.log(otherName);
-	                for(var j = 0, slen = subcomponents.length; j < slen; j++){
-	                    if(subcomponents[j].name == otherName)
-	                        delete subcomponents[j].connectedInterfaces[connections[i].interface1.substr(connections[i].interface1.indexOf(".")+1)];
-	                }
-	                for(var j = 0, slen = connectedSubcomponents.length; j < slen; j++){
-	                    if(connectedSubcomponents[j].name == otherName)
-	                        delete connectedSubcomponents[j].connectedInterfaces[connections[i].interface1.substr(connections[i].interface1.indexOf(".")+1)];
-	                }
-	                comp.connections.removeFolder(connections[i].name);
-	                connections.splice(i, 1);
-	                i--;
-	                len--;
-                }
-	        }
-	        console.log("deleting: " + this.delName);
-	        var over = '<div id="overlay">' +
-                    '<span class="blink_me">LOADING...</span>' +
-                    '</div>';
-            $(over).appendTo('body');
-	        delSubcomponent(this.delName, function(response){$('#overlay').remove();});
-        }
     }
-    comp.subcomponents[objMesh.name].add(removeButton, "remove").name("Delete");
-}
-
-function highlightInterfaces(objMesh)
-{
-    for(i in objMesh.interfaceEdges){
-	if(objMesh.connectedInterfaces[i] == undefined){
-	    for(var j = 0, len =objMesh.interfaceEdges[i].length; j < len; j++){
-		if(objMesh.interfaceEdges[i][j] == null)
-		    continue;
-		var material = new THREE.LineBasicMaterial({
-			color: 0xff0000
-		    });
-		var geometry = new THREE.Geometry();
-		var k = objMesh.interfaceEdges[i][j];
-		var p1 = [], p2 = [];
-		for(var p = 0; p < 2; p++){
-		    for(var c = 0; c < 3; c++){
-			//objMesh["edges"][k][p][c] = objMesh["edges"][k][p][c]
-			//objMesh["edges"][k][p][c] = objMesh["edges"][k][p][c].replaceAll("**","^").replaceAll("[", "(").replaceAll("]", ")");
-			//.replaceAll("**","^");
-			if(p == 0)
-			    p1.push(evalPrefix(objMesh["edges"][k][p][c],objMesh["solved"]).value);
-			else
-			    p2.push(evalPrefix(objMesh["edges"][k][p][c],objMesh["solved"]).value);
-		    }
-		}
-		geometry.vertices.push(
-				       new THREE.Vector3( p1[0], p1[1], p1[2] ),
-				       new THREE.Vector3( p2[0], p2[1], p2[2] )
-				       );
-		var line = new THREE.Line( geometry, material );
-		line.name = i;
-		objMesh.add(line);
-	    }
-	}
-    }
-
-}
-
-function onLoadSTL(geometry){
-    var n = window.prompt("Subcomponent Name","");
-    if(n == "" || n == null)
-	return;
-    var joined = subcomponents.concat(connectedSubcomponents);
-    for(var iter = 0,len=joined.length; iter < len; iter++){
-	if(joined[iter].name == n){
-	    window.alert('Subcomponent with name "' + n + '" already exists');
-	    return;
-	}
-    }
-    var material = new THREE.MeshPhongMaterial( { color:0xffffff, shading: THREE.FlatShading } );
-    var obj = new THREE.Mesh(geometry,material);
-    obj.name = n;
-    obj.className = compName;
-    obj.interfaces = {};
-    obj.interfaceEdges = interfaceEdges;
-    obj.parameterfuncs = {};
-    subcomponents.push(obj);
-    for(i in obj.interfaceEdges){
-	for(j in interfaceEdges[i]){
-	    if(interfaceEdges[i][j] == null)
-		continue;
-	    var material = new THREE.LineBasicMaterial({
-		    color: 0xff0000
-		});
-	    var geometry = new THREE.Geometry();
-	    geometry.vertices.push(
-				   new THREE.Vector3( interfaceEdges[i][j][0][0], interfaceEdges[i][j][0][1], interfaceEdges[i][j][0][2] ),
-				   new THREE.Vector3( interfaceEdges[i][j][1][0], interfaceEdges[i][j][1][1], interfaceEdges[i][j][1][2] )
-				   );
-	    var line = new THREE.Line( geometry, material );
-	    line.name = i;
-	    obj.add(line);
-	}
-    }
-    comp.subcomponents[obj.name] = comp.subcomponents.addFolder(obj.name);
-    var constrs = comp.subcomponents[obj.name].addFolder("Constraints");
-    /*picoModule.getParameters(compName,function(response){
-	obj.parameters = response;
-	for(i in obj.parameters){
-	    var f = constrs.addFolder(i);
-	    if(obj.parameters[i] == null)
-		obj.parameters[i] = "";
-	    obj.parameterfuncs[i] = "";
-	    f.add(obj.parameters,i).name("Value");
-	    f.add(obj.parameterfuncs,i).name("Function");
-	}
-    });*/
-    for(i in componentLibrary[obj.className].interfaces){
-	obj.interfaces[componentLibrary[obj.className].interfaces[i]] = false;
-    }
-    scene.add(obj);
-    var ints = comp.subcomponents[obj.name].addFolder("Inherit Interfaces");
-    for(i in obj.interfaces){
-	var contr = ints.add(obj.interfaces,i)
-	contr.name(i);
-    }
-}
-
-function onComponentSTL(geometry){
-    if(componentObj)
-	scene.remove(componentObj);
-    material = new THREE.MeshPhongMaterial( {color:0xffffff,shading:THREE.FlatShading});
-    componentObj = new THREE.Mesh(geometry,material);
-    scene.add(componentObj);
-}
-
-function handleError(e){
-    var ind = e.exception.search("Parameter ");
-    if(ind != -1){
-	var param = [];
-	if(e.exception.charAt(ind+10) == '[')
-	    param = eval(e.exception.substring(ind+10,e.exception.search(']')+1))
-	else{
-	    var strip = e.exception.substring(ind+10);
-	    param.push(strip.substring(0,strip.search(' ')));
-	}
-	for(var i = 0, len = param.length; i < len; i++){
-	    var val = window.prompt("Set value for parameter " + param[i]);
-	    if(val == "" || val == null)
-		return;
-	    tempParams[param[i]] = parseInt(val);
-	}
-	var args = [compName,tempParams];
-	/*picoModule.generate_stl(args, function(response){
-	    tempParams = {};
-	    console.log(response);
-	    interfaceEdges = response;
-	    stl_loader.load('models/' + compName + '/graph-model.stl',onLoadSTL);
-	});*/
-    }
-    else
-	window.alert(e.exception);
-}
-
-function getComponents()
-{
-	//for(var key in componentMenus){
-	    getComponentList("" ,function(response){
-	    response = JSON.parse(response).response;
-		for(i = 0; i < response.length; i++){
-		    componentLibrary[response[i][0]] = { interfaces: response[i][1] };
-		    var button = {
-			compName: response[i][0],
-			add: function(){
-			    compName = this.compName;
-			    var args = [this.compName,tempParams];
-			    componentCount++;
-			    var n = window.prompt("Subcomponent Name","");
-                if(n == "" || n == null)
-	                return;
-                var joined = subcomponents.concat(connectedSubcomponents);
-                for(var iter = 0,len=joined.length; iter < len; iter++){
-	            if(joined[iter].name == n){
-	                window.alert('Subcomponent with name "' + n + '" already exists');
-	                return;
-	            }
-                }
-                var over = '<div id="overlay">' +
-                    '<span class="blink_me">LOADING...</span>' +
-                    '</div>';
-                $(over).appendTo('body');
-			    addSubcomponent(n,compName, function(response){
-			    response = JSON.parse(response).response;
-				tempParams = {};
-				loadSymbolic(response,n);
-				/*interfaceEdges = response;
-				  stl_loader.load('models/' + compName + '/graph-model.stl',onLoadSTL);*/
-				  $('#overlay').remove();
-			    });
-			}
-		    }
-		    componentsFolder.add(button,"add").name(response[i][0]);
-		}
-	    });
-	//}
-
-}
-
-function init(){
-    container = document.getElementById('componentView');
-    svgcontainer = document.getElementById('svg-view');
-
-    scene = new THREE.Scene();
-    svgscene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera( 75, container.clientWidth / container.clientHeight, 0.1, 100000 );
-    //camera = new THREE.OrthographicCamera(container.offsetWidth / -2, container.offsetWidth / 2, container.offsetHeight / 2, container.offsetHeight / -2, 0.1, 100000);
-    svgcamera = new THREE.OrthographicCamera(svgcontainer.offsetWidth / -2, svgcontainer.offsetWidth / 2, svgcontainer.offsetHeight / 2, svgcontainer.offsetHeight / -2, 1, 1000);
-
-    stl_loader = new THREE.STLLoader();
-    renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
-    renderer.setSize( container.clientWidth, container.clientHeight);
-    renderer.setClearColor( 0x000000,0);
-    svgrenderer = new THREE.WebGLRenderer({alpha:true,antialias: true});
-    svgrenderer.setSize(svgcontainer.clientWidth,svgcontainer.clientHeight);
-    svgrenderer.setClearColor(0x000000,0);
-    container.appendChild( renderer.domElement );
-    svgcontainer.appendChild(svgrenderer.domElement);
-    scene.add( new THREE.GridHelper( 500, 100 ) );
-    camera.position.set( 1000, 500, 1000 );
-    camera.lookAt( new THREE.Vector3( 0, 200, 0 ) );
-    svgcamera.position.set(0,1000,0);
-    svgcamera.lookAt(new THREE.Vector3(0,0,0));
-    light = new THREE.DirectionalLight( 0xffffff );
-    light.position.set( 1, 1, 1 );
-    scene.add( light );
-
-    light = new THREE.DirectionalLight( 0x002288 );
-    light.position.set( -1, -1, -1 );
-    scene.add( light );
-
-    light = new THREE.AmbientLight( 0x222222 );
-    scene.add( light );
-    control = new THREE.TransformControls( camera, renderer.domElement );
-    control.addEventListener( 'change', render );
-    orbit = new THREE.OrbitControls( camera, renderer.domElement );
-    loadGui();
-    getComponents();
-    createComponent();
-    renderer.domElement.addEventListener( 'mousemove', onDocumentMouseMove, false );
-    renderer.domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
-    renderer.domElement.addEventListener( 'mouseup', onDocumentMouseUp, false );
-
-    window.addEventListener( 'resize', onWindowResize, false );
-    window.addEventListener( 'keydown', onKeyDown);
 }
 
 function removeByName(array,name){
     for(var i = 0, len = array.length; i < len; i++){
-	if(array[i].name == name){
-	    array.splice(i,1);
-	    break;
-	}
+        if(array[i].name == name){
+            array.splice(i,1);
+            break;
+        }
     }
-}
-
-function loadGui() {
-    var search = {
-	Search: ""
-    };
-    var filters = {
-	Mechanical: true,
-	Electrical: true,
-	Software: true
-    };
-    gui = new dat.GUI({ autoPlace: false, width: document.getElementById('left-panel').clientWidth, scrollable: true });
-    gui.domElement.removeChild(gui.__closeButton);
-    document.getElementById('left-panel').appendChild(gui.domElement);
-    gui.add(search, "Search");
-    searchFilters = gui.addFolder("Filters");
-    searchFilters.add(filters, "Mechanical");
-    searchFilters.add(filters, "Electrical");
-    searchFilters.add(filters, "Software");
-    componentsFolder = gui.addFolder('Components');
-    componentsFolder.open();
-    //componentMenus["mechanical"] = componentsFolder.addFolder("Mechanical");
-    //componentMenus["device"] = componentsFolder.addFolder("Device");
-    //componentMenus["actuator"] = componentsFolder.addFolder("Actuators");
-    //componentMenus["sensor"] = componentsFolder.addFolder("Sensors");
-    //componentMenus["UI"] = componentsFolder.addFolder("UI");
-    rightpanel = new dat.GUI({ autoPlace: false, width: document.getElementById('right-panel').clientWidth, scrollable: true });
-    rightpanel.domElement.removeChild(rightpanel.__closeButton);
-    document.getElementById('right-panel').appendChild(rightpanel.domElement);
-    comp = rightpanel.addFolder(componentName);
-    comp.open();
-    comp.parameters = comp.addFolder("Parameters");
-    comp.interfaces = comp.addFolder("Interfaces");
-    comp.subcomponents = comp.addFolder("Subcomponents");
-    comp.connections = comp.addFolder("Connections");
-    var objectbuttons = {
-	subcomponentDelete:function(){
-	    var delName = window.prompt("Name of subcomponent to delete","");
-	    if(delName == "" || delName == null)
-		return;
-	    for(var i = 0, len = subcomponents.length; i < len; i++){
-		if(subcomponents[i].name == delName){
-		    if(SELECTED.name == subcomponents[i].name){
-			control.detach(subcomponents[i].name);
-			SELECTED = undefined;
-		    }
-		    scene.remove(subcomponents[i]);
-		    subcomponents.splice(i,1);
-		    break;
-		}
-	    }
-	    removeByName(connectedSubcomponents,delName);
-	    comp.subcomponents.removeFolder(delName);
-	},
-	connectionAdd:function(){
-	    if(SELECTED != undefined && SELECTED_2 != undefined && SELECTED.parent != "Scene" && SELECTED_2.parent != "Scene")
-	    {
-		var newConn = {};
-		newConn.name = window.prompt("Connection Name: ");
-		if(newConn.name == "" || newConn.name == null)
-		    return;
-		for(var iter = 0, len = connections.length; iter < len; iter++){
-		    if(connections[iter].name == newConn.name){
-			window.alert('Connection with name "' + newConn.name + '" already exists');
-			return;
-		    }
-		}
-		angle = window.prompt("Connection Angle: ");
-		if(angle == "" || angle == null || isNaN(angle))
-            return;
-		if(SELECTED.parent.type == "MasterComponent"){
-		    newConn.interface1 = SELECTED.name.replaceAll("_", ".");
-		    var spl = SELECTED.name.split("_");
-		    s1pname = spl[0];
-		    s1name = spl[1];
-		}
-		else {
-		    newConn.interface1 = SELECTED.parent.name + "." + SELECTED.name;
-		    s1pname = SELECTED.parent.name;
-		    s1name = SELECTED.name;
-		}
-		if(SELECTED_2.parent.type == "MasterComponent") {
-		    newConn.interface2 = SELECTED_2.name.replaceAll("_", ".");
-		    var spl = SELECTED_2.name.split("_");
-		    s2pname = spl[0];
-		    s2name = spl[1];
-		}
-		else {
-		    newConn.interface2 = SELECTED_2.parent.name + "." + SELECTED_2.name;
-		    s2pname = SELECTED_2.parent.name;
-		    s2name = SELECTED_2.name;
-		}
-		var over = '<div id="overlay">' +
-                    '<span class="blink_me">LOADING...</span>' +
-                    '</div>';
-            $(over).appendTo('body');
-		addComponentConnection(s1pname,s1name,s2pname,s2name, angle, function(){$('#overlay').remove();});//function(){buildComponent()});
-		connections.push(newConn);
-		SELECTED.parent.connectedInterfaces[SELECTED.name] = newConn.interface2;
-		SELECTED_2.parent.connectedInterfaces[SELECTED_2.name] = newConn.interface1;
-		var folder = comp.connections.addFolder(newConn.name);
-		newConn.args = "";
-		var connFixButton = {
-		    s1pname: s1pname,
-		    s1name: s1name,
-		    fixConnection:function(){
-		        var value = window.prompt("Value to fix interface to");
-                fixComponentEdgeInterface(this.s1pname, this.s1name, value);
-		    }
-		}
-		folder.add(newConn,"interface2").name(newConn.interface1);
-		folder.add(connFixButton, "fixConnection").name("Set Length");
-	    }
-	    /*else{
-		var joinedList = subcomponents.concat(connectedSubcomponents);
-		for(i in joinedList){
-		    for(inter in joinedList[i].interfaces){
-			var opt = document.createElement("option");
-			var opt2 = document.createElement("option");
-			var str = joinedList[i].name + "." + inter;
-			opt.val = str; opt2.val = str;
-			opt.innerHTML = str; opt2.innerHTML = str;
-			document.getElementById('interface1').appendChild(opt);
-			document.getElementById('interface2').appendChild(opt2);
-		    }
-		}
-		$("#dialog").dialog("open");
-	    }*/
-	},
-	connectionAddTab:function(){
-	    if(SELECTED != undefined && SELECTED_2 != undefined && SELECTED.parent != "Scene" && SELECTED_2.parent != "Scene")
-	    {
-		var newConn = {};
-		newConn.name = window.prompt("Connection Name: ");
-		if(newConn.name == "" || newConn.name == null)
-		    return;
-		for(var iter = 0, len = connections.length; iter < len; iter++){
-		    if(connections[iter].name == newConn.name){
-			window.alert('Connection with name "' + newConn.name + '" already exists');
-			return;
-		    }
-		}
-		angle = window.prompt("Connection Angle: ");
-		if(angle == "" || angle == null || isNaN(angle))
-            return;
-		if(SELECTED.parent.type == "MasterComponent"){
-		    newConn.interface1 = SELECTED.name.replaceAll("_", ".");
-		    var spl = SELECTED.name.split("_");
-		    s1pname = spl[0];
-		    s1name = spl[1];
-		}
-		else {
-		    newConn.interface1 = SELECTED.parent.name + "." + SELECTED.name;
-		    s1pname = SELECTED.parent.name;
-		    s1name = SELECTED.name;
-		}
-		if(SELECTED_2.parent.type == "MasterComponent") {
-		    newConn.interface2 = SELECTED_2.name.replaceAll("_", ".");
-		    var spl = SELECTED_2.name.split("_");
-		    s2pname = spl[0];
-		    s2name = spl[1];
-		}
-		else {
-		    newConn.interface2 = SELECTED_2.parent.name + "." + SELECTED_2.name;
-		    s2pname = SELECTED_2.parent.name;
-		    s2name = SELECTED_2.name;
-		}
-		addTabConnection(s1pname,s1name,s2pname,s2name, angle, function(){});//function(){buildComponent()});
-		connections.push(newConn);
-		SELECTED.parent.connectedInterfaces[SELECTED.name] = newConn.interface2;
-		SELECTED_2.parent.connectedInterfaces[SELECTED_2.name] = newConn.interface1;
-		var folder = comp.connections.addFolder(newConn.name);
-		newConn.args = "";
-		var connFixButton = {
-		    s1pname: s1pname,
-		    s1name: s1name,
-		    fixConnection:function(){
-		        var value = window.prompt("Value to fix interface to");
-                fixComponentEdgeInterface(this.s1pname, this.s1name, value);
-		    }
-		}
-		folder.add(newConn,"interface2").name(newConn.interface1);
-		folder.add(connFixButton, "fixConnection").name("Set Length");
-	    }
-	    /*else{
-		var joinedList = subcomponents.concat(connectedSubcomponents);
-		for(i in joinedList){
-		    for(inter in joinedList[i].interfaces){
-			var opt = document.createElement("option");
-			var opt2 = document.createElement("option");
-			var str = joinedList[i].name + "." + inter;
-			opt.val = str; opt2.val = str;
-			opt.innerHTML = str; opt2.innerHTML = str;
-			document.getElementById('interface1').appendChild(opt);
-			document.getElementById('interface2').appendChild(opt2);
-		    }
-		}
-		$("#dialog").dialog("open");
-	    }*/
-	},
-	connectionDelete:function(){
-	    var delName = window.prompt("Name of connection to delete","");
-	    if(delName == "" || delName == null)
-		return;
-	    removeByName(connections,delName);
-	    comp.connections.removeFolder(delName);
-	},
-	parameterAdd:function(){
-	    var fieldName = window.prompt("Parameter name","");
-	    if(fieldName == "" || fieldName == null)
-		return;
-	    if(parameters[fieldName] != undefined){
-		window.alert('Parameter "' + fieldName + '" already exists');
-		return;
-	    }
-	    var pdef = window.prompt("Default value: ");
-	    if(pdef == "" || pdef == null || isNaN(pdef))
-	        return;
-	    parameters[fieldName] = pdef;
-	    comp.parameters.add(parameters, fieldName).name(fieldName);
-	    addParameter(fieldName, pdef);
-	},
-	parameterDelete:function(){
-	    var delName = window.prompt("Name of parameter to delete","");
-	    if(delName == "" || delName == null)
-		return;
-	    delete parameters[delName];
-	    for(var i = 2, len = comp.parameters.__controllers.length; i < len; i++){
-		if(comp.parameters.__controllers[i].__li.firstElementChild.firstElementChild.innerHTML == delName)
-		    comp.parameters.remove(comp.parameters.__controllers[i]);
-	    }
-	    delParameter(delName);
-	},
-	interfaceAdd:function(){
-	    if(SELECTED != undefined && SELECTED.parent != "Scene")
-	    {
-	        var name = window.prompt("Name for inherited interface: ");
-	        if(name == "" || name == null)
-	            return;
-            if(SELECTED.parent.type == "MasterComponent"){
-                var spl = SELECTED.name.split("_");
-                s1pname = spl[0];
-                s1name = spl[1];
-            }
-            else {
-                s1pname = SELECTED.parent.name;
-                s1name = SELECTED.name;
-            }
-            interfaces[name] = s1pname + "." + s1name;
-            comp.interfaces.add(interfaces, name).name(name);
-            inheritInterface(name, s1pname, s1name);
-		}
-	},
-	interfaceDelete:function(){
-	    var delName = window.prompt("Name of interface to delete","");
-	    if(delName == "" || delName == null)
-		return;
-		delete interfaces[delName];
-		for(var i = 2, len = comp.interfaces.__controllers.length; i < len; i++){
-		if(comp.interfaces.__controllers[i].__li.firstElementChild.firstElementChild.innerHTML == delName)
-		    comp.interfaces.remove(comp.interfaces.__controllers[i]);
-	    }
-	    delInterface(delName);
-	}
-    }
-    //comp.subcomponents.add(objectbuttons,'subcomponentDelete').name("Remove");
-    comp.parameters.add(objectbuttons,'parameterAdd').name("Add");
-    comp.parameters.add(objectbuttons,'parameterDelete').name("Delete");
-    comp.connections.add(objectbuttons,'connectionAdd').name("Add");
-    comp.connections.add(objectbuttons,'connectionAddTab').name("Add Tab");
-    comp.interfaces.add(objectbuttons, 'interfaceAdd').name("Add");
-    comp.interfaces.add(objectbuttons, 'interfaceDelete').name("Delete");
-    //comp.connections.add(objectbuttons,'connectionDelete').name("Remove");
 }
 
 function stripObjects(list, strippedList){
     for(i in list){
-	var strippedObj = {};
-	strippedObj.name = list[i].name;
-	strippedObj.className = list[i].className;
-	strippedObj.parameters = list[i].parameters;
-	strippedObj.parameterfuncs = list[i].parameterfuncs;
-	strippedObj.interfaces = list[i].interfaces;
-	strippedList.push(strippedObj);
+        var strippedObj = {};
+        strippedObj.name = list[i].name;
+        strippedObj.className = list[i].className;
+        strippedObj.parameters = list[i].parameters;
+        strippedObj.parameterfuncs = list[i].parameterfuncs;
+        strippedObj.interfaces = list[i].interfaces;
+        strippedList.push(strippedObj);
     }
 }
 
@@ -883,87 +1112,53 @@ function updateComponent(component, response)
     highlightInterfaces(newComp);
     return newComp;
 }
+
 function build(){
-
-    buildComponent();
-
-
-}
-function buildComponent(){
-    var over = '<div id="overlay">' +
-            '<span class="blink_me">LOADING...</span>' +
-            '</div>';
-    $(over).appendTo('body');
-    var thisComponent = {};
-    thisComponent.name = componentName;
-    thisComponent.subcomponents = [];
-    stripObjects(subcomponents,thisComponent.subcomponents);
-    stripObjects(connectedSubcomponents,thisComponent.subcomponents);
-    thisComponent.parameters = parameters;
-    thisComponent.connections = connections;
-    makeComponent(function(response){
-        response = JSON.parse(response).response;
-	    if(SELECTED != undefined){
-	        control.detach(SELECTED);
-	        SELECTED = undefined;
-	    }
-	    for(var i = 0, len = connectedSubcomponents.length;i < len; i++)
-	        connectedSubcomponents[i] = updateComponent(connectedSubcomponents[i],response);
-	    while(subcomponents.length > 0){
-	        scene.remove(subcomponents[subcomponents.length-1]);
-	        subcomponents[subcomponents.length-1] = updateComponent(subcomponents[subcomponents.length-1],response);
-	        connectedSubcomponents.push(subcomponents[subcomponents.length-1]);
-	        subcomponents.splice(subcomponents.length-1,1);
-	    }
-	    onComponentSymbolic(response);
-	//	stl_loader.load('models/' + componentName + '/graph-model.stl',onComponentSTL);
-	//	document.getElementById('svg-view').src = 'models/' + componentName + '/graph-print.svg';
-
-	    document.getElementById('sComp').disabled = false;
-	    //document.getElementById('dModel').disabled = false;
-	    //document.getElementById('sComp').disabled = false;
-	    $('#overlay').remove();
-	    viewSVG();
-    });
-}
-
-function onKeyDown( event ) {
-    switch ( event.keyCode ) {
-	/*    case 81: // Q
-	      control.setSpace( control.space === "local" ? "world" : "local" );
-	      break;
-    case 17: // Ctrl
-    control.setTranslationSnap( 100 );
-    control.setRotationSnap( THREE.Math.degToRad( 15 ) );
-    break;*/
-    case 87: // W
-    control.setMode( "translate" );
-    break;
-    case 69: // E
-    control.setMode( "rotate" );
-    break;
-    case 82: // R
-    control.setMode( "scale" );
-    break;
-    /*    case 187:
-    case 107: // +, =, num+
-    control.setSize( control.size + 0.1 );
-    break;
-    case 189:
-    case 109: // -, _, num-
-    control.setSize( Math.max( control.size - 0.1, 0.1 ) );
-    break;
-    case 66: // B
-    buildComponent();
-    break;*/
+    for(var i = 0, len = tabs.length; i < len; i++) {
+        if (tabs[i].div.style.display != "none" && tabs[i].mechanicalInterface != undefined) {
+            tabs[i].mechanicalInterface.buildComponent();
+        }
     }
 }
 
-function onWindowResize() {
-    camera.aspect = container.clientWidth / container.clientHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize( container.clientWidth, container.clientHeight );
-    document.getElementById('left-panel').style.height = window.innerHeight;
+function downloadSVG() {
+    for(var i = 0, len = tabs.length; i < len; i++) {
+        if (tabs[i].div.style.display != "none" && tabs[i].mechanicalInterface != undefined) {
+            tabs[i].mechanicalInterface.downloadSVG();
+        }
+    }
+}
+
+function splitComponent() {
+    for(var i = 0, len = tabs.length; i < len; i++) {
+        if (tabs[i].div.style.display != "none" && tabs[i].mechanicalInterface != undefined) {
+            tabs[i].mechanicalInterface.splitComponent();
+        }
+    }
+}
+
+function downloadYaml() {
+    for(var i = 0, len = tabs.length; i < len; i++) {
+        if (tabs[i].div.style.display != "none" && tabs[i].mechanicalInterface != undefined) {
+            tabs[i].mechanicalInterface.downloadYaml();
+        }
+    }
+}
+
+function saveComponent() {
+    for(var i = 0, len = tabs.length; i < len; i++) {
+        if (tabs[i].div.style.display != "none" && tabs[i].mechanicalInterface != undefined) {
+            tabs[i].mechanicalInterface.saveComponent();
+        }
+    }
+}
+
+function fixEdgeInterface() {
+    for(var i = 0, len = tabs.length; i < len; i++) {
+        if (tabs[i].div.style.display != "none" && tabs[i].mechanicalInterface != undefined) {
+            tabs[i].mechanicalInterface.fixEdgeInterface();
+        }
+    }
 }
 
 function getLeftPos(el) {
@@ -971,101 +1166,6 @@ function getLeftPos(el) {
 	 el != null;
 	 leftPos += el.offsetLeft, el = el.offsetParent);
     return leftPos;
-}
-
-function onDocumentMouseMove( event ) {
-    event.preventDefault();
-    mouse.x = ( (event.clientX - getLeftPos(container))/ container.clientWidth ) * 2 - 1;
-    mouse.y = - ( event.clientY / container.clientHeight ) * 2 + 1;
-    raycaster.setFromCamera( mouse, camera );
-    var objs = subcomponents;
-    if(componentObj != undefined)
-	objs = subcomponents.concat(componentObj);
-    var intersects = raycaster.intersectObjects( objs,true );
-    if ( intersects.length > 0 ) {
-	container.style.cursor = 'pointer';
-    } else {
-	container.style.cursor = 'auto';
-    }
-}
-
-function onDocumentMouseDown( event ) {
-    event.preventDefault();
-    raycaster.setFromCamera( mouse, camera );
-    var objs = subcomponents;
-    if(componentObj != undefined)
-	objs = subcomponents.concat(componentObj);
-    var intersects = raycaster.intersectObjects( objs,true );
-    var obj;
-    if(!event.shiftKey)
-	obj = SELECTED;
-    else
-	obj = SELECTED_2;
-    if ( intersects.length > 0 ) {
-	if(obj != undefined && obj.parent.type != "Scene")
-	{
-	    obj.material.color = new THREE.Color(0xff0000);
-	    if(!event.shiftKey)
-		SELECTED = undefined;
-	    else
-		SELECTED_2 = undefined;
-	}
-	/*if(intersects[0].object.parent.type == "MasterComponent")
-	    {
-		if(!event.shiftKey)
-		    {
-			SELECTED = intersects[0].object.parent;
-			control.attach(SELECTED);
-		    }
-	    }*/
-	if(intersects[0].object.parent.type != "Scene"){
-	    intersects[0].object.material.color = new THREE.Color(0x00ff00);
-	    if(!event.shiftKey){
-		if(SELECTED != undefined && SELECTED.parent.type == "Scene")
-		    control.detach(SELECTED);
-		SELECTED = intersects[0].object;
-	    }
-	    else
-		SELECTED_2 = intersects[0].object;
-	}
-	else
-	{
-	    control.attach(intersects[0].object);
-	    scene.add(control);
-	    comp.subcomponents.open();
-	    if(SELECTED != undefined && SELECTED != componentObj)
-		    comp.subcomponents[SELECTED.name].close();
-	    SELECTED = intersects[0].object;
-	    if(SELECTED != componentObj)
-		    comp.subcomponents[intersects[0].object.name].open();
-	}
-    }
-}
-
-function onDocumentMouseUp( event ) {
-    event.preventDefault();
-}
-
-function render() {
-    requestAnimationFrame(render);
-    control.update();
-    renderer.render( scene, camera );
-}
-
-function viewSVG(){
-    var over = '<div id="overlay">' +
-                    '<span class="blink_me">LOADING...</span>' +
-                    '</div>';
-    $(over).appendTo('body');
-    var drawing_div = document.getElementById('svg-view');
-     getSVG(function(response){
-        response = JSON.parse(response).response;
-        drawing_div.style.backgroundColor = 'white'
-        //drawing_div.style.padding = "2%";
-        drawing_div.innerHTML = response;
-        document.getElementById('dSVG').disabled = false;
-        $('#overlay').remove();
-      });
 }
 
 dat.GUI.prototype.removeFolder = function(name) {
