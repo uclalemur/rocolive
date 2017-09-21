@@ -613,9 +613,9 @@ class MechanicalInterface {
                         s2name = this.mechInterface.SELECTED_2.name;
                     }
                     addTabConnection(this.mechInterface.id,s1pname,s1name,s2pname,s2name, angle, function(){});//function(){buildComponent()});
-                    connections.push(newConn);
-                    this.mechInterface.SELECTED.parent.connectedInterfaces[SELECTED.name] = newConn.interface2;
-                    this.mechInterface.SELECTED_2.parent.connectedInterfaces[SELECTED_2.name] = newConn.interface1;
+                    this.mechInterface.connections.push(newConn);
+                    this.mechInterface.SELECTED.parent.connectedInterfaces[this.mechInterface.SELECTED.name] = newConn.interface2;
+                    this.mechInterface.SELECTED_2.parent.connectedInterfaces[this.mechInterface.SELECTED_2.name] = newConn.interface1;
                     var folder = this.mechInterface.comp.connections.addFolder(newConn.name);
                     newConn.args = "";
                     var connFixButton = {
