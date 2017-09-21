@@ -87,7 +87,10 @@ def createComponent(request):
         sessionComponent = component.Component() #Create component
         name = id(sessionComponent)
         data = ast.literal_eval(request.body)
-        if not request.session['component'] or not isinstance(request.session['component'], dict):
+        try:
+            if not isinstance(request.session['component'], dict):
+                raise Exception()
+        except:
             request.session['component'] = {}
         try:
             del request.session['component'][data['id']]
@@ -292,7 +295,10 @@ def getSVG(request):
             #pdb.set_trace()
             #####
             svg = fc.composables['graph'].make_output(filedir=".",svgString = True)
-            if not request.session['svg'] or not isinstance(request.session['svg'], dict):
+            try:
+                if not isinstance(request.session['svg'], dict):
+                    raise Exception()
+            except:
                 request.session['svg'] = {}
             request.session['svg'][data['id']] = svg[0]
 
