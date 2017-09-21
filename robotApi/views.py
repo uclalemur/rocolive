@@ -87,18 +87,14 @@ def createComponent(request):
         sessionComponent = component.Component() #Create component
         name = id(sessionComponent)
         data = ast.literal_eval(request.body)
+        if not request.session['component'] or not isinstance(request.session['component'], dict):
+            request.session['component'] = {}
         try:
-            try:
-                request.session['component']
-            except:
-                request.session['component'] = {}
             del request.session['component'][data['id']]
         except Exception as e:
             pass
-            #traceback.print_exc()
         #Store session component
         request.session['component'][data['id']] = sessionComponent
-        print request.session['component']
         request.session.modified = True
         return HttpResponse('FoldedComponent {} Created'.format(name))
 
@@ -296,7 +292,9 @@ def getSVG(request):
             #pdb.set_trace()
             #####
             svg = fc.composables['graph'].make_output(filedir=".",svgString = True)
-            request.session['svg'] = svg[0]
+            if not request.session['svg'] or not isinstance(request.session['svg'], dict):
+                request.session['svg'] = {}
+            request.session['svg'][data['id']] = svg[0]
 
             svg = svg[1].__str__().replace('"',"'")
             response = '{"response": "' + svg +'"}'

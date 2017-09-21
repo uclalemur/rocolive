@@ -4,7 +4,6 @@ var idGenerator = 0;
 class MechanicalInterface {
     constructor (tabDom, container, svgcontainer) {
         this.id = idGenerator++;
-        console.log(this.id);
         this.container = container;
         this.svgcontainer = svgcontainer;
         this.tabDom = tabDom;
@@ -198,14 +197,17 @@ class MechanicalInterface {
         objMesh.parameters = obj['parameters'];
         for(var pars in objMesh.parameters){
             var constraintButton = {
+                mechInterface: undefined,
                 controller: undefined,
                 c: pars,
                 constrain:function(){
                     var value = window.prompt("Set " + objMesh.name + "_" + this.c + " to: ");
-                    constrainParameter(this.id, objMesh.name, this.c, value);
+                    constrainParameter(this.mechInterface.id, objMesh.name, this.c, value);
                     this.controller.name(this.c + " = " + value);
                 }
             }
+            constraintButton.mechInterface = this;
+
             var controller = constrs.add(constraintButton, "constrain");
             constraintButton.controller = controller;
             controller.name(pars);
@@ -260,7 +262,6 @@ class MechanicalInterface {
                     if(this.mechInterface.connections[i].interface1.substr(0, this.mechInterface.connections[i].interface1.indexOf(".")) == this.delName)
                     {
                         var otherName = this.mechInterface.connections[i].interface2.substr(0, this.mechInterface.connections[i].interface2.indexOf("."));
-                        console.log(otherName);
                         for(var j = 0, slen = this.mechInterface.subcomponents.length; j < slen; j++){
                             if(this.mechInterface.subcomponents[j].name == otherName)
                                 delete this.mechInterface.subcomponents[j].connectedInterfaces[this.mechInterface.connections[i].interface2.substr(this.mechInterface.connections[i].interface2.indexOf(".")+1)];
@@ -277,7 +278,6 @@ class MechanicalInterface {
                     else if(this.mechInterface.connections[i].interface2.substr(0, this.mechInterface.connections[i].interface2.indexOf(".")) == this.delName)
                     {
                         var otherName = this.mechInterface.connections[i].interface1.substr(0, this.mechInterface.connections[i].interface1.indexOf("."));
-                        console.log(otherName);
                         for(var j = 0, slen = this.mechInterface.subcomponents.length; j < slen; j++){
                             if(this.mechInterface.subcomponents[j].name == otherName)
                                 delete this.mechInterface.subcomponents[j].connectedInterfaces[this.mechInterface.connections[i].interface1.substr(this.mechInterface.connections[i].interface1.indexOf(".")+1)];
@@ -292,12 +292,11 @@ class MechanicalInterface {
                         len--;
                     }
                 }
-                console.log("deleting: " + this.delName);
                 var over = '<div id="overlay">' +
                         '<span class="blink_me">LOADING...</span>' +
                         '</div>';
                 $(over).appendTo('body');
-                delSubcomponent(this.id, this.delName, function(response){$('#overlay').remove();});
+                delSubcomponent(this.mechInterface.id, this.delName, function(response){$('#overlay').remove();});
             }
         }
         removeButton.mechInterface = this;
@@ -431,7 +430,7 @@ class MechanicalInterface {
                             '</div>';
                         $(over).appendTo('body');
                         var mechInterface = this.mechInterface;
-                        addSubcomponent(this.id, n, this.mechInterface.compName, function(response){
+                        addSubcomponent(this.mechInterface.id, n, this.mechInterface.compName, function(response){
                             response = JSON.parse(response).response;
                             mechInterface.tempParams = {};
                             mechInterface.loadSymbolic(response, n);
@@ -545,20 +544,22 @@ class MechanicalInterface {
                                 '<span class="blink_me">LOADING...</span>' +
                                 '</div>';
                         $(over).appendTo('body');
-                    addComponentConnection(this.id,s1pname,s1name,s2pname,s2name, angle, function(){$('#overlay').remove();});//function(){buildComponent()});
+                    addComponentConnection(this.mechInterface.id,s1pname,s1name,s2pname,s2name, angle, function(){$('#overlay').remove();});//function(){buildComponent()});
                     this.mechInterface.connections.push(newConn);
                     this.mechInterface.SELECTED.parent.connectedInterfaces[this.mechInterface.SELECTED.name] = newConn.interface2;
                     this.mechInterface.SELECTED_2.parent.connectedInterfaces[this.mechInterface.SELECTED_2.name] = newConn.interface1;
                     var folder = this.mechInterface.comp.connections.addFolder(newConn.name);
                     newConn.args = "";
                     var connFixButton = {
+                        mechInterface: undefined,
                         s1pname: s1pname,
                         s1name: s1name,
                         fixConnection:function(){
                             var value = window.prompt("Value to fix interface to");
-                            fixComponentEdgeInterface(this.id,this.s1pname, this.s1name, value);
+                            fixComponentEdgeInterface(this.mechInterface.id,this.s1pname, this.s1name, value);
                         }
                     }
+                    connFixButton.mechInterface = this.mechInterface;
                     folder.add(newConn,"interface2").name(newConn.interface1);
                     folder.add(connFixButton, "fixConnection").name("Set Length");
                 }
@@ -616,7 +617,7 @@ class MechanicalInterface {
                         s2pname = this.mechInterface.SELECTED_2.parent.name;
                         s2name = this.mechInterface.SELECTED_2.name;
                     }
-                    addTabConnection(this.id,s1pname,s1name,s2pname,s2name, angle, function(){});//function(){buildComponent()});
+                    addTabConnection(this.mechInterface.id,s1pname,s1name,s2pname,s2name, angle, function(){});//function(){buildComponent()});
                     connections.push(newConn);
                     this.mechInterface.SELECTED.parent.connectedInterfaces[SELECTED.name] = newConn.interface2;
                     this.mechInterface.SELECTED_2.parent.connectedInterfaces[SELECTED_2.name] = newConn.interface1;
@@ -669,7 +670,7 @@ class MechanicalInterface {
                     return;
                 this.mechInterface.parameters[fieldName] = pdef;
                 this.mechInterface.comp.parameters.add(this.mechInterface.parameters, fieldName).name(fieldName);
-                addParameter(this.id,fieldName, pdef);
+                addParameter(this.mechInterface.id,fieldName, pdef);
             },
             parameterDelete:function(){
                 var delName = window.prompt("Name of parameter to delete","");
@@ -680,7 +681,7 @@ class MechanicalInterface {
                 if(this.mechInterface.comp.parameters.__controllers[i].__li.firstElementChild.firstElementChild.innerHTML == delName)
                     this.mechInterface.comp.parameters.remove(this.mechInterface.comp.parameters.__controllers[i]);
                 }
-                delParameter(this.id,delName);
+                delParameter(this.mechInterface.id,delName);
             },
             interfaceAdd:function(){
                 if(this.mechInterface.SELECTED != undefined && this.mechInterface.SELECTED.parent != "Scene")
@@ -700,7 +701,7 @@ class MechanicalInterface {
                     }
                     this.mechInterface.interfaces[name] = s1pname + "." + s1name;
                     this.mechInterface.comp.interfaces.add(this.mechInterface.interfaces, name).name(name);
-                    inheritInterface(this.id,name, s1pname, s1name);
+                    inheritInterface(this.mechInterface.id,name, s1pname, s1name);
                 }
             },
             interfaceDelete:function(){
@@ -712,7 +713,7 @@ class MechanicalInterface {
                 if(this.mechInterface.comp.interfaces.__controllers[i].__li.firstElementChild.firstElementChild.innerHTML == delName)
                     this.mechInterface.comp.interfaces.remove(this.mechInterface.comp.interfaces.__controllers[i]);
                 }
-                delInterface(this.id,delName);
+                delInterface(this.mechInterface.id,delName);
             }
         }
         objectbuttons.mechInterface = this;
@@ -973,7 +974,6 @@ function createMeshFromObject(obj)
         //obj["faces"][face][0] = obj["faces"][face][0].map(function(i){return i.replaceAll("**","^").replaceAll("[","(").replaceAll("]",")")})
         transf.elements = obj["faces"][face][0].map(function(i){return evalPrefix(i,obj["solved"]).value});
         transf.transpose();
-        console.log(transf);
         var vertices = [];
         set = new Set();
         var holes = [];
@@ -981,9 +981,7 @@ function createMeshFromObject(obj)
             try{
             //obj["faces"][face][1]["vertices"][v] = obj["faces"][face][1]["vertices"][v].map(function(i){if(typeof i == 'string' || i instanceof String)return i.replaceAll("**","^").replaceAll("[","(").replaceAll("]",")"); else return i;});
             } catch (err){console.log(face + " " +v);}
-            console.log(obj["faces"][face][1]["vertices"][v]);
             var arr = obj["faces"][face][1]["vertices"][v].map(function(i){return evalPrefix(i,obj["solved"]).value});
-            console.log(arr);
             set.add(arr[0] + ","+arr[1]);
         }
         if(set.size < 3)
@@ -1101,8 +1099,6 @@ function updateComponent(component, response)
         if (edge.startsWith(component.name))
             component['edges'][edge] = response['edges'][edge];
     }*/
-    console.log(pos);
-    console.log(quat);
     newComp = createMeshFromObject(component);
     newComp.position.set(Number(pos.dx),Number(pos.dy),Number(pos.dz));
     newComp.rotation.setFromQuaternion(new THREE.Quaternion(Number(quat.q_i),Number(quat.q_j),Number(quat.q_k),Number(quat.q_a)));
