@@ -1,4 +1,5 @@
 var numTabs = 0;
+var tabNames = ['Start'];
 
 class Tab {
     constructor(type, name, div, button) {
@@ -102,7 +103,21 @@ function newInterface(event, type) {
     } else if (type == 'bc') {
         t = "base";
     }
-    var name = "untitled" + (numTabs==0?"":numTabs);
+    var name = "";
+    while (true) {
+        if(name === null){
+          return;
+        }else if(name == ""){
+          name = window.prompt("Name the component", "");
+          continue;
+        }else if(tabNames.includes(name)){
+          name = window.prompt("A tab with that name already exists.\nPlease choose another name", "");
+          continue;
+        }else{
+          tabNames.push(name);
+          break;
+        }
+    }
     numTabs++;
     tabs.push(new Tab(t, name));
     addTab(tabs[tabs.length - 1]);

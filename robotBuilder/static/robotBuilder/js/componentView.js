@@ -2,7 +2,8 @@ var debugObj;
 var idGenerator = 0;
 
 class MechanicalInterface {
-    constructor (tabDom, container, svgcontainer) {
+    constructor (name, tabDom, container, svgcontainer) {
+        this.componentName = name;
         this.id = idGenerator++;
         this.container = container;
         this.svgcontainer = svgcontainer;
@@ -20,7 +21,6 @@ class MechanicalInterface {
         this.searchFilters = null;
         this.rightpanel = null;
         this.subprops = null;
-        this.componentName = null;
         this.subcomponents = [];
         this.connectedSubcomponents = [];
         this.componentObj = null;
@@ -45,11 +45,6 @@ class MechanicalInterface {
     }
 
     mechanicalGo() {
-        this.componentName = "";
-        do {
-            this.componentName = window.prompt("Name the component", "");
-        } while(this.componentName == "" || this.componentName == null);
-
         this.init();
     }
 
