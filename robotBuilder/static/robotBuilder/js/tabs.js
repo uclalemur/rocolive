@@ -9,6 +9,7 @@ class Tab {
         // name is the name of the tab.
         this.name = name;
 
+
         if(div === undefined){
             // create new interface in a div
             this.div = document.createElement("div");
@@ -29,11 +30,13 @@ class Tab {
             this.button = document.createElement("button");
             this.button.innerHTML = name;
             this.button.classList.add("tablinks");
+            this.button.tab = this;
 
             // attach button to div
             var id = this.id;
             this.button.addEventListener("click", function (evt) {
                 openInterface(evt, id);
+                // activeTab = this.tab;
             });
 
             // code to convert button to text field on double click?
@@ -46,10 +49,11 @@ class Tab {
     }
 }
 
+
 startTabDiv = document.getElementById("start");
 startTab = document.getElementById("defaultOpen");
-
 var tabs = [new Tab("Starting Page", "start", startTabDiv, startTab)];
+// activeTab = tabs[0];
 
 lastTab = document.getElementById("dropbtn");
 
@@ -94,6 +98,16 @@ window.onclick = function(e) {
   }
 }
 
+function getActiveTab() {
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        if (tabcontent[i].style.display == "block") {
+            return tabs[i];
+        }
+        
+    }
+}
+
 function newInterface(event, type) {
     var t = "";
     if(type == 'm'){
@@ -121,4 +135,5 @@ function newInterface(event, type) {
     numTabs++;
     tabs.push(new Tab(t, name));
     addTab(tabs[tabs.length - 1]);
+    // activeTab = tabs[tabs.length - 1];
 }

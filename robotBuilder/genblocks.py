@@ -247,17 +247,19 @@ class CustomBlockFile:
             self.portFile.write("};\n\n")
 
     def writeXML(self, ports):
+        self.xmlFile.write("function addPorts(tab) {\n")
         self.xmlFile.write(
-            "var ports = Toolbox.addCategory('<category name=\"Ports\" colour=\"105\"></category>', toolboxXML);\n")
+            "\tvar ports = tab.Toolbox.addCategory('<category name=\"Ports\" colour=\"105\"></category>', tab.toolboxXML);\n")
         for kind in ports.keys():
             if len(ports[kind]) > 0:
                 self.xmlFile.write(
-                    "Toolbox.{}Category = Toolbox.addCategory('<category name=\"{}\" colour=\"105\"></category>', ports);\n".format(kind, kind))
+                    "\ttab.Toolbox.{}Category = tab.Toolbox.addCategory('<category name=\"{}\" colour=\"105\"></category>', ports);\n".format(kind, kind))
         for kind, port, in ports.iteritems():
             for p in port:
                 self.xmlFile.write(
-                    "Toolbox.addBlock('<block type=\"{}\"></block>', Toolbox.{}Category);\n".format(p + "|" + kind,  kind))
+                    "\ttab.Toolbox.addBlock('<block type=\"{}\"></block>', tab.Toolbox.{}Category);\n".format(p + "|" + kind,  kind))
             self.xmlFile.write("\n")
+        self.xmlFile.write("}")
 
     def writePortCodeGen(self, ports):
         self.pcgFile.write("//Arduino\n")

@@ -361,9 +361,9 @@ Blockly.Blocks['component_create'] = {
                 .setAlign(Blockly.ALIGN_RIGHT);
         }
         this.appendStatementInput('SETUP')
-            .appendField("Setup:");
+            .appendField("Do this once");
         this.appendStatementInput('LOOP')
-            .appendField("Loop:");
+            .appendField("Continually do this:");
 
         for (var i = 0; i < this.outputCount; i++) {
             this.appendValueInput("OUT" + i)

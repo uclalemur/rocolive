@@ -13,14 +13,19 @@ function populateBase(t) {
     t.startBlocks.innerHTML = '<block type="component_create"></block>';
     t.startBlocks.style.display = "none";
 
-    var workspace = Blockly.inject(t.id, {
-        toolbox: Toolbox.xmlTree
+    createToolbox(t);
+    t.workspace = Blockly.inject(t.id, {
+        toolbox: t.Toolbox.xmlTree
     });
+    createIndexEvents(t);
+    addIndexEvents(t);
+    addPorts(t);
+
 
     // An href with #key trigers an AJAX call to retrieve saved blocks.
     // if ('BlocklyStorage' in window && window.location.hash.length > 1) {
     //     BlocklyStorage.retrieveXml(window.location.hash.substring(1));
     // }
 
-    Blockly.Xml.domToWorkspace(t.startBlocks, workspace);
+    Blockly.Xml.domToWorkspace(t.startBlocks, t.workspace);
 }
