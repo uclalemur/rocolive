@@ -13,11 +13,13 @@ function populateBase(t) {
     t.startBlocks.innerHTML = '<block type="component_create"></block>';
     t.startBlocks.style.display = "none";
 
+    createToolbox(t);
     t.workspace = Blockly.inject(t.id, {
-        toolbox: Toolbox.xmlTree
+        toolbox: t.Toolbox.xmlTree
     });
     createIndexEvents(t);
     addIndexEvents(t);
+    addPorts(t);
 
 
     // An href with #key trigers an AJAX call to retrieve saved blocks.

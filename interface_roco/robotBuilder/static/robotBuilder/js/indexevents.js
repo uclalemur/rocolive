@@ -121,13 +121,13 @@ function createIndexEvents(tab){
                 Blockly.Blocks["input" + i] = null;
                 delete Blockly.Blocks["input" + i];
 
-                Toolbox.deleteBlock("input" + i, Toolbox.componentCategory);
+                tab.Toolbox.deleteBlock("input" + i, tab.Toolbox.componentCategory);
             }
             for (var i = 0; Blockly.Blocks["parameter" + i]; i++) {
                 Blockly.Blocks["parameter" + i] = null;
                 delete Blockly.Blocks["parameter" + i];
 
-                Toolbox.deleteBlock("parameter" + i, Toolbox.componentCategory);
+                tab.Toolbox.deleteBlock("parameter" + i, tab.Toolbox.componentCategory);
             }
 
             var clauseBlock = tab.rootBlock.nextConnection.targetBlock();
@@ -138,8 +138,8 @@ function createIndexEvents(tab){
                     case 'component_input':
                         // add input block to toolbox
                         if (!Blockly.Blocks['input' + inputCount]) {
-                            Toolbox.addBlock('<block type="' + 'input' + inputCount + '"></block>', Toolbox.componentCategory);
-                            tab.workspace.updateToolbox(Toolbox.xmlTree);
+                            tab.Toolbox.addBlock('<block type="' + 'input' + inputCount + '"></block>', tab.Toolbox.componentCategory);
+                            tab.workspace.updateToolbox(tab.Toolbox.xmlTree);
                         }
 
                         // create input block definition
@@ -168,8 +168,8 @@ function createIndexEvents(tab){
                     case 'component_parameter':
                         // add input block to toolbox
                         if (!Blockly.Blocks['parameter' + parameterCount]) {
-                            Toolbox.addBlock('<block type="' + 'parameter' + parameterCount + '"></block>', Toolbox.componentCategory);
-                            tab.workspace.updateToolbox(Toolbox.xmlTree);
+                            tab.Toolbox.addBlock('<block type="' + 'parameter' + parameterCount + '"></block>', tab.Toolbox.componentCategory);
+                            tab.workspace.updateToolbox(tab.Toolbox.xmlTree);
                         }
 
                         // create parameter block definition
@@ -200,7 +200,7 @@ function createIndexEvents(tab){
                 }
                 clauseBlock = clauseBlock.nextConnection && clauseBlock.nextConnection.targetBlock();
             }
-            Toolbox.updateToolbox();
+            tab.Toolbox.updateToolbox();
         }
     }
 
