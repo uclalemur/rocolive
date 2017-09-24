@@ -12,7 +12,7 @@ def test(request):
     return HttpResponse(template.render(context, request))
 def new_index(request):
     writeIndexFiles()
-    # writePrevFiles()
+    writePrevFiles()
     template = loader.get_template('robotBuilder/new_index.html')
     context = {}
     return HttpResponse(template.render(context, request))

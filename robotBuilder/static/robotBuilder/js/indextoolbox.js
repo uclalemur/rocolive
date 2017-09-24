@@ -17,7 +17,6 @@ function createToolbox(tab){
         var ch = category.childNodes;
         for (var j = 0; j < ch.length; j++) {
             for (var i = 0; i < blocks.length; i++) {
-                // console.log(ch[i].getAttribute("type"));
                 if (ch[j].getAttribute("type") == blocks[i]) {
                     ch[j].setAttribute("disabled", "true");
                 }

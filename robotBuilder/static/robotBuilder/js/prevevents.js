@@ -11,49 +11,54 @@ Blockly.Blocks['component_parameter'] = {
     }
 };
 
-function createTabEvents(tab){
+function createPrevEvents(tab){
     tab.outputCount = {};
     tab.onBlockAddedToWorkspace = function(event) {
         var block = tab.workspace.getBlockById(event.blockId);
-        //If a block is being created and the block is not an output block
+        //If a block is being added and the block is not an output block
         if (block && event.type == Blockly.Events.CREATE && block.type.indexOf("|") > 0 && block.type.indexOf("\\") < 0) {
             var blockName = block.type.substring(0, block.type.indexOf("|"));
+            var end = blockName.charAt(blockName.length - 1);
+            while(end >= '0' && end <= '9'){
+                blockName = blockName.substring(0, blockName.length-1);
+                end = blockName.charAt(blockName.length - 1);
+            }
             var blockNumber = parseInt(block.type.substring(block.type.indexOf("|") + 1, block.type.length), 10);
             // If the block has outputs
-            if (Blockly.Blocks[blockName + "|" + blockNumber + "\\" + 0]){
+            if (Blockly.Blocks[blockName + getActiveTabNum() + "|" + blockNumber + "\\" + 0]){
                 //If it doesn't already exist, make a blocks category in the toolbar
-                if (!Toolbox.blocks) {
-                    Toolbox.blocks = Toolbox.addEmptyCategory("blocks", Toolbox.xmlTree);
+                if (! tab.Toolbox.blocks) {
+                     tab.Toolbox.blocks =  tab.Toolbox.addEmptyCategory("blocks",  tab.Toolbox.xmlTree);
                 }
 
                 //make a category to house the output of the block that was just dragged
-                block.cat = Toolbox.addEmptyCategory(blockName + blockNumber, Toolbox.blocks);
+                block.cat =  tab.Toolbox.addEmptyCategory(blockName + blockNumber,  tab.Toolbox.blocks);
 
                 // add all the outputs blocks of the new block on the workspace to the
                 // toolbar
-                for (var i = 0; Blockly.Blocks[blockName + "|" + blockNumber + "\\" + i]; i++) {
-                    Toolbox.addEmptyBlock(blockName + "|" + blockNumber + "\\" + i, block.cat);
+                for (var i = 0; Blockly.Blocks[blockName + getActiveTabNum() + "|" + blockNumber + "\\" + i]; i++) {
+                     tab.Toolbox.addEmptyBlock(blockName + getActiveTabNum() + "|" + blockNumber + "\\" + i, block.cat);
                 }
 
                 //add all the outputs to the counting object, along with a count of 0
-                for (var i = 0; Blockly.Blocks[blockName + "|" + blockNumber + "\\" + i]; i++) {
-                    outputCount[blockName + "|" + blockNumber + "\\" + i] = 0;
+                for (var i = 0; Blockly.Blocks[blockName + getActiveTabNum() + "|" + blockNumber + "\\" + i]; i++) {
+                     tab.outputCount[blockName + getActiveTabNum() + "|" + blockNumber + "\\" + i] = 0;
                 }
             }
 
             // create a new blockly block
-            eval("make" + blockName + "(" + (blockNumber + 1) + ")");
+            eval("make" + blockName + "(" + getActiveTabNum() + "," + (blockNumber + 1) + ")");
 
             //create a new blockly output block
-            eval("makeOutput" + blockName + "(" + (blockNumber + 1) + ")");
+            eval("makeOutput" + blockName + "(" + getActiveTabNum() + ',' + (blockNumber + 1) + ")");
 
-            Toolbox.incrementBlock(blockName, blockNumber, block.category);
+             tab.Toolbox.incrementBlock(blockName, blockNumber, block.category);
 
         } else if (block && event.type == Blockly.Events.CREATE && block.type.indexOf("\\") > 0) {
-            if (outputCount[block.type] == 0) {
-                outputCount[block.type] = 1;
+            if ( tab.outputCount[block.type] == 0) {
+                 tab.outputCount[block.type] = 1;
                 var c;
-                var outs = Toolbox.blocks.childNodes;
+                var outs =  tab.Toolbox.blocks.childNodes;
                 for(var i =0; i < outs.length; i++){
                     var cat = outs[i].childNodes;
                     var cate = outs[i];
@@ -64,7 +69,7 @@ function createTabEvents(tab){
                         }
                     }
                 }
-                Toolbox.disableBlock([block.type], c);
+                 tab.Toolbox.disableBlock([block.type], c);
             }
         }
     }
@@ -73,25 +78,25 @@ function createTabEvents(tab){
         var block = tab.workspace.getBlockById(event.blockId);
         if(event.type==Blockly.Events.CREATE){
             if(block.type.indexOf("\\") >= 0) {
-                if(outputStubs[block.type.substring(0, block.type.indexOf("\\"))]){
-                    outputStubs[block.type.substring(0, block.type.indexOf("\\"))].push(block.id);
+                if( tab.outputStubs[block.type.substring(0, block.type.indexOf("\\"))]){
+                     tab.outputStubs[block.type.substring(0, block.type.indexOf("\\"))].push(block.id);
                 } else {
-                    outputStubs[block.type.substring(0, block.type.indexOf("\\"))] = [block.id];
+                     tab.outputStubs[block.type.substring(0, block.type.indexOf("\\"))] = [block.id];
                 }
             }
         }
     }
 
     tab.countStubs = function(){
-        outputStubs = {};
+         tab.outputStubs = {};
         var blocks = tab.workspace.getAllBlocks();
         for(var i = 0; i < blocks.length; i++){
             var block = blocks[i];
             if(block.type.indexOf("\\") >= 0) {
-                if(outputStubs[block.type.substring(0, block.type.indexOf("\\"))]){
-                    outputStubs[block.type.substring(0, block.type.indexOf("\\"))].push(block.id);
+                if( tab.outputStubs[block.type.substring(0, block.type.indexOf("\\"))]){
+                     tab.outputStubs[block.type.substring(0, block.type.indexOf("\\"))].push(block.id);
                 } else {
-                    outputStubs[block.type.substring(0, block.type.indexOf("\\"))] = [block.id];
+                     tab.outputStubs[block.type.substring(0, block.type.indexOf("\\"))] = [block.id];
                 }
             }
         }
@@ -108,57 +113,61 @@ function createTabEvents(tab){
                 return;
             }
 
-
             var blockName = block.type.substring(0, block.type.indexOf("|"));
+            var end = blockName.charAt(blockName.length - 1);
+            while(end >= '0' && end <= '9'){
+                blockName = blockName.substring(0, blockName.length-1);
+                end = blockName.charAt(blockName.length - 1);
+            }
             var blockNumber = parseInt(block.type.substring(block.type.indexOf("|") + 1, block.type.length), 10);
 
             // change the name of the category
-            if(Blockly.Blocks[blockName + "|" + blockNumber + "\\0"]){
+            if(Blockly.Blocks[blockName + getActiveTabNum() + "|" + blockNumber + "\\0"]){
                 block.cat.setAttribute("name", event.newValue);
             }
 
             // change the output blocks, if any exist, to  reflect the name change
-            for (var i = 0; Blockly.Blocks[blockName + "|" + blockNumber + "\\" + i]; i++) {
+            for (var i = 0; Blockly.Blocks[blockName + getActiveTabNum() + "|" + blockNumber + "\\" + i]; i++) {
                 // var newName = "";
                 var newName = event.newValue.toString();
-                var outName = Blockly.Blocks[blockName + "|" + blockNumber + "\\" + i].outputName;
-                var outType = Blockly.Blocks[blockName + "|" + blockNumber + "\\" + i].outputType;
+                var outName = Blockly.Blocks[blockName + getActiveTabNum() + "|" + blockNumber + "\\" + i].outputName;
+                var outType = Blockly.Blocks[blockName + getActiveTabNum() + "|" + blockNumber + "\\" + i].outputType;
 
-                Blockly.Blocks[blockName + "|" + blockNumber + "\\" + i] = {};
+                Blockly.Blocks[blockName + getActiveTabNum() + "|" + blockNumber + "\\" + i] = {};
 
-                Blockly.Blocks[blockName + "|" + blockNumber + "\\" + i].name = newName;
-                Blockly.Blocks[blockName + "|" + blockNumber + "\\" + i].outputType = outType;
-                Blockly.Blocks[blockName + "|" + blockNumber + "\\" + i].outputName= outName;
-                Blockly.Blocks[blockName + "|" + blockNumber + "\\" + i].init = function() {
+                Blockly.Blocks[blockName + getActiveTabNum() + "|" + blockNumber + "\\" + i].name = newName;
+                Blockly.Blocks[blockName + getActiveTabNum() + "|" + blockNumber + "\\" + i].outputType = outType;
+                Blockly.Blocks[blockName + getActiveTabNum() + "|" + blockNumber + "\\" + i].outputName= outName;
+                Blockly.Blocks[blockName + getActiveTabNum() + "|" + blockNumber + "\\" + i].init = function() {
                     this.appendDummyInput("NAME").appendField(this.name + " -> " + this.outputName );
                     this.setOutput(true, null);
                     this.setColour(180);
                 };
             }
 
-            var ids = outputStubs[blockName + "|" + blockNumber];
+            var ids =  tab.outputStubs[blockName + getActiveTabNum() + "|" + blockNumber];
             if(ids){
                 for(var i = 0; i < ids.length; i++){
                     var b = tab.workspace.getBlockById(ids[i]);
                     var num = parseInt(b.type.substring(b.type.indexOf("\\")+1));
-                    b.name = Blockly.Blocks[blockName + "|" + blockNumber + "\\" + num].name;
-                    b.outputType = Blockly.Blocks[blockName + "|" + blockNumber + "\\" + num].outputType;
-                    b.outputName = Blockly.Blocks[blockName + "|" + blockNumber + "\\" + num].outputName;
-                    b.init = Blockly.Blocks[blockName + "|" + blockNumber + "\\" + num].init;
+                    b.name = Blockly.Blocks[blockName + getActiveTabNum() + "|" + blockNumber + "\\" + num].name;
+                    b.outputType = Blockly.Blocks[blockName + getActiveTabNum() + "|" + blockNumber + "\\" + num].outputType;
+                    b.outputName = Blockly.Blocks[blockName + getActiveTabNum() + "|" + blockNumber + "\\" + num].outputName;
+                    b.init = Blockly.Blocks[blockName + getActiveTabNum() + "|" + blockNumber + "\\" + num].init;
                     b.removeInput("NAME");
                     b.init();
                 }
             }
 
 
-            Toolbox.updateToolbox();
+             tab.Toolbox.updateToolbox();
         }
     }
 
     tab.deleteRightBlocks = function(block, name, tree){
         // if the block is a component block
         if(block.indexOf("\\") < 0 && block.indexOf("|") > 0){
-            var blocks = Blockly.getMainWorkspace().getAllBlocks();
+            var blocks = getActiveTab().workspace.getAllBlocks();
             for(var i = 0; i < blocks.length; i++){
                 if(blocks[i].type.includes(block)){
                     blocks[i].dispose(false);
@@ -173,7 +182,7 @@ function createTabEvents(tab){
                     if(t.childNodes[0]){
                         n = t.childNodes[0].innerText;
                     }
-                    deleteRightBlocks(b, n, t);
+                    tab.deleteRightBlocks(b, n, t);
                 }
 
             }
@@ -188,15 +197,15 @@ function createTabEvents(tab){
             }
 
             // remove category
-            if(Toolbox.blocks)
-                Toolbox.deleteCategory(name, Toolbox.blocks);
+            if( tab.Toolbox.blocks)
+                 tab.Toolbox.deleteCategory(name,  tab.Toolbox.blocks);
 
-            Toolbox.updateToolbox();
+             tab.Toolbox.updateToolbox();
 
         } else if (block.indexOf('\\')>0) {
             outputCount[block] = 0;
             var c;
-            var outs = Toolbox.blocks.childNodes;
+            var outs =  tab.Toolbox.blocks.childNodes;
             for(var i =0; i < outs.length; i++){
                 var cat = outs[i].childNodes;
                 var cate = outs[i];
@@ -207,7 +216,7 @@ function createTabEvents(tab){
                     }
                 }
             }
-            Toolbox.enableBlock([block], c);
+             tab.Toolbox.enableBlock([block], c);
         }
     }
 
@@ -236,7 +245,7 @@ function createTabEvents(tab){
 
 
 
-function addBaseChangeListeners(tab) {
+function addPrevEvents(tab) {
     tab.workspace.addChangeListener(tab.onBlockAddedToWorkspace);
     tab.workspace.addChangeListener(tab.onStubDeleted);
     tab.workspace.addChangeListener(tab.onStubAdded);

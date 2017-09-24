@@ -49,7 +49,7 @@ class Tab {
     }
 }
 
-
+document.getElementById("export").style.display="none";
 startTabDiv = document.getElementById("start");
 startTab = document.getElementById("defaultOpen");
 var tabs = [new Tab("Starting Page", "start", startTabDiv, startTab)];
@@ -65,6 +65,10 @@ function addTab(t) {
     openInterface(null, t.id);
     t.button.className += " active";
     populateTab(t);
+    if (t.type == "base" || t.type == "composite")
+        document.getElementById("export").style.display="block";
+    else
+        document.getElementById("export").style.display="none";
     t.div.style.height = window.innerHeight - $("#tabButtons").outerHeight();
 }
 
@@ -90,22 +94,26 @@ function showOptions() {
 }
 
 window.onclick = function(e) {
-  if (!e.target.matches('.dropbtn')) {
-    var rocoInterfaces = document.getElementById("rocoInterfaces");
-      if (rocoInterfaces.classList.contains('show')) {
-        rocoInterfaces.classList.remove('show');
-      }
-  }
+    if (!e.target.matches('.dropbtn')) {
+        var rocoInterfaces = document.getElementById("rocoInterfaces");
+        if (rocoInterfaces.classList.contains('show')) {
+            rocoInterfaces.classList.remove('show');
+        }
+    }
 }
 
-function getActiveTab() {
+function getActiveTabNum() {
     tabcontent = document.getElementsByClassName("tabcontent");
     for (i = 0; i < tabcontent.length; i++) {
         if (tabcontent[i].style.display == "block") {
-            return tabs[i];
+            return i;
         }
         
     }
+}
+
+function getActiveTab() {
+    return tabs[getActiveTabNum()];
 }
 
 function newInterface(event, type) {
@@ -135,5 +143,6 @@ function newInterface(event, type) {
     numTabs++;
     tabs.push(new Tab(t, name));
     addTab(tabs[tabs.length - 1]);
+    tabs[tabs.length-1].type = type;
     // activeTab = tabs[tabs.length - 1];
 }

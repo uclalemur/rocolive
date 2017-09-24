@@ -21,7 +21,13 @@ function openInterface(evt, interfaceName) {
     document.getElementById(interfaceName).style.display = "block";
     if(evt) 
         evt.currentTarget.className += " active";
-    console.log(getActiveTab());
+    if (getActiveTab()) {
+        t = getActiveTab();
+        if (t.type == "bc" || t.type == "cc")
+            document.getElementById("export").style.display="block";
+        else
+            document.getElementById("export").style.display="none";
+    }
 }
 
 document.getElementById("defaultOpen").click();

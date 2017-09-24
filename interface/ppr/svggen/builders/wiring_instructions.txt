@@ -1,3 +1,0 @@
-Wiring Instructions:
-Connect pin 1 of Component.rgbled to ground
-Connect pin 1 of Component.rgb_driver to ground via resistor
