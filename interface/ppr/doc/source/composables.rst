@@ -1,8 +1,0 @@
-
-Composables
-==========
-
-.. toctree::
-   
-   graph
-

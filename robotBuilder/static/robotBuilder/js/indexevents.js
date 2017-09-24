@@ -41,10 +41,10 @@ function createIndexEvents(tab){
     }
 
     tab.onParameterNameChange = function(event) {
-        var block = tab.workspace.getBlockById(event.blockId)
+        var block = tab.workspace.getBlockById(event.blockId);
         if (block && block.type == 'component_create' && event.type == Blockly.Events.CHANGE && event.element == 'field') {
             if(event.name.substring(0, 3) == "INP") {
-                Blockly.Blocks['input' + event.name.substring(10)] = {
+                Blockly.Blocks['input' + getActiveTabNum() + event.name.substring(10)] = {
                     // mutator blocks for component
                     init: function() {
                         this.appendDummyInput("NAME")
@@ -55,27 +55,27 @@ function createIndexEvents(tab){
                         this.setHelpUrl('http://www.example.com/');
                     }
                 };
-                Blockly.Arduino['input' + event.name.substring(10)] = function(){
+                Blockly.Arduino['input' +  getActiveTabNum() + event.name.substring(10)] = function(){
                     this.codeName = event.newValue.trim();
-                    return ["<<"+event.newValue.trim()+mangler+">>", Blockly.Arduino.ORDER_ATOMIC];
+                    return ["<<"+event.newValue.trim()+getActiveTab().mangler+">>", Blockly.Arduino.ORDER_ATOMIC];
                 }
-                Blockly.Python['input' + event.name.substring(10)] = function(){
+                Blockly.Python['input' +  getActiveTabNum() + event.name.substring(10)] = function(){
                     this.codeName = event.newValue.trim();
-                    return ["<<"+event.newValue.trim()+mangler+">>", Blockly.Python.ORDER_ATOMIC];
+                    return ["<<"+event.newValue.trim()+getActiveTab().mangler+">>", Blockly.Python.ORDER_ATOMIC];
                 }
                 for(var key in tab.inputStubs){
                     if(tab.inputStubs.hasOwnProperty(key)){
                         var ids = tab.inputStubs[key];
                         for(var i = 0; i < ids.length; i++){
                             var b = tab.workspace.getBlockById(ids[i]);
-                            b.init = Blockly.Blocks['input' + event.name.substring(10)].init;
+                            b.init = Blockly.Blocks['input' +  getActiveTabNum() + event.name.substring(10)].init;
                             b.removeInput("NAME");
                             b.init();
                         }
                     }
                 }
             } else if (event.name.substring(0, 8) == "PAR_NAME"){
-                Blockly.Blocks['parameter' + event.name.substring(8)] = {
+                Blockly.Blocks['parameter' +  getActiveTabNum() + event.name.substring(8)] = {
                     // mutator blocks for component
                     init: function() {
                         this.appendDummyInput("NAME")
@@ -86,13 +86,13 @@ function createIndexEvents(tab){
                         this.setHelpUrl('http://www.example.com/');
                     }
                 };
-                Blockly.Arduino['parameter' + event.name.substring(8)] = function(){
+                Blockly.Arduino['parameter' + getActiveTabNum() + event.name.substring(8)] = function(){
                     this.codeName = event.newValue.trim();
-                    return ["<<"+event.newValue.trim()+mangler+">>", Blockly.Arduino.ORDER_ATOMIC];
+                    return ["<<"+event.newValue.trim()+getActiveTab().mangler+">>", Blockly.Arduino.ORDER_ATOMIC];
                 }
-                Blockly.Python['parameter' + event.name.substring(8)] = function(){
+                Blockly.Python['parameter' + getActiveTabNum() + event.name.substring(8)] = function(){
                     this.codeName = event.newValue.trim();
-                    return ["<<"+event.newValue.trim()+mangler+">>", Blockly.Python.ORDER_ATOMIC];
+                    return ["<<"+event.newValue.trim()+getActiveTab().mangler+">>", Blockly.Python.ORDER_ATOMIC];
                 }
                 var blocks = tab.workspace.getAllBlocks();
                 for(var key in tab.paramStubs){
@@ -100,7 +100,7 @@ function createIndexEvents(tab){
                         var ids = tab.paramStubs[key];
                         for(var i = 0; i < ids.length; i++){
                             var b = tab.workspace.getBlockById(ids[i]);
-                            b.init = Blockly.Blocks['parameter' + event.name.substring(8)].init;
+                            b.init = Blockly.Blocks['parameter' + getActiveTabNum() + event.name.substring(8)].init;
                             b.removeInput("NAME");
                             b.init();
                         }
@@ -116,18 +116,19 @@ function createIndexEvents(tab){
         var block = tab.workspace.getBlockById(event.blockId)
         if (block && block.type == 'component_create' && event.type == Blockly.Events.CHANGE && event.element == 'mutation') {
 
-            // Delete all input blocks
-            for (var i = 0; Blockly.Blocks["input" + i]; i++) {
-                Blockly.Blocks["input" + i] = null;
-                delete Blockly.Blocks["input" + i];
+            // Delete all input stubs
+            for (var i = 0; Blockly.Blocks["input" + getActiveTabNum() + i]; i++) {
+                Blockly.Blocks["input" + getActiveTabNum() + i] = null;
+                delete Blockly.Blocks["input" + getActiveTabNum() + i];
 
-                tab.Toolbox.deleteBlock("input" + i, tab.Toolbox.componentCategory);
+                tab.Toolbox.deleteBlock("input" + getActiveTabNum() + i, tab.Toolbox.componentCategory);
             }
+            //Delete all parameter stubs
             for (var i = 0; Blockly.Blocks["parameter" + i]; i++) {
-                Blockly.Blocks["parameter" + i] = null;
-                delete Blockly.Blocks["parameter" + i];
+                Blockly.Blocks["parameter" + getActiveTabNum() + i] = null;
+                delete Blockly.Blocks["parameter" + getActiveTabNum() + i];
 
-                tab.Toolbox.deleteBlock("parameter" + i, tab.Toolbox.componentCategory);
+                tab.Toolbox.deleteBlock("parameter" + getActiveTabNum() + i, tab.Toolbox.componentCategory);
             }
 
             var clauseBlock = tab.rootBlock.nextConnection.targetBlock();
@@ -137,13 +138,13 @@ function createIndexEvents(tab){
                 switch (clauseBlock.type) {
                     case 'component_input':
                         // add input block to toolbox
-                        if (!Blockly.Blocks['input' + inputCount]) {
-                            tab.Toolbox.addBlock('<block type="' + 'input' + inputCount + '"></block>', tab.Toolbox.componentCategory);
+                        if (!Blockly.Blocks['input' + getActiveTabNum() + inputCount]) {
+                            tab.Toolbox.addBlock('<block type="' + 'input' + getActiveTabNum() + inputCount + '"></block>', tab.Toolbox.componentCategory);
                             tab.workspace.updateToolbox(tab.Toolbox.xmlTree);
                         }
 
                         // create input block definition
-                        Blockly.Blocks['input' + inputCount] = {
+                        Blockly.Blocks['input' + getActiveTabNum() + inputCount] = {
                             // mutator blocks for component
                             init: function() {
                                 this.appendDummyInput("NAME")
@@ -154,26 +155,26 @@ function createIndexEvents(tab){
                                 this.setHelpUrl('http://www.example.com/');
                             }
                         };
-                        Blockly.Blocks['input' + inputCount].mut_name = clauseBlock.name;
-                        Blockly.Arduino['input' + inputCount] = function(){
-                            this.codeName = this.mut_name + inputCount;
-                            return ["<<" + this.mut_name +mangler+">>" + inputCount, Blockly.Arduino.ORDER_ATOMIC];
+                        Blockly.Blocks['input' + getActiveTabNum() + inputCount].mut_name = clauseBlock.name;
+                        Blockly.Arduino['input' + getActiveTabNum() + inputCount] = function(){
+                            this.codeName = this.mut_name + getActiveTabNum() + inputCount;
+                            return ["<<" + this.mut_name +getActiveTab().mangler+">>" + getActiveTabNum() + inputCount, Blockly.Arduino.ORDER_ATOMIC];
                         }
-                        Blockly.Python['input' + inputCount] = function(){
-                            this.codeName = this.mut_name + inputCount;
-                            return ["<<" + this.mut_name +mangler+">>" + inputCount, Blockly.Python.ORDER_ATOMIC];
+                        Blockly.Python['input' + getActiveTabNum() + inputCount] = function(){
+                            this.codeName = this.mut_name + getActiveTabNum() + inputCount;
+                            return ["<<" + this.mut_name +getActiveTab().mangler+">>" + getActiveTabNum() + inputCount, Blockly.Python.ORDER_ATOMIC];
                         }
                         inputCount++;
                         break;
                     case 'component_parameter':
                         // add input block to toolbox
-                        if (!Blockly.Blocks['parameter' + parameterCount]) {
-                            tab.Toolbox.addBlock('<block type="' + 'parameter' + parameterCount + '"></block>', tab.Toolbox.componentCategory);
+                        if (!Blockly.Blocks['parameter' + getActiveTabNum() + parameterCount]) {
+                            tab.Toolbox.addBlock('<block type="' + 'parameter' + getActiveTabNum() + parameterCount + '"></block>', tab.Toolbox.componentCategory);
                             tab.workspace.updateToolbox(tab.Toolbox.xmlTree);
                         }
 
                         // create parameter block definition
-                        Blockly.Blocks['parameter' + parameterCount] = {
+                        Blockly.Blocks['parameter' + getActiveTabNum() + parameterCount] = {
                             // mutator blocks for component
                             init: function() {
                                 this.appendDummyInput("NAME")
@@ -184,14 +185,14 @@ function createIndexEvents(tab){
                                 this.setHelpUrl('http://www.example.com/');
                             }
                         };
-                        Blockly.Blocks['parameter' + parameterCount].mut_name = clauseBlock.name;
-                        Blockly.Arduino['parameter' + parameterCount] = function(){
-                            this.codeName = this.mut_name + parameterCount;
-                            return ["<<" + this.mut_name + mangler+">>" + parameterCount, Blockly.Arduino.ORDER_ATOMIC];
+                        Blockly.Blocks['parameter' + getActiveTabNum() + parameterCount].mut_name = clauseBlock.name;
+                        Blockly.Arduino['parameter' + getActiveTabNum() + parameterCount] = function(){
+                            this.codeName = this.mut_name + getActiveTabNum() + parameterCount;
+                            return ["<<" + this.mut_name + getActiveTab().mangler+">>" + getActiveTabNum() + parameterCount, Blockly.Arduino.ORDER_ATOMIC];
                         }
-                        Blockly.Python['parameter' + parameterCount] = function(){
-                            this.codeName = this.mut_name + parameterCount;
-                            return ["<<" + this.mut_name + mangler+">>" + parameterCount, Blockly.Python.ORDER_ATOMIC];
+                        Blockly.Python['parameter' + getActiveTabNum() + parameterCount] = function(){
+                            this.codeName = this.mut_name + getActiveTabNum() + parameterCount;
+                            return ["<<" + this.mut_name + getActiveTab().mangler+">>" + getActiveTabNum() + parameterCount, Blockly.Python.ORDER_ATOMIC];
                         }
                         parameterCount++;
                         break;

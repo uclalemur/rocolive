@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from robotApi import views
+from robotApi import views, base_comp, composite_comp
 
 urlpatterns = [
     url(r'^api/component/list/$', views.componentList),
@@ -18,5 +18,8 @@ urlpatterns = [
     url(r'^api/component/delParameter/$', views.delParameter),
     url(r'^api/component/delInterface/$', views.delInterface),
     url(r'^api/component/inheritInterface/$', views.inheritInterface),
-    url(r'^api/component/save/$', views.componentSave)
+    url(r'^api/component/save/$', views.componentSave),
+    url(r'^api/component/export_code/$', base_comp.export_code),
+    url(r'^api/component/export_builder/$', composite_comp.export_builder)
+
 ]

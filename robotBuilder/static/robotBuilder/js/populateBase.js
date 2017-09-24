@@ -29,3 +29,4 @@ function populateBase(t) {
 
     Blockly.Xml.domToWorkspace(t.startBlocks, t.workspace);
 }
+
