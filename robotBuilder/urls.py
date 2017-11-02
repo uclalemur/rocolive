@@ -24,5 +24,4 @@ urlpatterns = [
     url(r'^test/', views.test),
     url(r'^new/', views.new_index),
     url(r'^', include('robotApi.urls')),
-    url(r'^interface/', include('interface.urls')),
 ]
