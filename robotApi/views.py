@@ -69,6 +69,7 @@ def constrainParameter(request):
     if request.method == 'GET' or request.method == 'POST':
         data = ast.literal_eval(request.body)
         fc = request.session['component'][data['id']]
+#        pdb.set_trace()
         sc = data['sc']
         parameter = data['parameter']
         constraint = data['constraint']
@@ -124,9 +125,9 @@ def addSubcomponent(request):
             #sessionComponent.subcomponents.set_default(scname, sc)
             #sessionComponent.resolve_subcomponent(scname)
             ########
-
+#            pdb.set_trace()
             #Return information about subcomponent
-            c = get_component(type, baseclass="FoldedComponent")
+            c = get_component(type)#, baseclass="FoldedComponent")
             c.make_output(remake=False, placeOnly=True)
             print c.parameters
             #print "Before extract"
@@ -213,7 +214,11 @@ def addParameter(request):
             fc = request.session['component'][data['id']]
             name = data['name']
             default = data['def']
-            fc.add_parameter(name, default)
+            try:
+                value = ast.literal_eval(default)
+            except:
+                value = default
+            fc.add_parameter(name, value)
             request.session.modified = True
             print 'Parameter ' + name + ' added with default value ' + default
             return HttpResponse('Parameter ' + name + ' added with default value ' + default)
@@ -258,9 +263,9 @@ def make(request):
     """
     if request.method == 'GET' or request.method == 'POST':
         try:
-            #pdb.set_trace()
             data = ast.literal_eval(request.body)
             fc = request.session['component'][data['id']]
+#            pdb.set_trace()
             fc.make_output(placeOnly=True)
             #print fc.__dict__
             #print "made"
@@ -355,8 +360,8 @@ def componentSave(request):
             data = ast.literal_eval(request.body)
             fc = request.session['component'][data['id']]
             name = data['name']
-            fc.toYaml("library/" + name + ".yaml")
-            build_database([get_component(name, baseclass="FoldedComponent")])
+            fc.to_yaml("library/" + name + ".yaml")
+            build_database([get_component(name)])
             print "{} saved to library".format(name)
             return HttpResponse("{} saved to library".format(name))
         except Exception as e:
