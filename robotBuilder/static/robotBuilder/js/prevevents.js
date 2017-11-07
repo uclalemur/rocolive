@@ -203,7 +203,7 @@ function createPrevEvents(tab){
              tab.Toolbox.updateToolbox();
 
         } else if (block.indexOf('\\')>0) {
-            outputCount[block] = 0;
+            tab.outputCount[block] = 0;
             var c;
             var outs =  tab.Toolbox.blocks.childNodes;
             for(var i =0; i < outs.length; i++){

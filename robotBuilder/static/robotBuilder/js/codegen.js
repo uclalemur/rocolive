@@ -391,10 +391,81 @@ function checkBaseBlock(){
     return true;
 }
 
-function printYaml() {
-    var code = Blockly.Arduino.workspaceToCode(getActiveTab().workspace);
-    console.log(code);
-    return code;
+function getJSON() {
+    /*
+    out {
+        name: "hello"
+        blocks [
+            name: "n",
+            inputs [
+                {
+                    inherited: false
+                    name: "input_name",
+                    source_name: "received",
+                    source_comp: "sIn"
+                },
+                {
+                    inherited: true
+                    name: "input_name",
+                    source_name: block.input_name,
+                    source_comp: block
+                }
+            ]
+        ]
+        output [
+            {
+                name: "output_name",
+                source_name: "received",
+                source_comp: "sIn"
+            }
+        ]
+    }
+    */
+    var blocks = Blockly.getMainWorkspace().getTopBlocks();
+    var top;
+    for(var i = 0; i < blocks.length; i++){
+        if(blocks[i].type == "comp_component_create"){
+            top = blocks[i];
+            break;
+        }
+    }
+    var out = {};
+    out['name'] = top.getFieldValue('NAME');
+    out.blocks = [];
+    var block = top.getChildren()[0];
+    for(; block != null; block = block.nextConnection.targetBlock()){
+        var b = {};
+        b['name'] = block.getFieldValue("NAME");
+        b['type'] = block.type.substring(0, block.type.lastIndexOf(getActiveTabNum()));
+        b['inputs'] = [];
+        for(var i = 0; i < block.inputs.length; i++){
+            var input = {};
+            input['name'] = block.inputs[i];
+            if(block.getInputTargetBlock(block.inputs[i]).type == "inherit_input"){
+                input['inherited'] = true;
+                input['source_name'] = block.inputs[i];;
+                input['source_comp'] = b['name'];
+            } else {
+                input['inherited'] = false;
+                var n = block.getInputTargetBlock(block.inputs[i]).getInput("NAME").fieldRow[0].getText();
+                input['source_name'] = n.substring(n.lastIndexOf(" ->") + 4);
+                input['source_comp'] = n.substring(0, n.lastIndexOf(" -> "));
+            }
+            b['inputs'].push(input);
+        }
+        out.blocks.push(b);
+    }
+    block = top;
+    out['outputs'] = [];
+    for(var i = 0; block.getInputTargetBlock("OUT" + i) != null; i++){
+        b = {};
+        b['name'] = block.getFieldValue("OUTPUT_NAME"+i);
+        var n = block.getInputTargetBlock("OUT" + i).getInput("NAME").fieldRow[0].getText();
+        b['source_name'] = n.substring(n.lastIndexOf(" ->") + 4);
+        b['source_comp'] = n.substring(0, n.lastIndexOf(" -> "));
+        out['outputs'].push(b);
+    }
+    return JSON.stringify(out);
 }
 
 function getBaseCode(){
@@ -436,7 +507,7 @@ function exportCode(event){
                     window.alert("Builder file created");
                 }
             };
-            var c = printYaml();
+            var c = getJSON();
             console.log(c);
             xhttp.send(c);
         }

@@ -106,7 +106,7 @@ class CustomBlockFile:
         self.blockFile.write("\t\t\t\tthis.appendDummyInput().appendField(\"Parameter \" + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), \"PARAM\" + i);\n")
         self.blockFile.write("\t\t\t}\n")
 
-        compInputs = []
+        compInputs = [] 
         if 'in' in ports.keys():
             for k, v in ports['in'].iteritems():
                 self.blockFile.write(
@@ -121,8 +121,9 @@ class CustomBlockFile:
         self.blockFile.write("\t\tname: ans,\n")
         paramArr = "["
 
+        # import pdb; pdb.set_trace()
         for k, v in comp.parameters.iteritems():
-            a = str(v.default)
+            a = str(v)
             if v == "":
                 a = "\"\""
             elif a == "0":
@@ -346,9 +347,9 @@ class CustomBlockFile:
         self.pccFile.write("\t};\n")
 
     def finishComponentCode(self):
-        self.pccFile.write("function makeAllPrevComps(tab, count) {\n") 
+        self.pccFile.write("function makeAllPrevCompOutputs(tab, count) {\n") 
         for comp in self.componentCodeWithOutputs:
-            self.pccFile.write("\tmake" + comp + "(tab, count);\n")
+            self.pccFile.write("\tmakeOutput" + comp + "(tab, count);\n")
         for comp in self.componentCodeWithoutOutputs:
-            self.pccFile.write("\tmake" + comp + "(tab, count);\n")
+            self.pccFile.write("\tmakeOutput" + comp + "(tab, count);\n")
         self.pccFile.write("}")

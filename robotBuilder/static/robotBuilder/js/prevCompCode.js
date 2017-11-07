@@ -83,6 +83,15 @@ function makeOutputserial_to_string(tab, count){
 		code += 'cameOut'+'>';
 		return [code, Blockly.Arduino.ORDER_ATOMIC];
 	};
+
+	//receivedString- serial_to_string
+	Blockly.Arduino['serial_to_string' + tab + '|' + count + '\\1'] = function() {
+		var n = this.getInput("NAME").fieldRow[0].getText()
+		n = n.substring(0, n.indexOf("->"))
+		var code = n + '_';
+		code += 'receivedString'+'>';
+		return [code, Blockly.Arduino.ORDER_ATOMIC];
+	};
 }
 
 //node_mcu
@@ -338,6 +347,15 @@ function makeOutputuser_toggle(tab, count){
 		code += '#';
 		return code;
 	}
+
+	//tog- user_toggle
+	Blockly.Arduino['user_toggle' + tab + '|' + count + '\\0'] = function() {
+		var n = this.getInput("NAME").fieldRow[0].getText()
+		n = n.substring(0, n.indexOf("->"))
+		var code = n + '_';
+		code += 'tog'+'>';
+		return [code, Blockly.Arduino.ORDER_ATOMIC];
+	};
 }
 
 //string_source
@@ -393,18 +411,36 @@ function makeOutputserial_in(tab, count){
 		code += '#';
 		return code;
 	}
+
+	//received- serial_in
+	Blockly.Arduino['serial_in' + tab + '|' + count + '\\0'] = function() {
+		var n = this.getInput("NAME").fieldRow[0].getText()
+		n = n.substring(0, n.indexOf("->"))
+		var code = n + '_';
+		code += 'received'+'>';
+		return [code, Blockly.Arduino.ORDER_ATOMIC];
+	};
+
+	//came- serial_in
+	Blockly.Arduino['serial_in' + tab + '|' + count + '\\1'] = function() {
+		var n = this.getInput("NAME").fieldRow[0].getText()
+		n = n.substring(0, n.indexOf("->"))
+		var code = n + '_';
+		code += 'came'+'>';
+		return [code, Blockly.Arduino.ORDER_ATOMIC];
+	};
 }
 
-function makeAllPrevComps(tab, count) {
-	makepot(tab, count);
-	makeserial_to_string(tab, count);
-	makenode_mcu(tab, count);
-	makepot_driver(tab, count);
-	makereverse_string(tab, count);
-	makesort_string(tab, count);
-	makestring_source(tab, count);
-	makestring_to_motor(tab, count);
-	makedriver(tab, count);
-	makeuser_toggle(tab, count);
-	makeserial_in(tab, count);
+function makeAllPrevCompOutputs(tab, count) {
+	makeOutputpot(tab, count);
+	makeOutputserial_to_string(tab, count);
+	makeOutputnode_mcu(tab, count);
+	makeOutputpot_driver(tab, count);
+	makeOutputreverse_string(tab, count);
+	makeOutputsort_string(tab, count);
+	makeOutputuser_toggle(tab, count);
+	makeOutputstring_source(tab, count);
+	makeOutputserial_in(tab, count);
+	makeOutputstring_to_motor(tab, count);
+	makeOutputdriver(tab, count);
 }

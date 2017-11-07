@@ -12,6 +12,7 @@ function makestring_to_motor(tab, count, name){
 			for(var i = 0; i < this.params.length; i++){
 				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
 			}
+			this.appendValueInput("motorCame").setCheck("string_to_motor").appendField("motorCame");
 			this.appendValueInput("motorString").setCheck("string_to_motor").appendField("motorString");
 			this.setPreviousStatement(true, null);
 			this.setNextStatement(true, null);
@@ -20,7 +21,7 @@ function makestring_to_motor(tab, count, name){
 		name: ans,
 		params:[],
 		category:'code',
-		inputs:['motorString', ],
+		inputs:['motorCame', 'motorString', ],
 	};
 }
 
@@ -72,7 +73,8 @@ function makeserial_to_string(tab, count, name){
 			for(var i = 0; i < this.params.length; i++){
 				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
 			}
-			this.appendValueInput("receivedString").setCheck("serial_to_string").appendField("receivedString");
+			this.appendValueInput("received").setCheck("serial_to_string").appendField("received");
+			this.appendValueInput("came").setCheck("serial_to_string").appendField("came");
 			this.setPreviousStatement(true, null);
 			this.setNextStatement(true, null);
 			this.setColour(180);
@@ -80,8 +82,8 @@ function makeserial_to_string(tab, count, name){
 		name: ans,
 		params:[],
 		category:'code',
-		inputs:['receivedString', ],
-		outputs:['cameOut', ],
+		inputs:['received', 'came', ],
+		outputs:['cameOut', 'receivedString', ],
 	};
 
 	//cameOut- serial_to_string
@@ -93,6 +95,18 @@ function makeserial_to_string(tab, count, name){
 		},
 		outputType:'serial_to_string',
 		outputName:'cameOut',
+		name:'serial_to_string',
+	};
+
+	//receivedString- serial_to_string
+	Blockly.Blocks['serial_to_string' + tab + '|' + count + '\\1'] = {
+		init: function(){
+			this.appendDummyInput("NAME").appendField(ans + "->receivedString");
+			this.setOutput(true, null);
+			this.setColour(180);
+		},
+		outputType:'serial_to_string',
+		outputName:'receivedString',
 		name:'serial_to_string',
 	};
 }
@@ -258,7 +272,7 @@ function makepot_driver(tab, count, name){
 		},
 		name: ans,
 		params:[],
-		category:'electrical, code',
+		category:'code, electrical',
 		inputs:['vIn', ],
 		outputs:['outInt', 'aOut', ],
 	};
@@ -380,7 +394,7 @@ function makedriver(tab, count, name){
 		},
 		name: ans,
 		params:[],
-		category:'electrical, code',
+		category:'code, electrical',
 		inputs:[],
 	};
 }
@@ -405,6 +419,19 @@ function makeuser_toggle(tab, count, name){
 		params:[],
 		category:'code',
 		inputs:[],
+		outputs:['tog', ],
+	};
+
+	//tog- user_toggle
+	Blockly.Blocks['user_toggle' + tab + '|' + count + '\\0'] = {
+		init: function(){
+			this.appendDummyInput("NAME").appendField(ans + "->tog");
+			this.setOutput(true, null);
+			this.setColour(180);
+		},
+		outputType:'user_toggle',
+		outputName:'tog',
+		name:'user_toggle',
 	};
 }
 
@@ -464,6 +491,31 @@ function makeserial_in(tab, count, name){
 		params:[],
 		category:'code',
 		inputs:[],
+		outputs:['received', 'came', ],
+	};
+
+	//received- serial_in
+	Blockly.Blocks['serial_in' + tab + '|' + count + '\\0'] = {
+		init: function(){
+			this.appendDummyInput("NAME").appendField(ans + "->received");
+			this.setOutput(true, null);
+			this.setColour(180);
+		},
+		outputType:'serial_in',
+		outputName:'received',
+		name:'serial_in',
+	};
+
+	//came- serial_in
+	Blockly.Blocks['serial_in' + tab + '|' + count + '\\1'] = {
+		init: function(){
+			this.appendDummyInput("NAME").appendField(ans + "->came");
+			this.setOutput(true, null);
+			this.setColour(180);
+		},
+		outputType:'serial_in',
+		outputName:'came',
+		name:'serial_in',
 	};
 }
 
@@ -474,9 +526,9 @@ function makeAllPrevComps(tab, count) {
 	makepot_driver(tab, count);
 	makereverse_string(tab, count);
 	makesort_string(tab, count);
+	makeuser_toggle(tab, count);
 	makestring_source(tab, count);
+	makeserial_in(tab, count);
 	makestring_to_motor(tab, count);
 	makedriver(tab, count);
-	makeuser_toggle(tab, count);
-	makeserial_in(tab, count);
 }

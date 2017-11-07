@@ -48,26 +48,28 @@ def writePrevFiles():
     c.writePorts(p)
     c.writeXML(p)
     c.writePortCodeGen(p)
-    # c = CustomBlockFile()
-    comps = filter_components(["electrical", "code"])
+
+    comps = filter_database(["electrical", "code"])
     print comps
     print "Number of Components: ", len(comps)
-    print comps
 
-    build_database(comps)
 
     ports = {}
 
+    # import pdb; pdb.set_trace()
     for i in comps:
+        # if i.get_name() == "serial_in":
+            # import pdb; pdb.set_trace()
         item = {}
         # print i.getName(), i.interfaces
-        # import pdb; pdb.set_trace()
+        
         for k, v in i.interfaces.iteritems():
-            if "out" in k.lower() or "out" in v.name.lower() or "do" in k.lower() or "do" in v.name.lower():
+            print k, v
+            if "out" in v.lower():
                 if 'out' not in item.keys():
                     item['out'] = {}
                 item['out'][k] = v
-            elif "in" in k.lower() or "in" in v.name.lower() or "di" in k.lower() or "di" in v.name.lower() or ("a" in v.name.lower() and v.name.lower()[1:].isdigit()):
+            elif "in" in v.lower():
                 if 'in' not in item.keys():
                     item['in'] = {}
                 item['in'][k] = v

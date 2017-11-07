@@ -14,6 +14,7 @@ function populateComp(t) {
 
     getToolbox(t, getActiveTabNum());
     makeAllPrevComps(getActiveTabNum(), 0);
+    makeAllPrevCompOutputs(getActiveTabNum(), 0);
     t.workspace = Blockly.inject(t.id, {
         toolbox: t.toolbox
     });

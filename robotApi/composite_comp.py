@@ -1,4 +1,4 @@
-import os, sys, importlib
+import os, sys, importlib, json
 from roco.library import all_components, get_component, instance_of, build_database, query_database, filter_components, filter_database, update_component_lists
 from roco.api.component import Component
 from roco.derived.ports.code_port import CodePort
@@ -27,8 +27,9 @@ def saveBuilder(code):
 
     build = "from roco.api.component import Component\n"
     build += "from roco.library import *\n"
-    build += "from roco.library import get_component\n"
+    build += "from roco.library import get_component\n\n"
     # build += "from svggen.library.F import F\n\n\n"
+    # build += "c = Component()\nimport pdb; pdb.set_trace()\n"
     build += "c = Component()\n"
 
     connections = []
@@ -86,7 +87,7 @@ def saveBuilder(code):
                     print code
 
         classType = classType.rstrip('1234567890')
-        build += "c.addSubcomponent(\"{}\", \"{}\")\n".format(className, classType)
+        build += "c.add_subcomponent(\"{}\", \"{}\")\n".format(className, classType)
         code = code[1:]
 
         for i in range(int(paramCount)):
@@ -104,7 +105,7 @@ def saveBuilder(code):
 
             if not paramVal.isdigit():
                 paramVal = "\"" + paramVal + "\""
-            build += "c.setSubParameter((\"{}\", \"{}\"), {})\n".format(className, paramName, paramVal)
+            build += "c.set_parameter((\"{}\", \"{}\"), {})\n".format(className, paramName, paramVal)
 
         build += "\n"
         code = code[1:]
@@ -156,11 +157,55 @@ def saveBuilder(code):
 
     return cName
 
+def createBuilder(code):
+    c = json.loads(code)
+    build = "from roco.api.component import Component\n"
+    build += "from roco.library import *\n"
+    build += "from roco.library import get_component\n\n"
+    build += "c = Component(name = '{}')\n".format(c['name'])
+
+    for b in c["blocks"]:
+        build += "c.add_subcomponent('{}', '{}')\n".format(b["name"], b["type"])
+
+    for b in c["blocks"]:
+        for v in b["inputs"]:
+            if(not v["inherited"]):
+                build += "c.add_connection(('{}', '{}'), ('{}', '{}'))\n".format(v["source_comp"], v["source_name"], b["name"], v["name"])
+
+    for b in c["blocks"]:
+        for v in b["inputs"]:
+            if(v["inherited"]):
+                build += "c.inherit_interface('{}', ('{}', '{}'))\n".format(v["name"], v["source_comp"], v["source_name"])
+
+    for o in c["outputs"]:
+        build += "c.inherit_interface('{}', ('{}', '{}'))\n".format(o["name"], o["source_comp"], o["source_name"])        
+
+    build += "c.to_yaml(\"library/{}.yaml\")\n".format(c["name"])
+
+
+    print build
+    cName = c['name']
+
+    # TODO make this system independent
+    buildPath = get_builder_dir()
+    if not os.path.exists(buildPath):
+        os.makedirs(buildPath)
+
+    sys.path.append(str(buildPath))
+
+    blpath = os.path.join(buildPath, cName + ".py")
+    blFile = open(blpath, 'wb', 0)
+    blFile.write(build)
+
+
+    importlib.import_module(cName)
+
+    return cName
+
 def export_builder(request):
     code = request.body
-    print code
-    cName = saveBuilder(code)
-
+    # cName = saveBuilder(code)
+    createBuilder(code)
     print cName
     comp = get_component(cName, name = cName)
     print comp.get_name()
