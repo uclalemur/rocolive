@@ -27,6 +27,16 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'assets'),
+)
+
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'BUNDLE_DIR_NAME': 'bundles/',
+        'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats.json'),
+    }
+}
 
 # Application definition
 
@@ -38,7 +48,8 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'robotApi'
+    'robotApi',
+    'webpack_loader',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -57,7 +68,7 @@ ROOT_URLCONF = 'robotBuilder.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates/'],
+        'DIRS': ['robotBuilder/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

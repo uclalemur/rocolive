@@ -1,0 +1,163 @@
+{% load static %}
+
+<html>
+
+	<head>
+		<title>Blockly PPR</title>
+		<script>
+			var allowDuplicates = true;
+			var inputStubs = {};
+			var paramStubs = {};
+			var rootBlock;
+			var mangler = "@@name@@";
+			var sessionName = "untitled";
+			var newSession = true;
+		</script>
+		<script src="{% static 'interface/blockly/appengine/storage.js' %}"></script>
+		<script src="{% static 'interface/blockly/blockly_compressed.js' %}"></script>
+		<script src="{% static 'interface/blockly/core/static_typing.js' %}"></script>
+		<script src="{% static 'interface/blockly/blocks_compressed.js' %}"></script>
+		<script src="{% static 'interface/blockly/javascript_compressed.js' %}"></script>
+		<script src="{% static 'interface/blockly/python_compressed.js' %}"></script>
+		<script src="{% static 'interface/blockly/arduino_compressed.js' %}"></script>
+		<script src="{% static 'interface/blockly/msg/js/en.js' %}"></script>
+		<script src="{% static 'interface/comps.js' %}"></script>
+		<script src="{% static 'interface/indextoolbox.js' %}"></script>
+		<script src="{% static 'interface/indexPortsBlocks.js' %}"></script>
+		<script src="{% static 'interface/indexPortsXML.js' %}"></script>
+		<script src="{% static 'interface/portCodeGen.js' %}"></script>
+		<script src="{% static 'interface/indexsave.js' %}"></script>
+		<script src="{% static 'interface/indexcodegen.js' %}"></script>
+		<script src="{% static 'interface/python.js' %}"></script>
+		<link rel="stylesheet" type="text/css" href="{% static 'interface/styles.css' %}">
+	</head>
+
+	<body>
+		<script>
+			if ('BlocklyStorage' in window) {
+				BlocklyStorage.HTTPREQUEST_ERROR = 'There was a problem with the request.\n';
+				BlocklyStorage.LINK_ALERT = 'Share your blocks with this link:\n\n%1';
+				BlocklyStorage.HASH_ERROR = 'Sorry, "%1" doesn\'t correspond with any saved Blockly file.';
+				BlocklyStorage.XML_ERROR = 'Could not load your saved file.\n' +
+					'Perhaps it was created with a different version of Blockly?';
+			} else {
+				document.write('<p id="sorry">Sorry, cloud storage is not available.  This demo must be hosted on App Engine.</p>');
+			}
+		</script>
+		<script src="{% static 'interface/trial.js' %}"></script>
+
+		<div class="toolbar" id="toolbar">
+			<div class="title">
+				Blockly Primitives
+			</div>
+			<div class="fill"></div>
+
+			<a class="link" href="prevblocks/">
+				Previously Created Blocks
+			</a>
+			<!-- <div class="dropdown">
+				<div id="target" class="dropbtn">Target</div>
+				<div class="dropdown-content">
+					<button id="none" class="hide" onclick="targetNone()"></button>
+					<label for="none" class="menuitem">
+						None
+					</label>
+
+					<button id="ard" class="hide" onclick="targetArd()"></button>
+					<label for="ard" class="menuitem">
+						Arduino
+					</label>
+
+					<button id="rp" class="hide" onclick="targetRP()"></button>
+					<label for="rp" class="menuitem">
+						Raspberry Pi
+					</label>
+				</div>
+			</div> -->
+
+
+			<div class="dropdown">
+				<div class="dropbtn">File</div>
+				<div class="dropdown-content">
+					<div id="save" class="menuitem" onclick="indexSave()">
+						<div class="menuDiv">
+							<div class="nameDiv">
+								Save
+							</div>
+							<div class="dateDiv">
+								⌘S/Ctrl-S
+							</div>
+						</div>
+					</div>
+
+					<div id="saveas" class="menuitem" onclick="indexSaveAs()">
+						<div class="menuDiv">
+							<div class="nameDiv">
+								Save As
+							</div>
+							<div class="dateDiv">
+								⌘⇧S/Ctrl-⇧-S
+							</div>
+						</div>
+					</div>
+
+					<div id="open" class="menuitem" onclick="indexOpen()">
+						<div class="menuDiv">
+							<div class="nameDiv">
+								Open
+							</div>
+						</div>
+					</div>
+
+					<button class="hide" id="download" onclick="downloadBPSession()"></button>
+					<label for="download" class="menuitem">
+						Download Workspace
+					</label>
+
+					<input class="hide" type="file" id="input" onchange="uploadBPSession(this.files)">
+					<label for="input" class="menuitem">
+						Upload Workspace
+					</label>
+
+					<!-- <button class="hide" id="printCode" onclick="getCode()"></button>
+					<label for="printCode" class="menuitem">
+						Print Arduino Code
+					</label> -->
+					<button class="hide" id="exportCode" onclick="exportCode()"></button>
+					<label for="exportCode" class="menuitem">
+						Export Code
+					</label>
+				</div>
+			</div>
+		</div>
+		<div class="opencont" id="openlist">
+			<div class="open" id="list"></div>
+			<!-- <div class="quote" id="quote"></div> -->
+		</div>
+
+		<div class="dim" onclick="abortOpen()" id="dim"></div>
+		<div id="blocklyDiv"></div>
+		<div id="createdDiv" hidden="true"></div>
+		<xml id="startBlocks" style="display: none">
+			<block type="component_create"></block>
+		</xml>
+
+		<script src="{% static 'interface/blocks.js' %}"></script>
+		<script src="{% static 'interface/blockly/msg/js/en.js' %}"></script>
+		<script>
+			var workspace = Blockly.inject('blocklyDiv', {
+				toolbox: Toolbox.xmlTree
+			});
+
+			// An href with #key trigers an AJAX call to retrieve saved blocks.
+			if ('BlocklyStorage' in window && window.location.hash.length > 1) {
+				BlocklyStorage.retrieveXml(window.location.hash.substring(1));
+			}
+
+			Blockly.Xml.domToWorkspace(document.getElementById('startBlocks'), workspace);
+		</script>
+		<script src="{% static 'interface/target.js' %}"></script>
+		<script src="{% static 'interface/indexevents.js' %}"></script>
+	</body>
+
+</html>
