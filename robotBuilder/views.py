@@ -18,4 +18,6 @@ def new_index(request):
     context = {}
     return HttpResponse(template.render(context, request))
 def reactHot(request):
-    return render(request, 'robotBuilder/hot-test.html', {});
+    template = loader.get_template('robotBuilder/hot-test.html')
+    context = {}
+    return HttpResponse(template.render(context, request))
