@@ -19,7 +19,7 @@ function openInterface(evt, interfaceName) {
 
     // Show the current tab, and add an "active" class to the button that opened the tab
     document.getElementById(interfaceName).style.display = "block";
-    if(evt) 
+    if(evt)
         evt.currentTarget.className += " active";
     if (getActiveTab()) {
         t = getActiveTab();

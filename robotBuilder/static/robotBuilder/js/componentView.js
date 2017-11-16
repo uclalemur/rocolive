@@ -1,8 +1,11 @@
 var debugObj;
 var idGenerator = 0;
+// store the uuid of the last face whose parameters were displayed
+var previousPopUpId;
 
 class MechanicalInterface {
     constructor (name, tabDom, container, svgcontainer) {
+      console.log("container: ", container, svgcontainer)
         this.componentName = name;
         this.id = idGenerator++;
         this.container = container;
@@ -196,6 +199,7 @@ class MechanicalInterface {
                 controller: undefined,
                 c: pars,
                 constrain:function(){
+                    console.log(this.mechInterface.parameters);
                     var value = window.prompt("Set " + objMesh.name + "_" + this.c + " to: ");
                     constrainParameter(this.mechInterface.id, objMesh.name, this.c, value);
                     this.controller.name(this.c + " = " + value);
@@ -439,8 +443,6 @@ class MechanicalInterface {
                 mech.componentsFolder.add(button,"add").name(response[i][0]);
             }
             });
-        //}
-
     }
 
     loadGui() {
@@ -469,6 +471,7 @@ class MechanicalInterface {
         //componentMenus["UI"] = componentsFolder.addFolder("UI");
         this.rightpanel = new dat.GUI({ autoPlace: false, width: this.tabDom.getElementsByClassName('right-panel')[0].clientWidth, scrollable: true });
         this.rightpanel.domElement.removeChild(this.rightpanel.__closeButton);
+        // console.log(this.rightpanel.domElement);
         this.tabDom.getElementsByClassName('right-panel')[0].appendChild(this.rightpanel.domElement);
         this.comp = this.rightpanel.addFolder(this.componentName);
         this.comp.open();
@@ -653,6 +656,7 @@ class MechanicalInterface {
                 this.mechInterface.comp.connections.removeFolder(delName);
             },
             parameterAdd:function(){
+                console.log("add parameter");
                 var fieldName = window.prompt("Parameter name","");
                 if(fieldName == "" || fieldName == null)
                 return;
@@ -663,6 +667,7 @@ class MechanicalInterface {
                 var pdef = window.prompt("Default value: ");
                 if(pdef == "" || pdef == null || isNaN(pdef))
                     return;
+                console.log("add parameter", this.mechInterface.parameters);
                 this.mechInterface.parameters[fieldName] = pdef;
                 this.mechInterface.comp.parameters.add(this.mechInterface.parameters, fieldName).name(fieldName);
                 addParameter(this.mechInterface.id,fieldName, pdef);
@@ -723,6 +728,7 @@ class MechanicalInterface {
     }
 
     buildComponent() {
+       console.log(this.mechInterface.parameters);
         var over = '<div id="overlay">' +
                 '<span class="blink_me">LOADING...</span>' +
                 '</div>';
@@ -839,7 +845,43 @@ function onWindowResize() {
             tabs[i].mechanicalInterface.resize();
         }
     }
+}
 
+function addPopupToDOM(popup, x, y) {
+  // add popup to view container
+  var viewContainer = document.getElementById("popup_container");
+  // console.log(viewContainer);
+  // discount the width of left column and the height of the bar on top
+  // viewContainer.style.left = x-256;
+  viewContainer.style.left = x-220;
+  viewContainer.style.top = y-52;
+  viewContainer.append(popup);
+}
+
+function removePopupFromDOM() {
+  var popup = document.getElementById("mouseMovePopup");
+  if (popup)
+    popup.remove();
+}
+
+function scParamsPopup(sc) {
+  var newPopup = document.createElement("div");
+  newPopup.className = "popup"
+  newPopup.id = "mouseMovePopup"
+  var scObj = sc.object;
+  var cname = document.createTextNode(scObj.className+": "+scObj.name);
+
+  var parametersContainer = document.createElement("div");
+
+  for (var parameter in scObj.parameters) {
+    var parameterDisplayString = document.createTextNode(parameter + ":" + scObj.solved[parameter]);
+    parametersContainer.appendChild(parameterDisplayString);
+  }
+
+  newPopup.appendChild(cname);
+  newPopup.appendChild(parametersContainer);
+
+  return newPopup;
 }
 
 function onDocumentMouseMove(mechInterface) {
@@ -852,15 +894,33 @@ function onDocumentMouseMove(mechInterface) {
         if(mechInterface.componentObj != undefined)
         objs = mechInterface.subcomponents.concat(mechInterface.componentObj);
         var intersects = mechInterface.raycaster.intersectObjects( objs,true );
+
+        // if there are subcomponents at the position of the mouse
         if ( intersects.length > 0 ) {
             mechInterface.container.style.cursor = 'pointer';
+            // Check if popup box already exists. If not, generate
+            // popup box that contains parameters of the face intersected
+            var intersect = intersects[0]
+            // popup the same as previous
+            if (previousPopUpId != undefined && intersect.uuid  == previousPopUpId)
+              return;
+            else
+              removePopupFromDOM();
+
+            // add popup
+            addPopupToDOM(scParamsPopup(intersect), event.x, event.y);
+            previousPopUpId = intersect.uuid;
         } else {
             mechInterface.container.style.cursor = 'auto';
+
+            // remove popup
+            removePopupFromDOM();
         }
     }
 }
 
 function onDocumentMouseDown(mechInterface) {
+  console.log("document mouse down");
     return function(event) {
         event.preventDefault();
         mechInterface.raycaster.setFromCamera( mechInterface.mouse, mechInterface.camera );
@@ -868,13 +928,53 @@ function onDocumentMouseDown(mechInterface) {
         if(mechInterface.componentObj != undefined)
             objs = mechInterface.subcomponents.concat(mechInterface.componentObj);
         var intersects = mechInterface.raycaster.intersectObjects( objs, true );
+        console.log("intersects", intersects);
         var obj;
         if(!event.shiftKey)
             obj = mechInterface.SELECTED;
         else
             obj = mechInterface.SELECTED_2;
+        console.log("obj", obj);
         if ( intersects.length > 0 ) {
             if(obj != undefined && obj.parent.type != "Scene") {
+
+                // create a popup box, showing parameters and allowing users
+                // to edit parameters of faces
+                var popup = document.createElement("div");
+                popup.className = "popup"
+                var cname = document.createTextNode(mechInterface.compName+": "+mechInterface.componentName);
+
+                var parametersContainer = document.createElement("div");
+
+                console.log(mechInterface);
+                // console.log(mechInterface.SELECTED.uuid);
+
+                for (var i = 0; i < mechInterface.subcomponents.length; i++) {
+                  var sc = mechInterface.subcomponents[i];
+
+                  sc.children.map(function(c) {
+                    if (c.uuid == obj.uuid) {
+                      console.log("display ", sc.uuid);
+                      // display parameters of subcomponents
+                      for (var parameter in sc.parameters) {
+                        var parameterDisplayString = document.createTextNode(parameter + ":" + sc.solved[parameter]);
+                        parametersContainer.appendChild(parameterDisplayString);
+                      }
+                      return;
+                    }
+                  })
+                }
+
+                popup.appendChild(cname);
+                popup.appendChild(parametersContainer);
+
+
+                var viewContainer = document.getElementById("popup_container");
+                viewContainer.append(popup);
+
+                // console.log("g");
+
+
                 obj.material.color = new THREE.Color(0xff0000);
                 if(!event.shiftKey)
                     mechInterface.SELECTED = undefined;

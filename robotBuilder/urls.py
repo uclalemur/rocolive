@@ -19,6 +19,7 @@ from robotBuilder import views
 
 
 urlpatterns = [
+    url(r'^reactHot/', views.reactHot),
     url(r'^mech/', views.main),
     url(r'^test/', views.test),
     url(r'^new/', views.new_index),
