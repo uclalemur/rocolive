@@ -36,9 +36,9 @@ function fixComponentEdgeInterface(id, name, interface, value)
     httpPostAsync(fEdgeURL, "{'name': '" + name + "', 'id': '" + id + "','interface': '" + interface + "', 'value': '" + value + "'}", function(){});
 }
 
-function addComponentConnection(id, sc1, port1, sc2, port2, args, callback)
+function addComponentConnection(id, sc1, port1, sc2, port2, args, flip, callback)
 {
-    httpPostAsync(addCnURL,"{'sc1': '" + sc1 + "','id': '" + id + "','sc2': '" + sc2 + "','port1': '" + port1 + "','port2': '" + port2 + "','angle': '" + args + "'}",callback);
+    httpPostAsync(addCnURL,"{'sc1': '" + sc1 + "','id': '" + id + "','sc2': '" + sc2 + "','port1': '" + port1 + "','port2': '" + port2 + "','angle': '" + args + "', 'flip': '" + flip + "'}",callback);
 }
 
 function addTabConnection(id, sc1, port1, sc2, port2, args, callback)

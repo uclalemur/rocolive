@@ -498,6 +498,68 @@ class MechanicalInterface {
                 removeByName(this.mechInterface.connectedSubcomponents, delName);
                 this.mechInterface.comp.subcomponents.removeFolder(delName);
             },
+            connectionAddFlipped: function() {
+                if(this.mechInterface.SELECTED != undefined && this.mechInterface.SELECTED_2 != undefined && this.mechInterface.SELECTED.parent != "Scene" && this.mechInterface.SELECTED_2.parent != "Scene") {
+                    var newConn = {};
+                    newConn.name = window.prompt("Connection Name: ");
+                    if(newConn.name == "" || newConn.name == null)
+                        return;
+                    for(var iter = 0, len = this.mechInterface.connections.length; iter < len; iter++){
+                        if(this.mechInterface.connections[iter].name == newConn.name){
+                            window.alert('Connection with name "' + newConn.name + '" already exists');
+                            return;
+                        }
+                    }
+                    var angle = window.prompt("Connection Angle: ");
+                    if(angle == "" || angle == null || isNaN(angle))
+                        return;
+                    var s1pname, s1name, s2pname, s2name;
+                    if(this.mechInterface.SELECTED.parent.type == "MasterComponent"){
+                        newConn.interface1 = this.mechInterface.SELECTED.name.replaceAll("_", ".");
+                        var spl = this.mechInterface.SELECTED.name.split("_");
+                        s1pname = spl[0];
+                        s1name = spl[1];
+                    }
+                    else {
+                        newConn.interface1 = this.mechInterface.SELECTED.parent.name + "." + this.mechInterface.SELECTED.name;
+                        s1pname = this.mechInterface.SELECTED.parent.name;
+                        s1name = this.mechInterface.SELECTED.name;
+                    }
+                    if(this.mechInterface.SELECTED_2.parent.type == "MasterComponent") {
+                        newConn.interface2 = this.mechInterface.SELECTED_2.name.replaceAll("_", ".");
+                        var spl = this.mechInterface.SELECTED_2.name.split("_");
+                        s2pname = spl[0];
+                        s2name = spl[1];
+                    }
+                    else {
+                        newConn.interface2 = this.mechInterface.SELECTED_2.parent.name + "." + this.mechInterface.SELECTED_2.name;
+                        s2pname = this.mechInterface.SELECTED_2.parent.name;
+                        s2name = this.mechInterface.SELECTED_2.name;
+                    }
+                    var over = '<div id="overlay">' +
+                                '<span class="blink_me">LOADING...</span>' +
+                                '</div>';
+                        $(over).appendTo('body');
+                    addComponentConnection(this.mechInterface.id,s1pname,s1name,s2pname,s2name, angle, false, function(){$('#overlay').remove();});//function(){buildComponent()});
+                    this.mechInterface.connections.push(newConn);
+                    this.mechInterface.SELECTED.parent.connectedInterfaces[this.mechInterface.SELECTED.name] = newConn.interface2;
+                    this.mechInterface.SELECTED_2.parent.connectedInterfaces[this.mechInterface.SELECTED_2.name] = newConn.interface1;
+                    var folder = this.mechInterface.comp.connections.addFolder(newConn.name);
+                    newConn.args = "";
+                    var connFixButton = {
+                        mechInterface: undefined,
+                        s1pname: s1pname,
+                        s1name: s1name,
+                        fixConnection:function(){
+                            var value = window.prompt("Value to fix interface to");
+                            fixComponentEdgeInterface(this.mechInterface.id,this.s1pname, this.s1name, value);
+                        }
+                    }
+                    connFixButton.mechInterface = this.mechInterface;
+                    folder.add(newConn,"interface2").name(newConn.interface1);
+                    folder.add(connFixButton, "fixConnection").name("Set Length");
+                }
+            },
             connectionAdd: function(){
                 console.log(this.mechInterface.SELECTED);
                 if(this.mechInterface.SELECTED != undefined && this.mechInterface.SELECTED_2 != undefined && this.mechInterface.SELECTED.parent != "Scene" && this.mechInterface.SELECTED_2.parent != "Scene") {
@@ -541,7 +603,7 @@ class MechanicalInterface {
                                 '<span class="blink_me">LOADING...</span>' +
                                 '</div>';
                         $(over).appendTo('body');
-                    addComponentConnection(this.mechInterface.id,s1pname,s1name,s2pname,s2name, angle, function(){$('#overlay').remove();});//function(){buildComponent()});
+                    addComponentConnection(this.mechInterface.id,s1pname,s1name,s2pname,s2name, angle, true, function(){$('#overlay').remove();});//function(){buildComponent()});
                     this.mechInterface.connections.push(newConn);
                     this.mechInterface.SELECTED.parent.connectedInterfaces[this.mechInterface.SELECTED.name] = newConn.interface2;
                     this.mechInterface.SELECTED_2.parent.connectedInterfaces[this.mechInterface.SELECTED_2.name] = newConn.interface1;
@@ -748,6 +810,7 @@ class MechanicalInterface {
         this.comp.parameters.add(objectbuttons,'parameterAdd').name("Add");
         this.comp.parameters.add(objectbuttons,'parameterDelete').name("Delete");
         this.comp.connections.add(objectbuttons,'connectionAdd').name("Add");
+        this.comp.connections.add(objectbuttons,'connectionAddFlipped').name("Add Non-Flipped");
         this.comp.connections.add(objectbuttons,'connectionAddTab').name("Add Tab");
         this.comp.connections.add(objectbuttons,'cutoutAdd').name("Add Cutout");
         this.comp.interfaces.add(objectbuttons, 'interfaceAdd').name("Add");

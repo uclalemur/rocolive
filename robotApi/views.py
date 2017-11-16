@@ -179,10 +179,11 @@ def addConnection(request):
             sc2 = data['sc2']
             port2 = data['port2']
             angle = int(data['angle'])
+            flip = data['flip'].lower() == "true"
             if angle == 0:
-                fc.add_connection((sc1,port1),(sc2,port2))
+                fc.add_connection((sc1,port1),(sc2,port2), flip=flip)
             else:
-                fc.add_connection((sc1,port1),(sc2,port2), angle=angle)
+                fc.add_connection((sc1,port1),(sc2,port2), angle=angle, flip=flip)
             request.session.modified = True
             print 'Connection from {}:{} to {}:{} Added to Component {}'.format(sc1,port1,sc2,port2,"")
             return HttpResponse('Connection from {}:{} to {}:{} Added to Component {}'.format(sc1,port1,sc2,port2,""))
