@@ -178,7 +178,6 @@ def addConnection(request):
             port1 = data['port1']
             sc2 = data['sc2']
             port2 = data['port2']
-            print sc1,port1,sc2,port2
             angle = int(data['angle'])
             if angle == 0:
                 fc.add_connection((sc1,port1),(sc2,port2))
