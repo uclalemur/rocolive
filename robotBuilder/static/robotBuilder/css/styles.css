@@ -98,3 +98,9 @@ div.add-dropdown-content button {
 .show {
     display: block;
 }
+
+.only_blockly {
+    position: fixed;
+    bottom: 100px;
+    right: 30px;
+}

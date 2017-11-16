@@ -9,6 +9,7 @@ class Tab {
         // name is the name of the tab.
         this.name = name;
 
+
         if(div === undefined){
             // create new interface in a div
             this.div = document.createElement("div");
@@ -25,12 +26,18 @@ class Tab {
         }
 
         if (button === undefined){
-            var tabButton = document.createElement("button");
-            tabButton.innerHTML = name;
-            tabButton.classList.add("tablinks");
+
+            // name the interface
+            this.button = document.createElement("button");
+            this.button.innerHTML = name;
+            this.button.classList.add("tablinks");
+            this.button.tab = this;
+
+            // attach button to div
             var id = this.id;
             tabButton.addEventListener("click", function (evt) {
                 openInterface(evt, id);
+                // activeTab = this.tab;
             });
             var closeButton = document.createElement("button");
             closeButton.innerHTML = "X";
@@ -53,10 +60,11 @@ class Tab {
     }
 }
 
+document.getElementById("export").style.display="none";
 startTabDiv = document.getElementById("start");
 startTab = document.getElementById("defaultOpen");
-
 var tabs = [new Tab("Starting Page", "start", startTabDiv, startTab)];
+// activeTab = tabs[0];
 
 lastTab = document.getElementById("dropbtn");
 
@@ -68,6 +76,10 @@ function addTab(t) {
     openInterface(null, t.id);
     t.button.className += " active";
     populateTab(t);
+    if (t.type == "base" || t.type == "composite")
+        document.getElementById("export").style.display="block";
+    else
+        document.getElementById("export").style.display="none";
     t.div.style.height = window.innerHeight - $("#tabButtons").outerHeight();
 }
 
@@ -93,12 +105,26 @@ function showOptions() {
 }
 
 window.onclick = function(e) {
-  if (!e.target.matches('.dropbtn')) {
-    var rocoInterfaces = document.getElementById("rocoInterfaces");
-      if (rocoInterfaces.classList.contains('show')) {
-        rocoInterfaces.classList.remove('show');
-      }
-  }
+    if (!e.target.matches('.dropbtn')) {
+        var rocoInterfaces = document.getElementById("rocoInterfaces");
+        if (rocoInterfaces.classList.contains('show')) {
+            rocoInterfaces.classList.remove('show');
+        }
+    }
+}
+
+function getActiveTabNum() {
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        if (tabcontent[i].style.display == "block") {
+            return i;
+        }
+
+    }
+}
+
+function getActiveTab() {
+    return tabs[getActiveTabNum()];
 }
 
 function newInterface(event, type) {
@@ -128,4 +154,6 @@ function newInterface(event, type) {
     numTabs++;
     tabs.push(new Tab(t, name));
     addTab(tabs[tabs.length - 1]);
+    tabs[tabs.length-1].type = type;
+    // activeTab = tabs[tabs.length - 1];
 }

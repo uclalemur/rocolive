@@ -29,9 +29,12 @@ from roco.derived.components.code_component import CodeComponent
 
 
 def writeIndexFiles():
+    pass
+
+def writePrevFiles():
     p = {}
-    c = CustomBlockFile(portsIndexPath="indexPortsBlocks.js",
-                        portsXMLPath="indexPortsXML.js", portCodeGenPath="portCodeGen.js")
+    # c = CustomBlockFile(portsIndexPath="indexPortsBlocks.js", portsXMLPath="indexPortsXML.js", portCodeGenPath="portCodeGen.js")
+    c = CustomBlockFile()
     p["input"] = []
     p["output"] = []
     p["other"] = []
@@ -45,8 +48,6 @@ def writeIndexFiles():
     c.writePorts(p)
     c.writeXML(p)
     c.writePortCodeGen(p)
-
-def writePrevFiles():
     # c = CustomBlockFile()
     comps = filter_components(["electrical", "code"])
     print comps
@@ -75,15 +76,25 @@ def writePrevFiles():
     blockfile = "blocks.js"
     initfile = "init.js"
 
-    files = (blockfile, initfile)
-    blockjs = CustomBlockFile(blockfile)
+    # files = (blockfile, initfile)
+    # blockjs = CustomBlockFile(blockfile)
+
+    # # write file that defines the toolbox
+    # blockjs.writeInit(comps, ports)
+
+    # # Write block.js file that describes blockly blocks.
+    # for i in comps:
+    #     blockjs.writeComponent(i, ports[i.get_name()])
+    #     blockjs.writePrevCompCode(i, ports[i.get_name()])
+    # blockjs.finishComponents()
+    # blockjs.finishComponentCode()
 
     # write file that defines the toolbox
-    blockjs.writeInit(comps, ports)
+    c.writeInit(comps, ports)
 
     # Write block.js file that describes blockly blocks.
     for i in comps:
-        blockjs.writeComponent(i, ports[i.get_name()])
-        blockjs.writePrevCompCode(i, ports[i.get_name()])
-    blockjs.finishComponents()
-    blockjs.finishComponentCode()
+        c.writeComponent(i, ports[i.get_name()])
+        c.writePrevCompCode(i, ports[i.get_name()])
+    c.finishComponents()
+    c.finishComponentCode()

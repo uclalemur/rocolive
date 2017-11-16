@@ -125,7 +125,7 @@ class MechanicalInterface {
     }
 
     saveComponent() {
-        this.componentSave(this.id,this.componentName, function(){});
+        componentSave(this.id,this.componentName, function(){});
     }
 
     fixEdgeInterface() {
@@ -878,8 +878,8 @@ function onWindowResize() {
 function onDocumentMouseMove(mechInterface) {
     return function(event) {
         event.preventDefault();
-        mechInterface.mouse.x = ( (event.clientX - getLeftPos(mechInterface.container))/ mechInterface.container.clientWidth ) * 2 - 1;
-        mechInterface.mouse.y = - ( (event.clientY - document.getElementById("tabButtons").clientHeight) / mechInterface.container.clientHeight ) * 2 + 1;
+        mechInterface.mouse.x = ((event.clientX - getLeftPos(mechInterface.container)) / mechInterface.container.clientWidth) * 2 - 1;
+        mechInterface.mouse.y = -((event.clientY - $("#tabButtons").outerHeight(true)) / mechInterface.container.clientHeight) * 2 + 1;
         mechInterface.raycaster.setFromCamera( mechInterface.mouse, mechInterface.camera );
         var objs = mechInterface.subcomponents;
         if(mechInterface.componentObj != undefined)
@@ -899,7 +899,7 @@ function onDocumentMouseDown(mechInterface) {
         mechInterface.raycaster.setFromCamera( mechInterface.mouse, mechInterface.camera );
         var objs = mechInterface.subcomponents;
         if(mechInterface.componentObj != undefined)
-        objs = mechInterface.subcomponents.concat(mechInterface.componentObj);
+            objs = mechInterface.subcomponents.concat(mechInterface.componentObj);
         var intersects = mechInterface.raycaster.intersectObjects( objs, true );
         var obj;
         if(!event.shiftKey)

@@ -53,7 +53,7 @@ class CustomBlockFile:
         categories = {}
         for comp in comps:
             port = ports[comp.get_name()]
-            suffix = "|0"
+            suffix = "'+tab+'|0"
             # if "out" in port.keys():
             #     suffix = "|0"
             category = self.getCategoryName(comp)
@@ -66,7 +66,7 @@ class CustomBlockFile:
             ET.SubElement(categories[category], "block", {
                           "type": (comp.get_name() + suffix)})
             # print ET.dump(self.tree)
-        self.initFile.write("function getToolbox(t){\n")
+        self.initFile.write("function getToolbox(t, tab){\n")
         self.initFile.write("\tt.toolbox = '" + ET.tostring(self.tree) + "';\n")
         self.initFile.write("}\n")
         # self.initFile.write("var workspace = Blockly.inject('{}', {{toolbox: toolbox}});\n".format("blocklyDiv"))
@@ -97,9 +97,9 @@ class CustomBlockFile:
             self.componentsWithoutOutputs.append(name)
 
         self.blockFile.write("//{}\n".format(name))
-        self.blockFile.write('function make{}(count, name){{\n'.format(name))
+        self.blockFile.write('function make{}(tab, count, name){{\n'.format(name))
         self.blockFile.write('\tvar ans = name;\n\tif (name === undefined){{\n\t\tans=\"{}\"+(count);\n\t}}\n'.format(name))
-        self.blockFile.write("\tBlockly.Blocks['{}' + count] = {{\n".format(name + "|"))
+        self.blockFile.write("\tBlockly.Blocks['{}' + tab + '|' + count] = {{\n".format(name))
         self.blockFile.write("\t\tinit: function(){\n")
         self.blockFile.write("\t\t\tthis.appendDummyInput().appendField(\"{} \").appendField(new Blockly.FieldTextInput(ans), \"NAME\");\n".format(name))
         self.blockFile.write("\t\t\tfor(var i = 0; i < this.params.length; i++){\n")
@@ -110,7 +110,7 @@ class CustomBlockFile:
         if 'in' in ports.keys():
             for k, v in ports['in'].iteritems():
                 self.blockFile.write(
-                    "\t\t\tthis.appendValueInput(\"{}\").setCheck(\"{}\").appendField(\"{}\");\n".format(k, v, k))
+                    "\t\t\tthis.appendValueInput(\"{}\").setCheck(\"{}\").appendField(\"{}\");\n".format(k, name, k))
                 compInputs.append(k)
 
         self.blockFile.write(
@@ -165,7 +165,7 @@ class CustomBlockFile:
     def writeComponentOutputs(self, componentName, name, valueType, count):
         self.blockFile.write("\n\t//{}- {}\n".format(name, componentName))
         self.blockFile.write(
-            "\tBlockly.Blocks['{}|' + {} + '\\\\{}'] = {{\n".format(componentName, "count",  str(count)))
+            "\tBlockly.Blocks['{}' + tab + '|' + {} + '\\\\{}'] = {{\n".format(componentName, "count",  str(count)))
         self.blockFile.write("\t\tinit: function(){\n")
         self.blockFile.write(
             "\t\t\tthis.appendDummyInput(\"NAME\").appendField(ans + \"{}\");\n".format("->" + name))
@@ -173,7 +173,7 @@ class CustomBlockFile:
             "\t\t\tthis.setOutput(true, {});\n".format("null"))
         self.blockFile.write("\t\t\tthis.setColour(180);\n")
         self.blockFile.write("\t\t},\n")
-        self.blockFile.write("\t\toutputType:'{}',\n".format(valueType))
+        self.blockFile.write("\t\toutputType:'{}',\n".format(componentName))
         self.blockFile.write("\t\toutputName:'{}',\n".format(name))
         self.blockFile.write("\t\tname:'{}',\n".format(componentName))
         self.blockFile.write("\t};\n")
@@ -203,10 +203,18 @@ class CustomBlockFile:
             self.blockFile.write("};\n\n")
 
     def finishComponents(self):
+        self.blockFile.write("function makeAllPrevComps(tab, count) {\n")
         for comp in self.componentsWithOutputs:
-            self.blockFile.write("make" + comp + "(0);\n")
+            self.blockFile.write("\tmake" + comp + "(tab, count);\n")
         for comp in self.componentsWithoutOutputs:
-            self.blockFile.write("make" + comp + "(0);\n")
+            self.blockFile.write("\tmake" + comp + "(tab, count);\n")
+        self.blockFile.write("}")
+
+        # for comp in self.componentsWithOutputs:
+        #     self.blockFile.write("make" + comp + "(0);\n")
+        # for comp in self.componentsWithoutOutputs:
+        #     self.blockFile.write("make" + comp + "(0);\n")
+
 
     # indexPortsBlocks.js
     def writePorts(self, ports):
@@ -247,17 +255,19 @@ class CustomBlockFile:
             self.portFile.write("};\n\n")
 
     def writeXML(self, ports):
+        self.xmlFile.write("function addPorts(tab) {\n")
         self.xmlFile.write(
-            "var ports = Toolbox.addCategory('<category name=\"Ports\" colour=\"105\"></category>', toolboxXML);\n")
+            "\tvar ports = tab.Toolbox.addCategory('<category name=\"Ports\" colour=\"105\"></category>', tab.toolboxXML);\n")
         for kind in ports.keys():
             if len(ports[kind]) > 0:
                 self.xmlFile.write(
-                    "Toolbox.{}Category = Toolbox.addCategory('<category name=\"{}\" colour=\"105\"></category>', ports);\n".format(kind, kind))
+                    "\ttab.Toolbox.{}Category = tab.Toolbox.addCategory('<category name=\"{}\" colour=\"105\"></category>', ports);\n".format(kind, kind))
         for kind, port, in ports.iteritems():
             for p in port:
                 self.xmlFile.write(
-                    "Toolbox.addBlock('<block type=\"{}\"></block>', Toolbox.{}Category);\n".format(p + "|" + kind,  kind))
+                    "\ttab.Toolbox.addBlock('<block type=\"{}\"></block>', tab.Toolbox.{}Category);\n".format(p + "|" + kind,  kind))
             self.xmlFile.write("\n")
+        self.xmlFile.write("}")
 
     def writePortCodeGen(self, ports):
         self.pcgFile.write("//Arduino\n")
@@ -288,9 +298,9 @@ class CustomBlockFile:
         else:
             self.componentCodeWithoutOutputs.append(name)
         self.pccFile.write("//{}\n".format(name))
-        self.pccFile.write('function makeOutput{}(count){{\n'.format(name))
+        self.pccFile.write('function makeOutput{}(tab, count){{\n'.format(name))
         self.pccFile.write(
-            "\tBlockly.Arduino['{}' + count] = function() {{\n".format(name + "|"))
+            "\tBlockly.Arduino['{}' + tab + '|' + count] = function() {{\n".format(name))
         # self.pccFile.write(
         #     "\tBlockly.Arduino['{}0'] = function() {{\n".format(name + "|"))
         self.pccFile.write("\t\tvar code = \"{}\" + (count) + '|';\n".format(name))
@@ -325,7 +335,7 @@ class CustomBlockFile:
     def writePrevCompCodeOutputs(self, componentName, name, valueType, count):
         self.pccFile.write("\n\t//{}- {}\n".format(name, componentName))
         self.pccFile.write(
-            "\tBlockly.Arduino['{}|' + {} + '\\\\{}'] = function() {{\n".format(componentName, "count",  str(count)))
+            "\tBlockly.Arduino['{}' + tab + '|' + {} + '\\\\{}'] = function() {{\n".format(componentName, "count",  str(count)))
         self.pccFile.write("\t\tvar n = this.getInput(\"NAME\").fieldRow[0].getText()\n\t\tn = n.substring(0, n.indexOf(\"->\"))\n")
         self.pccFile.write(
             "\t\tvar code = n + '_';\n".format(componentName))
@@ -336,7 +346,9 @@ class CustomBlockFile:
         self.pccFile.write("\t};\n")
 
     def finishComponentCode(self):
+        self.pccFile.write("function makeAllPrevComps(tab, count) {\n") 
         for comp in self.componentCodeWithOutputs:
-            self.pccFile.write("makeOutput" + comp + "(0);\n")
+            self.pccFile.write("\tmake" + comp + "(tab, count);\n")
         for comp in self.componentCodeWithoutOutputs:
-            self.pccFile.write("makeOutput" + comp + "(0);\n")
+            self.pccFile.write("\tmake" + comp + "(tab, count);\n")
+        self.pccFile.write("}")

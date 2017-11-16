@@ -1,3 +1,4 @@
+var getActiveTab = function(){};
 function openInterface(evt, interfaceName) {
     // Declare all variables
     var i, tabcontent, tablinks;
@@ -18,8 +19,15 @@ function openInterface(evt, interfaceName) {
 
     // Show the current tab, and add an "active" class to the button that opened the tab
     document.getElementById(interfaceName).style.display = "block";
-    if(evt)
-	evt.currentTarget.className += " active";
+    if(evt) 
+        evt.currentTarget.className += " active";
+    if (getActiveTab()) {
+        t = getActiveTab();
+        if (t.type == "bc" || t.type == "cc")
+            document.getElementById("export").style.display="block";
+        else
+            document.getElementById("export").style.display="none";
+    }
 }
 
 document.getElementById("defaultOpen").click();
