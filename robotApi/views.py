@@ -5,7 +5,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from roco.library import all_components, get_component, build_database, filter_components, filter_database
 from roco.api import component
-from roco.api.utils.variable import Variable
+from roco.api.utils.variable import Variable, eval_equation
 from roco.derived.ports import edge_port,face_port
 from roco.utils.utils import scheme_list
 import sympy
@@ -129,7 +129,6 @@ def addSubcomponent(request):
             #Return information about subcomponent
             c = get_component(type)#, baseclass="FoldedComponent")
             c.make_output(remake=False, placeOnly=True)
-            print c.parameters
             #print "Before extract"
             responseDict = extractFromComponent(c)
             #print "After extract"
@@ -184,6 +183,26 @@ def addConnection(request):
                 fc.add_connection((sc1,port1),(sc2,port2), flip=flip)
             else:
                 fc.add_connection((sc1,port1),(sc2,port2), angle=angle, flip=flip)
+            request.session.modified = True
+            print 'Connection from {}:{} to {}:{} Added to Component {}'.format(sc1,port1,sc2,port2,"")
+            return HttpResponse('Connection from {}:{} to {}:{} Added to Component {}'.format(sc1,port1,sc2,port2,""))
+        except KeyError:
+            return HttpResponse(status=501)
+    return HttpResponse(status=501)
+
+@api_view(['GET','POST'])
+def addCutoutConnection(request):
+    if request.method == 'GET' or request.method == 'POST':
+        try:
+            data = ast.literal_eval(request.body)
+            fc = request.session['component'][data['id']]
+            sc1 = data['sc1']
+            port1 = data['port1']
+            sc2 = data['sc2']
+            port2 = data['port2']
+            offsetX = float(data['offsetX'])
+            offsetY = float(data['offsetY'])
+            fc.add_connection((sc1,port1),(sc2,port2), offset=(offsetX,offsetY))
             request.session.modified = True
             print 'Connection from {}:{} to {}:{} Added to Component {}'.format(sc1,port1,sc2,port2,"")
             return HttpResponse('Connection from {}:{} to {}:{} Added to Component {}'.format(sc1,port1,sc2,port2,""))
@@ -420,6 +439,7 @@ def extractFromComponent(c):
     for i in graph["faces"]:
         #pdb.set_trace()
         tdict = copy.deepcopy(i.get_triangle_dict(separateHoles=True))
+        tdict["holes"] = []
         print "Tdict:",tdict
         for vertex in range(len(tdict["vertices"])):
             try:
@@ -435,19 +455,20 @@ def extractFromComponent(c):
                 except:
                     pass
         try:
-            for vertex in range(len(tdict["hole_vertices"])):
-                try:
-                    tpl = tdict["hole_vertices"][vertex]
-                    tdict["hole_vertices"][vertex] = [tpl[0], tpl[1]]
-                    if isinstance(tdict["hole_vertices"][vertex][0], sympy.Basic):
-                        tdict["hole_vertices"][vertex][0] = scheme_list(tdict["hole_vertices"][vertex][0])
-                    if isinstance(tdict["hole_vertices"][vertex][1], sympy.Basic):
-                        tdict["hole_vertices"][vertex][1] = scheme_list(tdict["hole_vertices"][vertex][1])
-                except:
+            for hole in range(len(tdict["hole_vertices"])):
+                for vertex in range(len(tdict["hole_vertices"][hole])):
                     try:
-                        tdict["hole_vertices"][vertex][1] = scheme_list(tdict["hole_vertices"][vertex][1])
+                        tpl = tdict["hole_vertices"][hole][vertex]
+                        tdict["hole_vertices"][hole][vertex] = [eval_equation(tpl[0]), eval_equation(tpl[1])]
+                        if isinstance(tdict["hole_vertices"][hole][vertex][0], sympy.Basic):
+                            tdict["hole_vertices"][hole][vertex][0] = scheme_list(tdict["hole_vertices"][hole][vertex][0])
+                        if isinstance(tdict["hole_vertices"][hole][vertex][1], sympy.Basic):
+                            tdict["hole_vertices"][hole][vertex][1] = scheme_list(tdict["hole_vertices"][hole][vertex][1])
                     except:
-                        pass
+                        try:
+                            tdict["hole_vertices"][hole][vertex][1] = scheme_list(tdict["hole_vertices"][hole][vertex][1])
+                        except:
+                            pass
         except:
             pass
         output["faces"][i.name] = [[scheme_list(i.transform_3D[x]) for x in range(getLen(i.transform_3D))], tdict]
