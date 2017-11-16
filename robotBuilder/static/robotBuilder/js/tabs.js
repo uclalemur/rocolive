@@ -26,6 +26,7 @@ class Tab {
         }
 
         if (button === undefined){
+
             // name the interface
             this.button = document.createElement("button");
             this.button.innerHTML = name;
@@ -34,10 +35,20 @@ class Tab {
 
             // attach button to div
             var id = this.id;
-            this.button.addEventListener("click", function (evt) {
+            tabButton.addEventListener("click", function (evt) {
                 openInterface(evt, id);
                 // activeTab = this.tab;
             });
+            var closeButton = document.createElement("button");
+            closeButton.innerHTML = "X";
+            closeButton.classList.add("tablinks");
+            closeButton.addEventListener("click", function (evt) {
+                console.log("closing",id);
+            });
+            // name the interface
+            this.button = document.createElement("div");
+            this.button.appendChild(tabButton);
+            this.button.appendChild(closeButton);
 
             // code to convert button to text field on double click?
             // this.button.addEventListener("dblclick", function (evt) {
@@ -108,7 +119,7 @@ function getActiveTabNum() {
         if (tabcontent[i].style.display == "block") {
             return i;
         }
-        
+
     }
 }
 
