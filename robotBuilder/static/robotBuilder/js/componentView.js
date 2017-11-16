@@ -663,7 +663,7 @@ class MechanicalInterface {
                     var id = this.mechInterface.id;
                     var componentName = this.mechInterface.SELECTED.name;
                     addSubcomponent(this.mechInterface.id, cutout.name, "cutout", function(){
-                        addComponentConnection(id,componentName,cutout.face,cutout.name,"mount", 0, function(){$('#overlay').remove();});
+                        addComponentConnection(id,componentName,cutout.face,cutout.name,"mount", 0, true, function(){$('#overlay').remove();});
                     });
 
                 }
