@@ -6,7 +6,7 @@ from rest_framework.parsers import JSONParser
 from roco.library import all_components, get_component, build_database, filter_components, filter_database
 from roco.api import component
 from roco.api.utils.variable import Variable
-from roco.derived.ports import edge_port
+from roco.derived.ports import edge_port,face_port
 from roco.utils.utils import scheme_list
 import sympy
 import copy_reg
@@ -177,8 +177,12 @@ def addConnection(request):
             port1 = data['port1']
             sc2 = data['sc2']
             port2 = data['port2']
+            print sc1,port1,sc2,port2
             angle = int(data['angle'])
-            fc.add_connection((sc1,port1),(sc2,port2), angle=angle)
+            if angle == 0:
+                fc.add_connection((sc1,port1),(sc2,port2))
+            else:
+                fc.add_connection((sc1,port1),(sc2,port2), angle=angle)
             request.session.modified = True
             print 'Connection from {}:{} to {}:{} Added to Component {}'.format(sc1,port1,sc2,port2,"")
             return HttpResponse('Connection from {}:{} to {}:{} Added to Component {}'.format(sc1,port1,sc2,port2,""))
@@ -401,8 +405,17 @@ def extractFromComponent(c):
     output["solved"] = {str(x) : x.get_value() for x in c.parameters.values() if isinstance(x, Variable)}
     print output["solved"]
     output["faces"] = {}
-    for i in c.composables['graph'].faces:
-        tdict = copy.deepcopy(i.get_triangle_dict())
+    try:
+        graph =  {"edges":[],"faces":[]}
+        graph["edges"] = c.composables['graph'].edges
+        graph["faces"] = c.composables['graph'].faces
+    except:
+        pass
+
+    for i in graph["faces"]:
+        #pdb.set_trace()
+        tdict = copy.deepcopy(i.get_triangle_dict(separateHoles=True))
+        print "Tdict:",tdict
         for vertex in range(len(tdict["vertices"])):
             try:
                 tpl = tdict["vertices"][vertex]
@@ -415,15 +428,31 @@ def extractFromComponent(c):
                 try:
                     tdict["vertices"][vertex][1] = scheme_list(tdict["vertices"][vertex][1])
                 except:
-
                     pass
+        try:
+            for vertex in range(len(tdict["hole_vertices"])):
+                try:
+                    tpl = tdict["hole_vertices"][vertex]
+                    tdict["hole_vertices"][vertex] = [tpl[0], tpl[1]]
+                    if isinstance(tdict["hole_vertices"][vertex][0], sympy.Basic):
+                        tdict["hole_vertices"][vertex][0] = scheme_list(tdict["hole_vertices"][vertex][0])
+                    if isinstance(tdict["hole_vertices"][vertex][1], sympy.Basic):
+                        tdict["hole_vertices"][vertex][1] = scheme_list(tdict["hole_vertices"][vertex][1])
+                except:
+                    try:
+                        tdict["hole_vertices"][vertex][1] = scheme_list(tdict["hole_vertices"][vertex][1])
+                    except:
+                        pass
+        except:
+            pass
         output["faces"][i.name] = [[scheme_list(i.transform_3D[x]) for x in range(getLen(i.transform_3D))], tdict]
         #print i.transform2D.tolist()
         trans2D = [[scheme_list(p) for p in j] for j in getList(i.transform_2D)]
         #print trans2D
         output["faces"][i.name].append(trans2D)
     output["edges"] = {}
-    for i in c.composables['graph'].edges:
+
+    for i in graph["edges"]:
         output["edges"][i.name] = []
         for v in range(2):
             output["edges"][i.name].append([])
@@ -434,6 +463,7 @@ def extractFromComponent(c):
                 except:
                     pass
     output["interfaceEdges"] = {}
+    output["interfaceFaces"] = []
     print c.interfaces
     for k,v in c.interfaces.iteritems():
         ports = c.get_interface(k).get_ports()
@@ -445,6 +475,8 @@ def extractFromComponent(c):
                         output["interfaceEdges"][k].append(i)
                     except:
                         pass
+            if isinstance(port,face_port.FacePort):
+                output["interfaceFaces"].append(k)
 
     return output
 
