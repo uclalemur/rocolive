@@ -5,6 +5,7 @@ var previousPopUpId;
 
 class MechanicalInterface {
     constructor (name, tabDom, container, svgcontainer) {
+      console.log("container: ", container, svgcontainer)
         this.componentName = name;
         this.id = idGenerator++;
         this.container = container;
@@ -919,20 +920,21 @@ function onDocumentMouseMove(mechInterface) {
 }
 
 function onDocumentMouseDown(mechInterface) {
+  console.log("document mouse down");
     return function(event) {
-      console.log("mouse down");
-      console.log(event);
         event.preventDefault();
         mechInterface.raycaster.setFromCamera( mechInterface.mouse, mechInterface.camera );
         var objs = mechInterface.subcomponents;
         if(mechInterface.componentObj != undefined)
             objs = mechInterface.subcomponents.concat(mechInterface.componentObj);
         var intersects = mechInterface.raycaster.intersectObjects( objs, true );
+        console.log("intersects", intersects);
         var obj;
         if(!event.shiftKey)
             obj = mechInterface.SELECTED;
         else
             obj = mechInterface.SELECTED_2;
+        console.log("obj", obj);
         if ( intersects.length > 0 ) {
             if(obj != undefined && obj.parent.type != "Scene") {
 

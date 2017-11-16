@@ -1,0 +1,29 @@
+Spec for migrating to React
+
+* View reflects the state of the component
+
+Mechnical Interface class --> Mechanical Interface React Component
+  1. classFields:
+    - identification: componentName, id,
+
+
+  2. components:
+    List of Components (reusable):
+      - side bar for adding Subcomponents:
+        * upon click subcomponent, the clicked subcomponent is added
+        to the interface and rerendered
+      - component tabs
+        * upon clicking tabs, the clicked interface is sent to passed
+        to the render and rerendered
+      - electrical interface blocks
+
+  3. functions:
+    - createMeshFromObject
+    -
+
+
+    Constructing THREE.js scene:
+      THREE.js scene
+
+HTTPResopnse:
+  on viewComponent:785
