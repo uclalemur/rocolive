@@ -1,102 +1,5 @@
 var BlockList = new Map();
 
-//string_to_motor
-function makestring_to_motor(tab, count, name){
-	var ans = name;
-	if (name === undefined){
-		ans="string_to_motor"+(count);
-	}
-	Blockly.Blocks['string_to_motor' + tab + '|' + count] = {
-		init: function(){
-			this.appendDummyInput().appendField("string_to_motor ").appendField(new Blockly.FieldTextInput(ans), "NAME");
-			for(var i = 0; i < this.params.length; i++){
-				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
-			}
-			this.appendValueInput("motorString").setCheck("string_to_motor").appendField("motorString");
-			this.setPreviousStatement(true, null);
-			this.setNextStatement(true, null);
-			this.setColour(180);
-		},
-		name: ans,
-		params:[],
-		category:'code',
-		inputs:['motorString', ],
-	};
-}
-
-//pot
-function makepot(tab, count, name){
-	var ans = name;
-	if (name === undefined){
-		ans="pot"+(count);
-	}
-	Blockly.Blocks['pot' + tab + '|' + count] = {
-		init: function(){
-			this.appendDummyInput().appendField("pot ").appendField(new Blockly.FieldTextInput(ans), "NAME");
-			for(var i = 0; i < this.params.length; i++){
-				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
-			}
-			this.setPreviousStatement(true, null);
-			this.setNextStatement(true, null);
-			this.setColour(180);
-		},
-		name: ans,
-		params:[],
-		category:'electrical',
-		inputs:[],
-		outputs:['vOut', ],
-	};
-
-	//vOut- pot
-	Blockly.Blocks['pot' + tab + '|' + count + '\\0'] = {
-		init: function(){
-			this.appendDummyInput("NAME").appendField(ans + "->vOut");
-			this.setOutput(true, null);
-			this.setColour(180);
-		},
-		outputType:'pot',
-		outputName:'vOut',
-		name:'pot',
-	};
-}
-
-//serial_to_string
-function makeserial_to_string(tab, count, name){
-	var ans = name;
-	if (name === undefined){
-		ans="serial_to_string"+(count);
-	}
-	Blockly.Blocks['serial_to_string' + tab + '|' + count] = {
-		init: function(){
-			this.appendDummyInput().appendField("serial_to_string ").appendField(new Blockly.FieldTextInput(ans), "NAME");
-			for(var i = 0; i < this.params.length; i++){
-				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
-			}
-			this.appendValueInput("receivedString").setCheck("serial_to_string").appendField("receivedString");
-			this.setPreviousStatement(true, null);
-			this.setNextStatement(true, null);
-			this.setColour(180);
-		},
-		name: ans,
-		params:[],
-		category:'code',
-		inputs:['receivedString', ],
-		outputs:['cameOut', ],
-	};
-
-	//cameOut- serial_to_string
-	Blockly.Blocks['serial_to_string' + tab + '|' + count + '\\0'] = {
-		init: function(){
-			this.appendDummyInput("NAME").appendField(ans + "->cameOut");
-			this.setOutput(true, null);
-			this.setColour(180);
-		},
-		outputType:'serial_to_string',
-		outputName:'cameOut',
-		name:'serial_to_string',
-	};
-}
-
 //node_mcu
 function makenode_mcu(tab, count, name){
 	var ans = name;
@@ -288,6 +191,66 @@ function makepot_driver(tab, count, name){
 	};
 }
 
+//driver
+function makedriver(tab, count, name){
+	var ans = name;
+	if (name === undefined){
+		ans="driver"+(count);
+	}
+	Blockly.Blocks['driver' + tab + '|' + count] = {
+		init: function(){
+			this.appendDummyInput().appendField("driver ").appendField(new Blockly.FieldTextInput(ans), "NAME");
+			for(var i = 0; i < this.params.length; i++){
+				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
+			}
+			this.setPreviousStatement(true, null);
+			this.setNextStatement(true, null);
+			this.setColour(180);
+		},
+		name: ans,
+		params:[],
+		category:'electrical, code',
+		inputs:[],
+	};
+}
+
+//serial_to_string
+function makeserial_to_string(tab, count, name){
+	var ans = name;
+	if (name === undefined){
+		ans="serial_to_string"+(count);
+	}
+	Blockly.Blocks['serial_to_string' + tab + '|' + count] = {
+		init: function(){
+			this.appendDummyInput().appendField("serial_to_string ").appendField(new Blockly.FieldTextInput(ans), "NAME");
+			for(var i = 0; i < this.params.length; i++){
+				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
+			}
+			this.appendValueInput("receivedString").setCheck("serial_to_string").appendField("receivedString");
+			this.setPreviousStatement(true, null);
+			this.setNextStatement(true, null);
+			this.setColour(180);
+		},
+		name: ans,
+		params:[],
+		category:'code',
+		inputs:['receivedString', ],
+		outputs:['cameOut', ],
+	};
+
+	//cameOut- serial_to_string
+	Blockly.Blocks['serial_to_string' + tab + '|' + count + '\\0'] = {
+		init: function(){
+			this.appendDummyInput("NAME").appendField(ans + "->cameOut");
+			this.setOutput(true, null);
+			this.setColour(180);
+		},
+		outputType:'serial_to_string',
+		outputName:'cameOut',
+		name:'serial_to_string',
+	};
+}
+
 //reverse_string
 function makereverse_string(tab, count, name){
 	var ans = name;
@@ -362,52 +325,6 @@ function makesort_string(tab, count, name){
 	};
 }
 
-//driver
-function makedriver(tab, count, name){
-	var ans = name;
-	if (name === undefined){
-		ans="driver"+(count);
-	}
-	Blockly.Blocks['driver' + tab + '|' + count] = {
-		init: function(){
-			this.appendDummyInput().appendField("driver ").appendField(new Blockly.FieldTextInput(ans), "NAME");
-			for(var i = 0; i < this.params.length; i++){
-				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
-			}
-			this.setPreviousStatement(true, null);
-			this.setNextStatement(true, null);
-			this.setColour(180);
-		},
-		name: ans,
-		params:[],
-		category:'electrical, code',
-		inputs:[],
-	};
-}
-
-//user_toggle
-function makeuser_toggle(tab, count, name){
-	var ans = name;
-	if (name === undefined){
-		ans="user_toggle"+(count);
-	}
-	Blockly.Blocks['user_toggle' + tab + '|' + count] = {
-		init: function(){
-			this.appendDummyInput().appendField("user_toggle ").appendField(new Blockly.FieldTextInput(ans), "NAME");
-			for(var i = 0; i < this.params.length; i++){
-				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
-			}
-			this.setPreviousStatement(true, null);
-			this.setNextStatement(true, null);
-			this.setColour(180);
-		},
-		name: ans,
-		params:[],
-		category:'code',
-		inputs:[],
-	};
-}
-
 //string_source
 function makestring_source(tab, count, name){
 	var ans = name;
@@ -444,6 +361,66 @@ function makestring_source(tab, count, name){
 	};
 }
 
+//string_to_motor
+function makestring_to_motor(tab, count, name){
+	var ans = name;
+	if (name === undefined){
+		ans="string_to_motor"+(count);
+	}
+	Blockly.Blocks['string_to_motor' + tab + '|' + count] = {
+		init: function(){
+			this.appendDummyInput().appendField("string_to_motor ").appendField(new Blockly.FieldTextInput(ans), "NAME");
+			for(var i = 0; i < this.params.length; i++){
+				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
+			}
+			this.appendValueInput("motorString").setCheck("string_to_motor").appendField("motorString");
+			this.setPreviousStatement(true, null);
+			this.setNextStatement(true, null);
+			this.setColour(180);
+		},
+		name: ans,
+		params:[],
+		category:'code',
+		inputs:['motorString', ],
+	};
+}
+
+//pot
+function makepot(tab, count, name){
+	var ans = name;
+	if (name === undefined){
+		ans="pot"+(count);
+	}
+	Blockly.Blocks['pot' + tab + '|' + count] = {
+		init: function(){
+			this.appendDummyInput().appendField("pot ").appendField(new Blockly.FieldTextInput(ans), "NAME");
+			for(var i = 0; i < this.params.length; i++){
+				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
+			}
+			this.setPreviousStatement(true, null);
+			this.setNextStatement(true, null);
+			this.setColour(180);
+		},
+		name: ans,
+		params:[],
+		category:'electrical',
+		inputs:[],
+		outputs:['vOut', ],
+	};
+
+	//vOut- pot
+	Blockly.Blocks['pot' + tab + '|' + count + '\\0'] = {
+		init: function(){
+			this.appendDummyInput("NAME").appendField(ans + "->vOut");
+			this.setOutput(true, null);
+			this.setColour(180);
+		},
+		outputType:'pot',
+		outputName:'vOut',
+		name:'pot',
+	};
+}
+
 //serial_in
 function makeserial_in(tab, count, name){
 	var ans = name;
@@ -468,15 +445,14 @@ function makeserial_in(tab, count, name){
 }
 
 function makeAllPrevComps(tab, count) {
-	makepot(tab, count);
-	makeserial_to_string(tab, count);
 	makenode_mcu(tab, count);
 	makepot_driver(tab, count);
+	makeserial_to_string(tab, count);
 	makereverse_string(tab, count);
 	makesort_string(tab, count);
 	makestring_source(tab, count);
-	makestring_to_motor(tab, count);
+	makepot(tab, count);
 	makedriver(tab, count);
-	makeuser_toggle(tab, count);
+	makestring_to_motor(tab, count);
 	makeserial_in(tab, count);
 }
