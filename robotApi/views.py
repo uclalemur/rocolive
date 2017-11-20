@@ -5,8 +5,8 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from roco.library import all_components, get_component, build_database, filter_components, filter_database
 from roco.api import component
-from roco.api.utils.variable import Variable
-from roco.derived.ports import edge_port
+from roco.api.utils.variable import Variable, eval_equation
+from roco.derived.ports import edge_port,face_port
 from roco.utils.utils import scheme_list
 import sympy
 import copy_reg
@@ -69,6 +69,7 @@ def constrainParameter(request):
     if request.method == 'GET' or request.method == 'POST':
         data = ast.literal_eval(request.body)
         fc = request.session['component'][data['id']]
+#        pdb.set_trace()
         sc = data['sc']
         parameter = data['parameter']
         constraint = data['constraint']
@@ -124,11 +125,10 @@ def addSubcomponent(request):
             #sessionComponent.subcomponents.set_default(scname, sc)
             #sessionComponent.resolve_subcomponent(scname)
             ########
-
+#            pdb.set_trace()
             #Return information about subcomponent
-            c = get_component(type, baseclass="FoldedComponent")
+            c = get_component(type)#, baseclass="FoldedComponent")
             c.make_output(remake=False, placeOnly=True)
-            print c.parameters
             #print "Before extract"
             responseDict = extractFromComponent(c)
             #print "After extract"
@@ -178,7 +178,31 @@ def addConnection(request):
             sc2 = data['sc2']
             port2 = data['port2']
             angle = int(data['angle'])
-            fc.add_connection((sc1,port1),(sc2,port2), angle=angle)
+            flip = data['flip'].lower() == "true"
+            if angle == 0:
+                fc.add_connection((sc1,port1),(sc2,port2), flip=flip)
+            else:
+                fc.add_connection((sc1,port1),(sc2,port2), angle=angle, flip=flip)
+            request.session.modified = True
+            print 'Connection from {}:{} to {}:{} Added to Component {}'.format(sc1,port1,sc2,port2,"")
+            return HttpResponse('Connection from {}:{} to {}:{} Added to Component {}'.format(sc1,port1,sc2,port2,""))
+        except KeyError:
+            return HttpResponse(status=501)
+    return HttpResponse(status=501)
+
+@api_view(['GET','POST'])
+def addCutoutConnection(request):
+    if request.method == 'GET' or request.method == 'POST':
+        try:
+            data = ast.literal_eval(request.body)
+            fc = request.session['component'][data['id']]
+            sc1 = data['sc1']
+            port1 = data['port1']
+            sc2 = data['sc2']
+            port2 = data['port2']
+            offsetX = float(data['offsetX'])
+            offsetY = float(data['offsetY'])
+            fc.add_connection((sc1,port1),(sc2,port2), offset=(offsetX,offsetY))
             request.session.modified = True
             print 'Connection from {}:{} to {}:{} Added to Component {}'.format(sc1,port1,sc2,port2,"")
             return HttpResponse('Connection from {}:{} to {}:{} Added to Component {}'.format(sc1,port1,sc2,port2,""))
@@ -213,7 +237,11 @@ def addParameter(request):
             fc = request.session['component'][data['id']]
             name = data['name']
             default = data['def']
-            fc.add_parameter(name, default)
+            try:
+                value = ast.literal_eval(default)
+            except:
+                value = default
+            fc.add_parameter(name, value)
             request.session.modified = True
             print 'Parameter ' + name + ' added with default value ' + default
             return HttpResponse('Parameter ' + name + ' added with default value ' + default)
@@ -258,9 +286,9 @@ def make(request):
     """
     if request.method == 'GET' or request.method == 'POST':
         try:
-            #pdb.set_trace()
             data = ast.literal_eval(request.body)
             fc = request.session['component'][data['id']]
+#            pdb.set_trace()
             fc.make_output(placeOnly=True)
             #print fc.__dict__
             #print "made"
@@ -355,8 +383,8 @@ def componentSave(request):
             data = ast.literal_eval(request.body)
             fc = request.session['component'][data['id']]
             name = data['name']
-            fc.toYaml("library/" + name + ".yaml")
-            build_database([get_component(name, baseclass="FoldedComponent")])
+            fc.to_yaml("library/" + name + ".yaml")
+            build_database([get_component(name)])
             print "{} saved to library".format(name)
             return HttpResponse("{} saved to library".format(name))
         except Exception as e:
@@ -401,8 +429,18 @@ def extractFromComponent(c):
     output["solved"] = {str(x) : x.get_value() for x in c.parameters.values() if isinstance(x, Variable)}
     print output["solved"]
     output["faces"] = {}
-    for i in c.composables['graph'].faces:
-        tdict = copy.deepcopy(i.get_triangle_dict())
+    try:
+        graph =  {"edges":[],"faces":[]}
+        graph["edges"] = c.composables['graph'].edges
+        graph["faces"] = c.composables['graph'].faces
+    except:
+        pass
+
+    for i in graph["faces"]:
+        #pdb.set_trace()
+        tdict = copy.deepcopy(i.get_triangle_dict(separateHoles=True))
+        tdict["holes"] = []
+        print "Tdict:",tdict
         for vertex in range(len(tdict["vertices"])):
             try:
                 tpl = tdict["vertices"][vertex]
@@ -415,15 +453,32 @@ def extractFromComponent(c):
                 try:
                     tdict["vertices"][vertex][1] = scheme_list(tdict["vertices"][vertex][1])
                 except:
-
                     pass
+        try:
+            for hole in range(len(tdict["hole_vertices"])):
+                for vertex in range(len(tdict["hole_vertices"][hole])):
+                    try:
+                        tpl = tdict["hole_vertices"][hole][vertex]
+                        tdict["hole_vertices"][hole][vertex] = [eval_equation(tpl[0]), eval_equation(tpl[1])]
+                        if isinstance(tdict["hole_vertices"][hole][vertex][0], sympy.Basic):
+                            tdict["hole_vertices"][hole][vertex][0] = scheme_list(tdict["hole_vertices"][hole][vertex][0])
+                        if isinstance(tdict["hole_vertices"][hole][vertex][1], sympy.Basic):
+                            tdict["hole_vertices"][hole][vertex][1] = scheme_list(tdict["hole_vertices"][hole][vertex][1])
+                    except:
+                        try:
+                            tdict["hole_vertices"][hole][vertex][1] = scheme_list(tdict["hole_vertices"][hole][vertex][1])
+                        except:
+                            pass
+        except:
+            pass
         output["faces"][i.name] = [[scheme_list(i.transform_3D[x]) for x in range(getLen(i.transform_3D))], tdict]
         #print i.transform2D.tolist()
         trans2D = [[scheme_list(p) for p in j] for j in getList(i.transform_2D)]
         #print trans2D
         output["faces"][i.name].append(trans2D)
     output["edges"] = {}
-    for i in c.composables['graph'].edges:
+
+    for i in graph["edges"]:
         output["edges"][i.name] = []
         for v in range(2):
             output["edges"][i.name].append([])
@@ -434,6 +489,7 @@ def extractFromComponent(c):
                 except:
                     pass
     output["interfaceEdges"] = {}
+    output["interfaceFaces"] = []
     print c.interfaces
     for k,v in c.interfaces.iteritems():
         ports = c.get_interface(k).get_ports()
@@ -445,6 +501,8 @@ def extractFromComponent(c):
                         output["interfaceEdges"][k].append(i)
                     except:
                         pass
+            if isinstance(port,face_port.FacePort):
+                output["interfaceFaces"].append(k)
 
     return output
 

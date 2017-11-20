@@ -26,6 +26,7 @@ class Tab {
         }
 
         if (button === undefined){
+
             // name the interface
             this.button = document.createElement("button");
             this.button.innerHTML = name;
@@ -108,7 +109,7 @@ function getActiveTabNum() {
         if (tabcontent[i].style.display == "block") {
             return i;
         }
-        
+
     }
 }
 
