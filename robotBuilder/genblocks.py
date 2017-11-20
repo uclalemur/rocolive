@@ -89,6 +89,7 @@ class CustomBlockFile:
 
     # blocks.js
     def writeComponent(self, comp, ports):
+        # import pdb; pdb.set_trace()
         name = comp.get_name()
 
         if "out" in ports.keys():

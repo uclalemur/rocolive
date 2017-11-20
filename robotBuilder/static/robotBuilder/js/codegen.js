@@ -35,7 +35,6 @@ Blockly.Arduino.component_create = function() {
 
     code += "##";
     code += Blockly.Arduino.statementToCode(this, "SETUP");
-    console.log(this.parameterCount);
     code += "##";
     code += Blockly.Arduino.statementToCode(this, "LOOP");
     code += "##";
@@ -47,7 +46,6 @@ Blockly.Arduino.component_create = function() {
     for(var i = 0; i < this.parameterCount; i++)
         code += this.getFieldValue("PAR_NAME" + i) + getActiveTab().mangler + "$" + this.getFieldValue("PAR_VAL" + i) + "$";
 
-    console.log(code);
     return code;
 }
 
@@ -439,19 +437,21 @@ function getJSON() {
         b['type'] = block.type.substring(0, block.type.lastIndexOf(getActiveTabNum()));
         b['inputs'] = [];
         for(var i = 0; i < block.inputs.length; i++){
-            var input = {};
-            input['name'] = block.inputs[i];
-            if(block.getInputTargetBlock(block.inputs[i]).type == "inherit_input"){
-                input['inherited'] = true;
-                input['source_name'] = block.inputs[i];;
-                input['source_comp'] = b['name'];
-            } else {
-                input['inherited'] = false;
-                var n = block.getInputTargetBlock(block.inputs[i]).getInput("NAME").fieldRow[0].getText();
-                input['source_name'] = n.substring(n.lastIndexOf(" ->") + 4);
-                input['source_comp'] = n.substring(0, n.lastIndexOf(" -> "));
+            if(block.getInputTargetBlock(block.inputs[i])){
+                var input = {};
+                input['name'] = block.inputs[i];
+                if(block.getInputTargetBlock(block.inputs[i]).type == "inherit_input"){
+                    input['inherited'] = true;
+                    input['source_name'] = block.inputs[i];;
+                    input['source_comp'] = b['name'];
+                } else {
+                    input['inherited'] = false;
+                    var n = block.getInputTargetBlock(block.inputs[i]).getInput("NAME").fieldRow[0].getText();
+                    input['source_name'] = n.substring(n.lastIndexOf(" ->") + 4);
+                    input['source_comp'] = n.substring(0, n.lastIndexOf(" -> "));
+                }
+                b['inputs'].push(input);
             }
-            b['inputs'].push(input);
         }
         out.blocks.push(b);
     }
@@ -469,17 +469,100 @@ function getJSON() {
 }
 
 function getBaseCode(){
-    var code;
+    var code = {};
+    var mainBlock = null;
+    for(var i = 0; i < Blockly.getMainWorkspace().getTopBlocks().length; i++){
+        if(Blockly.getMainWorkspace().getTopBlocks()[i].type == "component_create"){
+            mainBlock = Blockly.getMainWorkspace().getTopBlocks()[i];
+            break;
+        }
+    }
+    if(mainBlock == null){
+        window.alert("No top level Block found :(\n");
+        return;
+    }
+    code.name = mainBlock.getFieldValue("NAME");
+    code.arduino = {};
+    ard = code.arduino;
+    ard.setup = Blockly.Arduino.statementToCode(Blockly.getMainWorkspace().getTopBlocks()[0], "SETUP", Blockly.Arduino.ORDER_NONE);
+    ard.loop = Blockly.Arduino.statementToCode(Blockly.getMainWorkspace().getTopBlocks()[0], "LOOP", Blockly.Arduino.ORDER_NONE);
+    
+
+
     try{
-        code = Blockly.Arduino.workspaceToCode(getActiveTab().workspace);
-        console.log(code);
-        console.log(Blockly.Python.workspaceToCode(getActiveTab().workspace));
-        code += ("\n...---...\n" + Blockly.Python.workspaceToCode(getActiveTab().workspace));
-        return code;
+        Blockly.Arduino.workspaceToCode(getActiveTab().workspace);
     } catch(err){
         console.log(err);
         window.alert("Please remove all blocks which are not arduino compatible. These are the ones that are disabled in the toolbar.");
     }
+
+    ard.vars = [];
+    ard.decl = [];
+    var vars = Blockly.Arduino.definitions_.variables.split("\n");
+    for(var i = 0; i < vars.length; i++){
+        if(vars[i].length > 0){
+            v = {}
+            v.type = vars[i].split(" ")[0];
+            v.name = vars[i].split(" ")[1].substring(0, vars[i].split(" ")[1].length-1);
+            ard.decl.push(vars[i]);
+            ard.vars.push(v);
+        }
+    }
+
+    ard.functions = [];
+    for(var name in Blockly.Arduino.definitions_){
+        if(name == "variables")
+            continue;
+
+        func = {};
+        var lines = Blockly.Arduino.definitions_[name].split("\n");
+        for(var i = 0; i < lines.length; i++){
+            if(!(lines[i][0] == '/' && lines[i][1] == '/')){
+                if(lines[i].includes('(') && lines[i].includes(')')){
+                    var tokens = lines[i].split(" ");
+                    func.ret = tokens[0];
+                    func.name = tokens[1].substring(0, tokens[1].indexOf('('));
+                    func.mangled = func.name + "@@name@@";
+                    func.decl = lines[i].substring(0, lines[i].length-1).replace(func.name, func.mangled)+';';
+                    ard.decl.push(func.decl);
+                }
+            }
+        }
+        func.code = Blockly.Arduino.definitions_[name];
+        func.mangled_code = func.code.replace(func.name, func.mangled);
+        ard.functions.push(func);
+    }
+    ard.inputs = [];
+
+    for(var i = 0; mainBlock.getInput("INP_PORT"+i); i++){
+        var input = {};
+        input.name = mainBlock.getFieldValue("INPUT_NAME" + i);
+        input.port = Blockly.Arduino.valueToCode(mainBlock, "INP_PORT" + i, Blockly.Arduino.ORDER_ATOMIC);
+        input.mangled = input.name + "@@name@@";
+        ard.inputs.push(input);
+    }
+
+    ard.params = [];
+    for(var i = 0; mainBlock.getField("PAR_NAME"+i); i++){
+        var param = {};
+        param.name = mainBlock.getFieldValue("PAR_NAME" + i);
+        param.value = mainBlock.getFieldValue("PAR_VAL" + i);
+        param.mangled = param.name + "@@name@@";
+        ard.params.push(param);
+    }
+
+    ard.outputs = [];
+    for(var i = 0; mainBlock.getInput("OUT_PORT"+i); i++){
+        var output = {};
+        output.name = mainBlock.getFieldValue("OUTPUT_NAME" + i);
+        output.port = Blockly.Arduino.valueToCode(mainBlock, "OUT_PORT" + i, Blockly.Arduino.ORDER_ATOMIC);
+        output.mangled = output.name + "@@name@@";
+        output.code = Blockly.Arduino.valueToCode(mainBlock, "OUT"+i)
+        ard.outputs.push(output);
+    }
+    console.log(code)
+    return JSON.stringify(code);
+    
 }
 
 function exportCode(event){

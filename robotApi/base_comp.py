@@ -1,4 +1,4 @@
-import os
+import os, json
 from roco.library import all_components, get_component, instance_of, build_database, query_database, filter_components, filter_database, update_component_lists
 from roco.api.component import Component
 from roco.derived.ports.code_port import CodePort
@@ -58,6 +58,70 @@ def formatIndent(snippet, trimBegin=False, python = False):
     return dCode
 
 def export_code(request):
+    code = json.loads(request.body)
+    name = code["name"]
+    ard = code["arduino"]
+
+
+    component = "from roco.derived.composables.target.arduino_target import Arduino\n"
+    component += "from roco.derived.components.code_component import CodeComponent\n"
+    component += "from roco.derived.ports import *\n\n"
+
+    component += "class {}(CodeComponent):\n\n".format(to_camel_case(name))
+
+    component += "\tdef __init__(self,  yaml_file=None, **kwargs):\n"
+
+    component += "\t\tCodeComponent.__init__(self, yaml_file, **kwargs)\n"
+    component += "\t\tname = self.get_name()\n\n"
+
+
+    component += "\tdef define(self, **kwargs):\n"
+    for i in ard["params"]:
+        component += "\t\tself.add_parameter(\"{}\", {}, is_symbol=False)\n".format(i["name"], i["value"])
+    component += "\t\tself.meta = {\n"
+    component += "\t\t\tArduino: {\n"
+
+    component += "\t\t\t\t\"code\": None"
+    component += "\t\t\t\t,\n\n"
+
+    component += "\t\t\t\t\"inputs\": {\n"
+    for i in ard["inputs"]:
+        component += "\t\t\t\t\t\"" + i["mangled"] + "\": None,\n"
+    component += "\t\t\t\t},\n\n"
+
+
+    component += "\t\t\t\t\"outputs\": {\n"
+    funcs = [function["name"] for function in ard["functions"]]
+    for out in ard["outputs"]:
+        name = out["code"][0:out["code"].find('(')]
+        if name in funcs:
+            out["code"] = out["code"].replace(name, name + "@@name@@")
+        component += "\t\t\t\t\t\"" + out["mangled"] + "\" : \"" + out["code"] + "\",\n"
+    component += "\t\t\t\t},\n\n"
+
+    declarations = '(\n' + "\n".join(['\t\t\t\t\t"'+i + '\\n"' for i in ard["decl"]]) + '),\n'
+    
+    component += "\t\t\t\t\"declarations\": "
+    component += declarations
+    print component
+    
+
+    component += "\t\t\t\t\"setup\": "
+    component += setupCode
+    component += "\t\t\t\t,\n\n"
+    
+    component += "\t\t\t\t\"loop\": "
+    component += loopCode
+    component += "\t\t\t\t,\n\n"
+
+    component += "\t\t\t\t\"needs\": set()\n"
+    component += "\t\t\t},\n\n"
+
+
+
+
+
+def export_code_old(request):
     code = request.body
     print "Code: ", code
     codeP = code[code.find("...---...") + 9:]

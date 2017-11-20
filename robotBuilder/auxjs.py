@@ -39,6 +39,7 @@ def writePrevFiles():
     p["output"] = []
     p["other"] = []
     for port in code_ports:
+        # import pdb; pdb.set_trace()
         if "Out" in port.__name__:
             p["output"].append(port.__name__)
         elif "In" in port.__name__:
@@ -50,8 +51,6 @@ def writePrevFiles():
     c.writePortCodeGen(p)
 
     comps = filter_database(["electrical", "code"])
-    print comps
-    print "Number of Components: ", len(comps)
 
 
     ports = {}
@@ -64,12 +63,21 @@ def writePrevFiles():
         # print i.getName(), i.interfaces
         
         for k, v in i.interfaces.iteritems():
-            print k, v
+            # if i.get_name() == "servo":
+            #     import pdb; pdb.set_trace()
             if "out" in v.lower():
                 if 'out' not in item.keys():
                     item['out'] = {}
                 item['out'][k] = v
             elif "in" in v.lower():
+                if 'in' not in item.keys():
+                    item['in'] = {}
+                item['in'][k] = v
+            elif "out" in k.lower():
+                if 'out' not in item.keys():
+                    item['out'] = {}
+                item['out'][k] = v
+            elif "in" in k.lower():
                 if 'in' not in item.keys():
                     item['in'] = {}
                 item['in'][k] = v
@@ -96,6 +104,7 @@ def writePrevFiles():
 
     # Write block.js file that describes blockly blocks.
     for i in comps:
+        # import pdb; pdb.set_trace()
         c.writeComponent(i, ports[i.get_name()])
         c.writePrevCompCode(i, ports[i.get_name()])
     c.finishComponents()

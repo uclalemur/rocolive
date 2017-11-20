@@ -217,7 +217,7 @@ function createIndexEvents(tab){
 
     tab.onStubDeleted = function(event) {
         if (event.type == Blockly.Events.DELETE) {
-            countStubs();
+            tab.countStubs();
         }
     }
 }
