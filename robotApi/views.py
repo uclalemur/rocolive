@@ -84,6 +84,7 @@ def createComponent(request):
     Create a new Component
     """
     if request.method == 'GET' or request.method == 'POST':
+        print 'createComponent request', request
         #pdb.set_trace()
         sessionComponent = component.Component() #Create component
         name = id(sessionComponent)

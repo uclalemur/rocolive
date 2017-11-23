@@ -35,20 +35,22 @@ export default class PopUpList extends React.Component {
     } = this.props;
 
     return (
-      <div>
-        {this.props.subcomponents.map((sc, idx) => {
-          return (
-            <div key={'popup'+idx} className="card" onClick={this.popUpClicked.bind(this, idx)}>
-              <h3>{sc.scname}</h3>
-              <h4>Parameter List</h4>
-                <ParameterList keys={sc.paramUsed} values={parameters}
-                  paramListClassName='parameterList' paramListElementClassNam='param' />
-              <h4>Subcomponent Parameter List</h4>
-                <ParameterList keys={Object.keys(sc.scparams)} values={sc.scparams}
-                  paramListClassName='scParameterList' paramListElementClassNam='scparam' />
-            </div>
-          )
-        })}
+      <div className="col-md-3" id="left-panel">
+        <div>
+          {this.props.subcomponents.map((sc, idx) => {
+            return (
+              <div key={'popup'+idx} className="card" onClick={this.popUpClicked.bind(this, idx)}>
+                <h3>{sc.scname}</h3>
+                <h4>Parameter List</h4>
+                  <ParameterList keys={sc.paramUsed} values={parameters}
+                    paramListClassName='parameterList' paramListElementClassNam='param' />
+                <h4>Subcomponent Parameter List</h4>
+                  <ParameterList keys={Object.keys(sc.scparams)} values={sc.scparams}
+                    paramListClassName='scParameterList' paramListElementClassNam='scparam' />
+              </div>
+            )
+          })}
+        </div>
     </div>)
   }
 }

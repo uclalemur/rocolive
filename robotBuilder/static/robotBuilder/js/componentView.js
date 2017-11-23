@@ -727,7 +727,6 @@ class MechanicalInterface {
     }
 
     buildComponent() {
-       console.log(this.mechInterface.parameters);
         var over = '<div id="overlay">' +
                 '<span class="blink_me">LOADING...</span>' +
                 '</div>';
@@ -888,6 +887,7 @@ function onDocumentMouseMove(mechInterface) {
         event.preventDefault();
         mechInterface.mouse.x = ((event.clientX - getLeftPos(mechInterface.container)) / mechInterface.container.clientWidth) * 2 - 1;
         mechInterface.mouse.y = -((event.clientY - $("#tabButtons").outerHeight(true)) / mechInterface.container.clientHeight) * 2 + 1;
+        console.log(mechInterface.camera);
         mechInterface.raycaster.setFromCamera( mechInterface.mouse, mechInterface.camera );
         var objs = mechInterface.subcomponents;
         if(mechInterface.componentObj != undefined)
@@ -922,6 +922,7 @@ function onDocumentMouseDown(mechInterface) {
     return function(event) {
       console.log("mouse down");
       console.log(event);
+      console.log(mechInterface.mouse)
         event.preventDefault();
         mechInterface.raycaster.setFromCamera( mechInterface.mouse, mechInterface.camera );
         var objs = mechInterface.subcomponents;
