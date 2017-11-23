@@ -10,3 +10,5 @@ ehthumbs.db
 Thumbs.db
 assets/bundles
 node_modules/
+compDatabase.db
+db.sqlite3
