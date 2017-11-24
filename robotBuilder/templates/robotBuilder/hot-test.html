@@ -3,11 +3,12 @@
 <html>
     <head>
         <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
         <title>Robot Builder</title>
-
-        <link href="{% static "robotBuilder/css/testStyle.css" %}" rel="stylesheet">
-        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" />
-
+        <!-- <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" /> -->
+        <link href="{% static "robotBuilder/css/bootstrap.min.css" %}" rel="stylesheet">
     </head>
     <body>
       <div id='react-app'></div>
@@ -15,18 +16,16 @@
       <script src="{% static "robotBuilder/js/interface.js" %}"></script>
 
       {% render_bundle 'main' %}
+      <script src="{% static "robotBuilder/js/jquery.min.js" %}"></script>
+      <script src="{% static "robotBuilder/js/bootstrap.bundle.min.js" %}"></script>
+      <link href="{% static "robotBuilder/css/testStyle.css" %}" rel="stylesheet">
 
-        <!-- <script type="text/babel">
-            require(['/Users/chiliwei/lemur/interface_roco/assets/js/index.js'], function(Hello) {
-              ReactDOM.render(
-                React.createElement(Hello, {toWhat: 'World'}, null),
-                document.getElementById('react-app')
-              );
-            });
-            render();
-
-            window.addEventListener('resize', onWindowResize, false);
-            window.addEventListener('keydown', onKeyDown);
-        </script> -->
+      <!-- Menu Toggle Script -->
+      <script>
+      $("#menu-toggle").click(function(e) {
+          e.preventDefault();
+          $("#wrapper").toggleClass("toggled");
+      });
+      </script>
     </body>
 </html>

@@ -86,6 +86,7 @@ class MechanicalInterface {
         this.control.addEventListener( 'change', this.render );
         this.orbit = new THREE.OrbitControls( this.camera, this.renderer.domElement );
         this.loadGui();
+        console.log('init')
         this.getComponents();
         createComponent(this.id);
         this.renderer.domElement.addEventListener( 'mousemove', onDocumentMouseMove(this), false );
@@ -403,7 +404,9 @@ class MechanicalInterface {
         //for(var key in componentMenus){
             var mech = this;
             getComponentList("" ,function(response){
+
             response = JSON.parse(response).response;
+            console.log('componentList', response)
             for(var i = 0; i < response.length; i++){
                 mech.componentLibrary[response[i][0]] = { interfaces: response[i][1] };
                 var button = {
@@ -429,6 +432,7 @@ class MechanicalInterface {
                         $(over).appendTo('body');
                         var mechInterface = this.mechInterface;
                         addSubcomponent(this.mechInterface.id, n, this.mechInterface.compName, function(response){
+                          console.log(response);
                             response = JSON.parse(response).response;
                             mechInterface.tempParams = {};
                             mechInterface.loadSymbolic(response, n);

@@ -10,25 +10,28 @@ ComponentList (inheriting from ComponentListWrapper)
   other props:
     function calls bind to each component
 */
-import ComponentListWrapper from './componentListWrapper'
-
-export default class ComponentList extends ComponentListWrapper {
+import React, {Component} from 'react'
+export default class ComponentList extends Component {
   constructor(props) {
     super(props);
   }
 
-  // overriding method
-  fillComponentList() {
-    return this.props.componentList.map((c) => {
-      return (
-        <li>
-          {c.name}
-        </li>
-      );
-    });
-  }
-
   render() {
-    return super.render();
+    return (
+      <div id="sidebar-wrapper">
+          <ul className="sidebar-nav">
+              <li className="sidebar-brand">
+                  <a href="#">
+                      Start Bootstrap
+                  </a>
+              </li>
+              {this.props.componentList.map((comp) => {
+                return (<li>
+                  <a href="#">{comp[0]}</a>
+                  </li>);
+              })}
+          </ul>
+      </div>
+    );
   }
 }

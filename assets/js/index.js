@@ -4,7 +4,8 @@ import * as THREE from 'three';
 import ReactDOM from 'react-dom';
 // import MouseInput from './MouseInput'
 import TransformControls from 'three-transform-controls'
-import PopUpList from './popupList'
+import ComponentList from './componentList'
+// import PopUpList from './popupList'
 import {getLeftPos} from './utils'
 
 
@@ -52,12 +53,38 @@ class MechanicalInterface extends React.Component {
 
     this.state = {
       cubeRotation: new THREE.Euler(),
-      subcomponents: []
+      subcomponents: [],
+      loading: false,
+      componentList: undefined,
+      containerWidth: 1000,
+      containerHeight: 800
     };
 
     this._onAnimate = () => {
       // we will get this callback every frame
     };
+  }
+
+  loadComponentList() {
+    return new Promise((resolve, reject) => {
+      getComponentList("", (resp) => {
+        if (resp != undefined)
+          return resolve(JSON.parse(resp).response);
+        return reject("error has occured when loading componentList");
+      })
+      //...
+    })
+  }
+  // fetch componentList and render to left-panel asynchronously
+  componentWillMount() {
+    this.setState({loading: true});
+    this.loadComponentList()
+      .then((data) => {
+        this.setState({
+          componentList: data,
+          loading: false
+        });
+      });
   }
 
   componentDidMount() {
@@ -71,18 +98,20 @@ class MechanicalInterface extends React.Component {
     var plane = new THREE.Mesh(new THREE.PlaneGeometry(25, 5), material);
     var control = new tc(this.refs.camera, ReactDOM.findDOMNode(this.refs.react3));
     //explicitly bind object reference
-    control.addEventListener('change', this.render.bind(this));
-    control.attach( plane);
-    object.add(control);
-    object.add(plane);
+    // control.addEventListener('change', this.render.bind(this));
+    // control.attach( plane);
+    // object.add(control);
+    // object.add(plane);
 
     this.setState({
       subcomponents: this.state.subcomponents.concat([object, plane])
     });
 
-    const controls = new OrbitControls(this.refs.camera);
-    this.controls = controls;
+    // const controls = new OrbitControls(this.refs.camera);
+    // this.controls = controls;
     this.refs.group.add(object);
+
+    // console.log('container', this.refs.container.offsetWidth);
   }
 
   componentWillUnmount() {
@@ -110,65 +139,70 @@ class MechanicalInterface extends React.Component {
     console.log(intersects)
   }
 
-
-
   render() {
-    const width = 1000; // canvas width
-    const height = 800; // canvas height
-
+    const width = this.state.containerWidth;
+    const height = this.state.containerHeight;
+    //<PopUpList {...testData} />
     return (
       <div id='react-app' onClick={(e) => this.onClick(e)}>
-        <PopUpList {...testData} />
-        <div className="col-md-9" id="right-panel">
-          <div className="row">
-
-            <React3
-              mainCamera="camera" // this points to the perspectiveCamera which has the name set to "camera" below
-              width={width}
-              height={height}
-              ref="react3"
-              onAnimate={this._onAnimate}
-              antialias
-              alpha={false}
-            >
-              <scene>
-                <perspectiveCamera
-                  ref="camera"
-                  name="camera"
-                  fov={75}
-                  aspect={width / height}
-                  near={0.1}
-                  far={1000}
-                  position={this.cameraPosition}
-                />
-
-                <group ref='group' />
-                <gridHelper
-                  size={10}
-                  colorGrid={"#040404"}
-                />
-                <mesh
-                  rotation={this.state.cubeRotation}
-                  name="cube"
-                >
-                  <boxGeometry
-                    width={1}
-                    height={1}
-                    depth={1}
+         <div id="wrapper">
+         { this.state.loading ? (<div>loading</div>) : <ComponentList componentList={this.state.componentList}/>}
+            <div id="page-content-wrapper">
+              <div className="container-fluid" id="right-panel">
+              <React3
+                mainCamera="camera" // this points to the perspectiveCamera which has the name set to "camera" below
+                width={width}
+                height={height}
+                ref="react3"
+                onAnimate={this._onAnimate}
+                antialias
+                alpha={false}
+              >
+                <scene>
+                  <perspectiveCamera
+                    ref="camera"
+                    name="camera"
+                    fov={75}
+                    aspect={width / height}
+                    near={0.1}
+                    far={1000}
+                    position={this.cameraPosition}
                   />
-                  <meshBasicMaterial
-                    color={0x00ff00}
+
+                  <group ref='group' />
+                  <gridHelper
+                    size={10}
+                    colorGrid={"#040404"}
                   />
-                </mesh>
-              </scene>
-            </React3>
+                  <mesh
+                    rotation={this.state.cubeRotation}
+                    name="cube"
+                  >
+                    <boxGeometry
+                      width={1}
+                      height={1}
+                      depth={1}
+                    />
+                    <meshBasicMaterial
+                      color={0x00ff00}
+                    />
+                  </mesh>
+                </scene>
+              </React3>
+              <a href="#menu-toggle" className="btn btn-secondary" id="menu-toggle">Toggle Menu</a>
+            </div>
           </div>
         </div>
       </div>
     )
   }
 }
-
+//  <div className="col-md-9" id="right-panel">
+  //   <div className="row">
+  //
+  //
+  //   </div>
+  // </div>
 // <module
 //   ref="mouseInput"
 //   descriptor={MouseInput}
