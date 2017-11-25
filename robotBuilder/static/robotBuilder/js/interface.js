@@ -28,6 +28,7 @@ function createComponent(id)
 
 function addSubcomponent(id, name, type, callback)
 {
+  console.log('interface', id, name, type, callback)
     httpPostAsync(addScURL,"{'name': '" + name + "','id': '" + id + "','type': '" + type + "'}",callback);
 }
 

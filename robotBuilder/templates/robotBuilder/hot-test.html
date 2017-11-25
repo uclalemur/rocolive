@@ -12,9 +12,9 @@
     </head>
     <body>
       <div id='react-app'></div>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.min.js"></script>
       <script src="{% static "robotBuilder/js/interface.js" %}"></script>
-
+      <script src="{% static "robotBuilder/js/constraintSolver.js" %}"></script>
+      <script src="{% static "robotBuilder/js/three.min.js" %}"></script>
       {% render_bundle 'main' %}
       <script src="{% static "robotBuilder/js/jquery.min.js" %}"></script>
       <script src="{% static "robotBuilder/js/bootstrap.bundle.min.js" %}"></script>

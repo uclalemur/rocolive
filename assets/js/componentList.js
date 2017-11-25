@@ -16,17 +16,17 @@ export default class ComponentList extends Component {
     super(props);
   }
 
+  addComponent(comp) {
+    // add subcomponent of type comp[0]
+    this.props.addSubcomponent(comp[0]);
+  }
+
   render() {
     return (
       <div id="sidebar-wrapper">
           <ul className="sidebar-nav">
-              <li className="sidebar-brand">
-                  <a href="#">
-                      Start Bootstrap
-                  </a>
-              </li>
               {this.props.componentList.map((comp) => {
-                return (<li>
+                return (<li onClick={this.addComponent.bind(this, comp)}>
                   <a href="#">{comp[0]}</a>
                   </li>);
               })}
