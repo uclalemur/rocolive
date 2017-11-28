@@ -531,6 +531,7 @@ function getBaseCode(){
                     func.mangled = func.name + "@@name@@";
                     func.decl = lines[i].substring(0, lines[i].length-1).replace(func.name, func.mangled)+';';
                     ard.decl.push(func.decl);
+                    break;
                 }
             }
         }

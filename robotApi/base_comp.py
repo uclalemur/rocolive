@@ -57,6 +57,13 @@ def formatIndent(snippet, trimBegin=False, python = False):
 
     return dCode
 
+def is_int(s):
+    try: 
+        int(s)
+        return True
+    except ValueError:
+        return False
+
 def export_code(request):
     code = json.loads(request.body)
     name = code["name"]
@@ -69,19 +76,24 @@ def export_code(request):
 
     component += "class {}(CodeComponent):\n\n".format(to_camel_case(name))
 
-    component += "\tdef __init__(self,  yaml_file=None, **kwargs):\n"
+    component += "\tdef __init__(self,  yaml_file=None, name=\"{}\", **kwargs):\n".format(code["name"])
+    # component += "\t\timport pdb; pdb.set_trace()\n"
 
-    component += "\t\tCodeComponent.__init__(self, yaml_file, **kwargs)\n"
+    component += "\t\tCodeComponent.__init__(self, yaml_file, name, **kwargs)\n"
     component += "\t\tname = self.get_name()\n\n"
 
 
     component += "\tdef define(self, **kwargs):\n"
     for i in ard["params"]:
+        if is_int(i["value"]):
+            pass
+        else:
+            i["value"] = "\"" + i["value"] + "\""
         component += "\t\tself.add_parameter(\"{}\", {}, is_symbol=False)\n".format(i["name"], i["value"])
     component += "\t\tself.meta = {\n"
     component += "\t\t\tArduino: {\n"
 
-    component += "\t\t\t\t\"code\": None"
+    component += "\t\t\t\t\"code\": \"\""
     component += "\t\t\t\t,\n\n"
 
     component += "\t\t\t\t\"inputs\": {\n"
@@ -99,24 +111,63 @@ def export_code(request):
         component += "\t\t\t\t\t\"" + out["mangled"] + "\" : \"" + out["code"] + "\",\n"
     component += "\t\t\t\t},\n\n"
 
-    declarations = '(\n' + "\n".join(['\t\t\t\t\t"'+i + '\\n"' for i in ard["decl"]]) + '),\n'
+    declarations = '(\n' + "\n".join(['\t\t\t\t\t"'+i + '\\n"' for i in ard["decl"]])
+
+    for f in ard["functions"]:
+        fn = f["mangled_code"].split("\n")
+        a = "\n".join(['\t\t\t\t\t"'+i + '\\n"' for i in fn])
+        declarations += "\n" + a
+    declarations += "),\n"
+    
+
     
     component += "\t\t\t\t\"declarations\": "
     component += declarations
-    print component
     
-
+    setupCode = '(\n' + "\n".join(['\t\t\t\t\t"'+i[2:] + '\\n"' for i in ard["setup"].split("\n")]) + "),\n"
     component += "\t\t\t\t\"setup\": "
     component += setupCode
-    component += "\t\t\t\t,\n\n"
     
+    
+    loopCode = '(\n' + "\n".join(['\t\t\t\t\t"'+i[2:] + '\\n"' for i in ard["loop"].split("\n")]) + "),\n"
     component += "\t\t\t\t\"loop\": "
     component += loopCode
-    component += "\t\t\t\t,\n\n"
-
+    
     component += "\t\t\t\t\"needs\": set()\n"
     component += "\t\t\t},\n\n"
 
+    component += "\t\t}\n\n"
+
+    for i in ard["inputs"]:
+        component += "\t\tself.add_interface(\"" + i["name"] + "\", " + i["port"] +"(self, \"" + i["name"] + "\", " + "\"" + i["mangled"] + "\"))\n"
+
+    for i in ard["outputs"]:
+        component += "\t\tself.add_interface(\"" + i["name"] + "\", " + i["port"] +"(self, \"" + i["name"] + "\", " + "\"" + i["mangled"] + "\"))\n"
+
+    
+    
+    component += "\t\tCodeComponent.define(self, **kwargs)\n"
+
+    component += "\n"
+
+    component += "\tdef assemble(self):\n"
+    component += "\t\tCodeComponent.assemble(self)\n\n"
+
+    component += "if __name__ == \"__main__\":\n"
+    component += "\tpass\n\n"
+    print component
+
+    cmpath = os.path.join(get_lib_dir(), code["name"] + ".py")
+    print "cmpath: ", cmpath
+    cmFile = open(cmpath, 'wb', 0)
+    cmFile.write(component)
+    print cmFile
+
+    comp = get_component(code["name"], name=code["name"], baseclass=code["name"])
+    build_database([comp])
+    update_component_lists()
+
+    return HttpResponse("ok")
 
 
 
