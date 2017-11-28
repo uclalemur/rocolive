@@ -447,12 +447,17 @@ function getJSON() {
                 } else {
                     input['inherited'] = false;
                     var n = block.getInputTargetBlock(block.inputs[i]).getInput("NAME").fieldRow[0].getText();
-                    input['source_name'] = n.substring(n.lastIndexOf(" ->") + 4);
-                    input['source_comp'] = n.substring(0, n.lastIndexOf(" -> "));
+                    input['source_name'] = n.substring(n.lastIndexOf("->") + 2);
+                    input['source_comp'] = n.substring(0, n.lastIndexOf("->"));
                 }
                 b['inputs'].push(input);
             }
         }
+        b['parameters'] = [];
+        for(var i = 0; block.getFieldValue("PARAM" + i); i++){
+            b['parameters'].push([block.params[i][0], block.getFieldValue("PARAM" + i)]);
+        }
+
         out.blocks.push(b);
     }
     block = top;
@@ -461,10 +466,11 @@ function getJSON() {
         b = {};
         b['name'] = block.getFieldValue("OUTPUT_NAME"+i);
         var n = block.getInputTargetBlock("OUT" + i).getInput("NAME").fieldRow[0].getText();
-        b['source_name'] = n.substring(n.lastIndexOf(" ->") + 4);
-        b['source_comp'] = n.substring(0, n.lastIndexOf(" -> "));
+        b['source_name'] = n.substring(n.lastIndexOf("->") + 2);
+        b['source_comp'] = n.substring(0, n.lastIndexOf("->"));
         out['outputs'].push(b);
     }
+    console.log(out);
     return JSON.stringify(out);
 }
 

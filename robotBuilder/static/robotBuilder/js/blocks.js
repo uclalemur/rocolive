@@ -111,6 +111,44 @@ function makeserial_to_string(tab, count, name){
 	};
 }
 
+//string_compare
+function makestring_compare(tab, count, name){
+	var ans = name;
+	if (name === undefined){
+		ans="string_compare"+(count);
+	}
+	Blockly.Blocks['string_compare' + tab + '|' + count] = {
+		init: function(){
+			this.appendDummyInput().appendField("string_compare ").appendField(new Blockly.FieldTextInput(ans), "NAME");
+			for(var i = 0; i < this.params.length; i++){
+				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
+			}
+			this.appendValueInput("inDetected").setCheck("string_compare").appendField("inDetected");
+			this.appendValueInput("inString").setCheck("string_compare").appendField("inString");
+			this.setPreviousStatement(true, null);
+			this.setNextStatement(true, null);
+			this.setColour(180);
+		},
+		name: ans,
+		params:[["compareString", "compareString"], ],
+		category:'code',
+		inputs:['inDetected', 'inString', ],
+		outputs:['isMatch', ],
+	};
+
+	//isMatch- string_compare
+	Blockly.Blocks['string_compare' + tab + '|' + count + '\\0'] = {
+		init: function(){
+			this.appendDummyInput("NAME").appendField(ans + "->isMatch");
+			this.setOutput(true, null);
+			this.setColour(180);
+		},
+		outputType:'string_compare',
+		outputName:'isMatch',
+		name:'string_compare',
+	};
+}
+
 //node_mcu
 function makenode_mcu(tab, count, name){
 	var ans = name;
@@ -339,30 +377,6 @@ function makereverse_string(tab, count, name){
 	};
 }
 
-//DrivenServo
-function makeDrivenServo(tab, count, name){
-	var ans = name;
-	if (name === undefined){
-		ans="DrivenServo"+(count);
-	}
-	Blockly.Blocks['DrivenServo' + tab + '|' + count] = {
-		init: function(){
-			this.appendDummyInput().appendField("DrivenServo ").appendField(new Blockly.FieldTextInput(ans), "NAME");
-			for(var i = 0; i < this.params.length; i++){
-				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
-			}
-			this.appendValueInput("PWMin").setCheck("DrivenServo").appendField("PWMin");
-			this.setPreviousStatement(true, null);
-			this.setNextStatement(true, null);
-			this.setColour(180);
-		},
-		name: ans,
-		params:[],
-		category:'code, electrical',
-		inputs:['PWMin', ],
-	};
-}
-
 //sort_string
 function makesort_string(tab, count, name){
 	var ans = name;
@@ -413,6 +427,7 @@ function makeservo_driver(tab, count, name){
 				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
 			}
 			this.appendValueInput("PWMin").setCheck("servo_driver").appendField("PWMin");
+			this.appendValueInput("inInt").setCheck("servo_driver").appendField("inInt");
 			this.setPreviousStatement(true, null);
 			this.setNextStatement(true, null);
 			this.setColour(180);
@@ -420,7 +435,7 @@ function makeservo_driver(tab, count, name){
 		name: ans,
 		params:[],
 		category:'code, electrical',
-		inputs:['PWMin', ],
+		inputs:['PWMin', 'inInt', ],
 		outputs:['eOut', ],
 	};
 
@@ -571,6 +586,7 @@ function makeserial_in(tab, count, name){
 function makeAllPrevComps(tab, count) {
 	makepot(tab, count);
 	makeserial_to_string(tab, count);
+	makestring_compare(tab, count);
 	makenode_mcu(tab, count);
 	makepot_driver(tab, count);
 	makereverse_string(tab, count);
@@ -579,7 +595,6 @@ function makeAllPrevComps(tab, count) {
 	makestring_source(tab, count);
 	makeserial_in(tab, count);
 	makestring_to_motor(tab, count);
-	makeDrivenServo(tab, count);
 	makeservo(tab, count);
 	makedriver(tab, count);
 }

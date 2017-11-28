@@ -94,6 +94,38 @@ function makeOutputserial_to_string(tab, count){
 	};
 }
 
+//string_compare
+function makeOutputstring_compare(tab, count){
+	Blockly.Arduino['string_compare' + tab + '|' + count] = function() {
+		var code = "string_compare" + (count) + '|';
+		code += (this.getFieldValue('NAME') + '|');
+		code += (this.inputs.length + '|');
+		code += (this.params.length + '|');
+		for(var i = 0; i < this.inputs.length; i++){
+			code += this.inputs[i];
+			code += '\\';
+			code += Blockly.Arduino.valueToCode(this, this.inputs[i], Blockly.Arduino.ORDER_NONE);
+		}
+
+		code += '#';
+		for(var i = 0; i < this.params.length; i++){
+			code += (this.params[i][0] + "|" + this.params[i][1] + "|");
+		}
+
+		code += '#';
+		return code;
+	}
+
+	//isMatch- string_compare
+	Blockly.Arduino['string_compare' + tab + '|' + count + '\\0'] = function() {
+		var n = this.getInput("NAME").fieldRow[0].getText()
+		n = n.substring(0, n.indexOf("->"))
+		var code = n + '_';
+		code += 'isMatch'+'>';
+		return [code, Blockly.Arduino.ORDER_ATOMIC];
+	};
+}
+
 //node_mcu
 function makeOutputnode_mcu(tab, count){
 	Blockly.Arduino['node_mcu' + tab + '|' + count] = function() {
@@ -269,29 +301,6 @@ function makeOutputreverse_string(tab, count){
 		code += 'outStr'+'>';
 		return [code, Blockly.Arduino.ORDER_ATOMIC];
 	};
-}
-
-//DrivenServo
-function makeOutputDrivenServo(tab, count){
-	Blockly.Arduino['DrivenServo' + tab + '|' + count] = function() {
-		var code = "DrivenServo" + (count) + '|';
-		code += (this.getFieldValue('NAME') + '|');
-		code += (this.inputs.length + '|');
-		code += (this.params.length + '|');
-		for(var i = 0; i < this.inputs.length; i++){
-			code += this.inputs[i];
-			code += '\\';
-			code += Blockly.Arduino.valueToCode(this, this.inputs[i], Blockly.Arduino.ORDER_NONE);
-		}
-
-		code += '#';
-		for(var i = 0; i < this.params.length; i++){
-			code += (this.params[i][0] + "|" + this.params[i][1] + "|");
-		}
-
-		code += '#';
-		return code;
-	}
 }
 
 //sort_string
@@ -480,6 +489,7 @@ function makeOutputserial_in(tab, count){
 function makeAllPrevCompOutputs(tab, count) {
 	makeOutputpot(tab, count);
 	makeOutputserial_to_string(tab, count);
+	makeOutputstring_compare(tab, count);
 	makeOutputnode_mcu(tab, count);
 	makeOutputpot_driver(tab, count);
 	makeOutputreverse_string(tab, count);
@@ -488,7 +498,6 @@ function makeAllPrevCompOutputs(tab, count) {
 	makeOutputstring_source(tab, count);
 	makeOutputserial_in(tab, count);
 	makeOutputstring_to_motor(tab, count);
-	makeOutputDrivenServo(tab, count);
 	makeOutputservo(tab, count);
 	makeOutputdriver(tab, count);
 }

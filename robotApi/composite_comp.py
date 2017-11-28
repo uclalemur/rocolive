@@ -45,7 +45,12 @@ def createBuilder(code):
                 build += "c.inherit_interface('{}', ('{}', '{}'))\n".format(v["name"], v["source_comp"], v["source_name"])
 
     for o in c["outputs"]:
-        build += "c.inherit_interface('{}', ('{}', '{}'))\n".format(o["name"], o["source_comp"], o["source_name"])        
+        build += "c.inherit_interface('{}', ('{}', '{}'))\n".format(o["name"], o["source_comp"], o["source_name"])
+
+    for b in c["blocks"]:
+        for v in b["parameters"]:
+            build += "c.get_subcomponent('{}').set_parameter('{}', '{}')\n".format(b["name"], v[0], v[1])
+            # build += "c.constrain_subcomponent_parameter(('{}', '{}'), '{}')\n".format(b["name"], v[0], v[1])
 
     build += "c.to_yaml(\"library/{}.yaml\")\n".format(c["name"])
 
