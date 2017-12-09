@@ -434,7 +434,8 @@ function getJSON() {
     for(; block != null; block = block.nextConnection.targetBlock()){
         var b = {};
         b['name'] = block.getFieldValue("NAME");
-        b['type'] = block.type.substring(0, block.type.lastIndexOf(getActiveTabNum()));
+        var tab = block.type.substring(0, block.type.lastIndexOf("|"));
+        b['type'] = tab.substring(0, tab.lastIndexOf(getActiveTabNum()));
         b['inputs'] = [];
         for(var i = 0; i < block.inputs.length; i++){
             if(block.getInputTargetBlock(block.inputs[i])){
@@ -554,7 +555,7 @@ function getBaseCode(){
         var param = {};
         param.name = mainBlock.getFieldValue("PAR_NAME" + i);
         param.value = mainBlock.getFieldValue("PAR_VAL" + i);
-        param.mangled = param.name + "@@name@@";
+        param.mangled = "@@param@@" + param.name + "@@";
         ard.params.push(param);
     }
 

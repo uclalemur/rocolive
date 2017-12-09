@@ -51,7 +51,7 @@ def writePrevFiles():
     c.writePortCodeGen(p)
 
     comps = filter_database(["electrical", "code"])
-
+    
 
     ports = {}
 
@@ -104,7 +104,8 @@ def writePrevFiles():
 
     # Write block.js file that describes blockly blocks.
     for i in comps:
-        # import pdb; pdb.set_trace()
+        # if i.get_name() == "DrivenServo":
+        #     import pdb; pdb.set_trace()
         c.writeComponent(i, ports[i.get_name()])
         c.writePrevCompCode(i, ports[i.get_name()])
     c.finishComponents()

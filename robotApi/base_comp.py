@@ -111,13 +111,18 @@ def export_code(request):
         component += "\t\t\t\t\t\"" + out["mangled"] + "\" : \"" + out["code"] + "\",\n"
     component += "\t\t\t\t},\n\n"
 
-    declarations = '(\n' + "\n".join(['\t\t\t\t\t"'+i + '\\n"' for i in ard["decl"]])
+    declarations = "\n".join(['\t\t\t\t\t"'+i + '\\n"' for i in ard["decl"]])
 
+    
     for f in ard["functions"]:
         fn = f["mangled_code"].split("\n")
         a = "\n".join(['\t\t\t\t\t"'+i + '\\n"' for i in fn])
         declarations += "\n" + a
-    declarations += "),\n"
+    if len(declarations) > 0:
+        declarations = "(\n" + declarations + "),\n"
+    else:
+        declarations = "\"\",\n"
+    # declarations += "),\n"
     
 
     
@@ -163,6 +168,7 @@ def export_code(request):
     cmFile.write(component)
     print cmFile
 
+    
     comp = get_component(code["name"], name=code["name"], baseclass=code["name"])
     build_database([comp])
     update_component_lists()
