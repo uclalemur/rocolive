@@ -7,8 +7,10 @@
         <meta name="description" content="">
         <meta name="author" content="">
         <title>Robot Builder</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
         <!-- <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" /> -->
         <link href="{% static "robotBuilder/css/bootstrap.min.css" %}" rel="stylesheet">
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
     </head>
     <body>
       <div id='react-app'></div>
@@ -22,6 +24,13 @@
 
       <!-- Menu Toggle Script -->
       <script>
+      $(function() {
+        $('.list-group-item').on('click', function() {
+          $('.glyphicon', this)
+            .toggleClass('glyphicon-chevron-right')
+            .toggleClass('glyphicon-chevron-down');
+        });
+      });
       $("#menu-toggle").click(function(e) {
           e.preventDefault();
           $("#wrapper").toggleClass("toggled");

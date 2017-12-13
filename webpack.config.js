@@ -22,20 +22,9 @@ module.exports = {
   module: {
     loaders: [
       { test: /\.jsx?$/, exclude: /node_modules/, loader: 'babel-loader'}, // to transform JSX into JS
+      { test: /\.css$/, loader: "style-loader!css-loader" },
     ],
   },
-  // module: {
-  //   loaders: [
-  //       {
-  //         test: /\.js$/,
-  //         exclude: /node_modules/,
-  //         loader: 'babel-loader',
-  //         query: {
-  //           presets:['es2015', 'stage-0', 'react']
-  //         }
-  //       }
-  //   ]
-  // },
 
   resolve: {
     modules: ['node_modules'],
