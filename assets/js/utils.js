@@ -154,6 +154,9 @@ function loadSymbolic(that, obj, n) {
   objMesh.connectedInterfaces = {};
   objMesh.parameterfuncs = {};
   highlightInterfaces(objMesh);
+
+  // TODO: should this be here??
+  that.setState({subcomponents: [...that.state.subcomponents, objMesh]});
   // this.comp.subcomponents[objMesh.name] = this.comp.subcomponents.addFolder(objMesh.name);
   // var constrs = this.comp.subcomponents[objMesh.name].addFolder("Constrain Parameters");
   objMesh.parameters = obj['parameters'];
@@ -179,5 +182,60 @@ function loadSymbolic(that, obj, n) {
   return objMesh;
 }
 
+function updateComponent(component, response)
+{
+    let solution = response["solved"]
+    var pos = {};
+    var quat = {};
+    for(var k in component["solved"]){
+	if(k == "dx" || k == "dy" || k == "dz"){
+	    pos[k] = solution[component.name + "_" + k];
+	    component["solved"][k] = 0;
+	}
+	else if(k == "q_a" || k == "q_i" || k == "q_j" || k == "q_k"){
+	    quat[k] = solution[component.name + "_" + k];
+	    if(k == "q_a")
+		component["solved"][k] = 1;
+	    else
+		component["solved"][k] = 0;
+	}
+	else
+	    component["solved"][k] = solution[component.name + "_" + k];
+    }
+    component['faces'] = {}
+    for(var face in response['faces']){
+        if (face.startsWith(component.name))
+            component['faces'][face] = response['faces'][face];
+    }
+    /*component['edges'] = {}
+    for(var edge in response['edges']){
+        if (edge.startsWith(component.name))
+            component['edges'][edge] = response['edges'][edge];
+    }*/
+    let newComp = createMeshFromObject(component);
+    newComp.position.set(Number(pos.dx),Number(pos.dy),Number(pos.dz));
+    newComp.rotation.setFromQuaternion(new THREE.Quaternion(Number(quat.q_i),Number(quat.q_j),Number(quat.q_k),Number(quat.q_a)));
+    newComp.name = component.name;
+    newComp.className = component.className;
+    newComp.interfaces = component.interfaces;
+    newComp.interfaceEdges = component.interfaceEdges;
+    newComp.connectedInterfaces = component.connectedInterfaces;
+    newComp.parameterfuncs = component.parameterFuncs;
+    highlightInterfaces(newComp);
+    return newComp;
+}
 
-export {getLeftPos, createMeshFromObject, loadSymbolic}
+
+function stripObjects(list, strippedList){
+    for(var i in list){
+        var strippedObj = {};
+        strippedObj.name = list[i].name;
+        strippedObj.className = list[i].className;
+        strippedObj.parameters = list[i].parameters;
+        strippedObj.parameterfuncs = list[i].parameterfuncs;
+        strippedObj.interfaces = list[i].interfaces;
+        strippedList.push(strippedObj);
+    }
+}
+
+export {getLeftPos, createMeshFromObject, loadSymbolic, updateComponent, highlightInterfaces, stripObjects}

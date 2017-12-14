@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import NavTab from './navTab'
-import ListOfThings from './listOfThings'
+// import ListOfThings from './listOfThings'
 // import '../../robotBuilder/static/robotBuilder/css/bootstrap.min.css'
 
 export default class navBar extends Component {

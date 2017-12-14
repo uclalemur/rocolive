@@ -36,6 +36,14 @@ if (!String.prototype.format) {
 export default class PopUp extends React.Component {
   constructor(props) {
     super(props);
+
+    this.state = {
+      value: ''
+    }
+  }
+
+  componentDidMount() {
+    $( ".draggable" ).draggable();
   }
 
   findNodePath(node) {
@@ -46,6 +54,10 @@ export default class PopUp extends React.Component {
       }
 
       return [nodePath.reverse()];
+  }
+
+  handleSubmit(event) {
+    event.preventDefault();
   }
 
   /* recursively build the hierarchy */
@@ -72,40 +84,41 @@ export default class PopUp extends React.Component {
 
 // popupType could be for hover or click
   render() {
-    var {
-      popUpClass,
+    let {
+      popupClass,
       popupType,
+      popupStyle,
       scObj,
       x,
       y,
       compParams
     } = this.props;
 
-    var {
+    let {
       nameColor,
       scParameterColor,
       compParameterColor,
       backgroundColor
     } = hoverPopUpStyle
 
+    if (scObj.type == 'Line') {
+      return (<div></div>);
+    }
     // recursively show hierarchical tree
     if (popupType == 'hover') {
-      if (scObj.type == 'Line') {
-        return (
-          <div className="card" backgroundColor={backgroundColor}>
-            <h4 style={{color: nameColor}}>{scObj.name}</h4>
-          </div>
-        )
-      }
       return (
         <div className="card" backgroundColor={backgroundColor}>
           {this.findNodePath(scObj).join('-->')}
-          <ParameterList obj={scObj} layer={0} />
+          <ParameterList inputEnabled={false} scObj={scObj} />
         </div>
       );
     } else {
       return (
-        <div className="card"></div>
+        <div className={popupClass+" draggable"} backgroundColor={backgroundColor} style={popupStyle}>
+          <form onSubmit={() => this.handleSubmit}>
+            <ParameterList inputEnabled={true} scObj={scObj} />
+          </form>
+        </div>
       )
     }
   }

@@ -26,7 +26,7 @@ export default class ComponentList extends Component {
       <div id="sidebar-wrapper">
           <ul className="sidebar-nav">
               {this.props.componentList.map((comp) => {
-                return (<li onClick={this.addComponent.bind(this, comp)}>
+                return (<li onClick={this.addComponent.bind(this, comp)} style={{height: 30}}>
                   <a href="#">{comp[0]}</a>
                   </li>);
               })}

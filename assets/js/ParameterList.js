@@ -1,79 +1,80 @@
 import React from 'react'
+import ListOfThings from './listOfThings'
 
-export default class ParameterList extends React.Component {
+class ParameterFieldList extends React.Component {
   constructor(props) {
     super(props);
   }
 
-  // findChild(obj, childName) {
-  //   for (var i = 0; i < obj.children.length; i++)
-  //     if (obj.children[i].name == childName) {
-  //       return obj.children[i];
-  //     }
-  // }
-
   render() {
-      var {
-        obj,
-        layer
-        // paramListClassName,
-        // paramListElementClassName,
-        // paramElementKey
-      } = this.props;
+    const {
+      scObj,
+      inputEnabled
+    } = this.props;
 
-      // root layer
-      if (layer == 0) {
-        console.log(layer);
-        var objName = obj.name;
-        var objParams = obj.parameters;
-        // if (obj.children) {
-        //   // pop the next node to span upon
-        //   return (
-        //     <div className="list-group list-group-root well">
-        //       <div>{objName}</div>
-        //       {obj.children.map((c) => {
-        //         return (<ParameterList {...this.props} obj={c} layer={layer+1} />)
-        //       })}
-        //
-        //     </div>
-        //   );
-        // }
-        return (
-          <div className="list-group list-group-root well">
-            <div>{objName}</div>
-            <div>
-              {Object.keys(obj.parameters).map((p, idx) => {
-                return (
-                  <a href={"#item-"+idx} className="list-group-item">
-                    {p}<i className="glyphicon glyphicon-chevron-right"></i>{obj.solved[p]}
-                  </a>
-                )
-              })}
-            </div>
-          </div>
-        );
-      }
+    return (
+      <ListOfThings listType='regular' elementName='parameter' elementClassName='parameterField'
+        listClassName='parameterList' container='ul'>
+        {Object.keys(scObj.parameters).map((k) => {
+          return (<ParameterField inputEnabled={inputEnabled} paramKey={k} paramVal={scObj.solved[k]}/>);
+        })}
+      </ListOfThings>
+    );
+  }
+}
+
+class ParameterField extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      paramVal: props.paramVal
     }
   }
 
-// else {
-//   console.log('low level currentNode', currentNode);
-//   return (
-//   <div>
-//     {Object.keys(currentNode.parameters).map((p) => {
-//        return (<a href="#" class="list-group-item">{p+'-->'+currentNode.solved[p]}</a>);
-//     })}
-//   </div>
-// );
+  parseValue() {
+    // call when upon submitting (only for parameterFields with input enabled)
+  }
 
+  handleChange(event) {
+    this.setState({paramVal: event.target.value});
+  }
 
+  render() {
+    let {
+      paramKey,
+      inputEnabled
+    } = this.props;
 
-// <div className="list-group collapse" id="item-1"></div>
-//
-// <a href="#item-1-1" className="list-group-item" data-toggle="collapse">
-//   <i className="glyphicon glyphicon-chevron-right"></i>{node.name}
-// </a>
-// <div className="list-group collapse" id="item-1-1">
-//   {Object.keys(node.parameters).map(((p) => {
-//     return (<a href="#" className="list-group-item">{p+'-->'+node.solved[p]}</a>)
-//   }))}
+    let {
+      paramVal
+    } = this.state;
+    // root layer
+    // if (layer == 0) {
+
+    return (
+      <li>
+        <span>
+          <label>{paramKey}</label>
+          {(!inputEnabled) ? <label>{'->'+paramVal}</label> : <input type="text" value={paramVal} onChange={this.handleChange} />}
+        </span>
+      </li>
+
+      //
+      //     {Object.keys(obj.parameters).map((p, idx) => {
+      //       let inputField = null;
+      //       if (enableInput)
+      //         inputField = <input type="text" value={this.state.value} onChange={() => this.handleChange} />
+      //
+      //       return (
+      //         <a href={"#item-"+idx} className="list-group-item">
+      //           {p}<i className="glyphicon glyphicon-chevron-right"></i>{obj.solved[p]}
+      //         </a>
+      //       )
+      //     })}
+
+    );
+  }
+}
+
+export default ParameterFieldList
