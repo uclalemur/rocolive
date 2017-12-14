@@ -339,6 +339,30 @@ function makenode_mcu(tab, count, name){
 	};
 }
 
+//str_duplicator_in
+function makestr_duplicator_in(tab, count, name){
+	var ans = name;
+	if (name === undefined){
+		ans="str_duplicator_in"+(count);
+	}
+	Blockly.Blocks['str_duplicator_in' + tab + '|' + count] = {
+		init: function(){
+			this.appendDummyInput().appendField("str_duplicator_in ").appendField(new Blockly.FieldTextInput(ans), "NAME");
+			for(var i = 0; i < this.params.length; i++){
+				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
+			}
+			this.appendValueInput("inStr").setCheck("str_duplicator_in").appendField("inStr");
+			this.setPreviousStatement(true, null);
+			this.setNextStatement(true, null);
+			this.setColour(180);
+		},
+		name: ans,
+		params:[["variable_name", "variable_name"], ],
+		category:'code',
+		inputs:['inStr', ],
+	};
+}
+
 //pot_driver
 function makepot_driver(tab, count, name){
 	var ans = name;
@@ -385,6 +409,45 @@ function makepot_driver(tab, count, name){
 		outputType:'pot_driver',
 		outputName:'aOut',
 		name:'pot_driver',
+	};
+}
+
+//ir_driver
+function makeir_driver(tab, count, name){
+	var ans = name;
+	if (name === undefined){
+		ans="ir_driver"+(count);
+	}
+	Blockly.Blocks['ir_driver' + tab + '|' + count] = {
+		init: function(){
+			this.appendDummyInput().appendField("ir_driver ").appendField(new Blockly.FieldTextInput(ans), "NAME");
+			for(var i = 0; i < this.params.length; i++){
+				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
+			}
+			this.appendValueInput("signalIn").setCheck("ir_driver").appendField("signalIn");
+			this.appendValueInput("Enable").setCheck("ir_driver").appendField("Enable");
+			this.appendValueInput("inInt").setCheck("ir_driver").appendField("inInt");
+			this.setPreviousStatement(true, null);
+			this.setNextStatement(true, null);
+			this.setColour(180);
+		},
+		name: ans,
+		params:[],
+		category:'code, electrical',
+		inputs:['signalIn', 'Enable', 'inInt', ],
+		outputs:['eOut', ],
+	};
+
+	//eOut- ir_driver
+	Blockly.Blocks['ir_driver' + tab + '|' + count + '\\0'] = {
+		init: function(){
+			this.appendDummyInput("NAME").appendField(ans + "->eOut");
+			this.setOutput(true, null);
+			this.setColour(180);
+		},
+		outputType:'ir_driver',
+		outputName:'eOut',
+		name:'ir_driver',
 	};
 }
 
@@ -500,6 +563,7 @@ function makeservo_driver(tab, count, name){
 				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
 			}
 			this.appendValueInput("PWMin").setCheck("servo_driver").appendField("PWMin");
+			this.appendValueInput("Enable").setCheck("servo_driver").appendField("Enable");
 			this.appendValueInput("inInt").setCheck("servo_driver").appendField("inInt");
 			this.setPreviousStatement(true, null);
 			this.setNextStatement(true, null);
@@ -508,7 +572,7 @@ function makeservo_driver(tab, count, name){
 		name: ans,
 		params:[],
 		category:'code, electrical',
-		inputs:['PWMin', 'inInt', ],
+		inputs:['PWMin', 'Enable', 'inInt', ],
 		outputs:['eOut', ],
 	};
 
@@ -522,6 +586,78 @@ function makeservo_driver(tab, count, name){
 		outputType:'servo_driver',
 		outputName:'eOut',
 		name:'servo_driver',
+	};
+}
+
+//str_duplicator_out
+function makestr_duplicator_out(tab, count, name){
+	var ans = name;
+	if (name === undefined){
+		ans="str_duplicator_out"+(count);
+	}
+	Blockly.Blocks['str_duplicator_out' + tab + '|' + count] = {
+		init: function(){
+			this.appendDummyInput().appendField("str_duplicator_out ").appendField(new Blockly.FieldTextInput(ans), "NAME");
+			for(var i = 0; i < this.params.length; i++){
+				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
+			}
+			this.setPreviousStatement(true, null);
+			this.setNextStatement(true, null);
+			this.setColour(180);
+		},
+		name: ans,
+		params:[["variable_name", "variable_name"], ],
+		category:'code',
+		inputs:[],
+		outputs:['outStr', ],
+	};
+
+	//outStr- str_duplicator_out
+	Blockly.Blocks['str_duplicator_out' + tab + '|' + count + '\\0'] = {
+		init: function(){
+			this.appendDummyInput("NAME").appendField(ans + "->outStr");
+			this.setOutput(true, null);
+			this.setColour(180);
+		},
+		outputType:'str_duplicator_out',
+		outputName:'outStr',
+		name:'str_duplicator_out',
+	};
+}
+
+//ir_sensor
+function makeir_sensor(tab, count, name){
+	var ans = name;
+	if (name === undefined){
+		ans="ir_sensor"+(count);
+	}
+	Blockly.Blocks['ir_sensor' + tab + '|' + count] = {
+		init: function(){
+			this.appendDummyInput().appendField("ir_sensor ").appendField(new Blockly.FieldTextInput(ans), "NAME");
+			for(var i = 0; i < this.params.length; i++){
+				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
+			}
+			this.setPreviousStatement(true, null);
+			this.setNextStatement(true, null);
+			this.setColour(180);
+		},
+		name: ans,
+		params:[],
+		category:'electrical',
+		inputs:[],
+		outputs:['signalIn', ],
+	};
+
+	//signalIn- ir_sensor
+	Blockly.Blocks['ir_sensor' + tab + '|' + count + '\\0'] = {
+		init: function(){
+			this.appendDummyInput("NAME").appendField(ans + "->signalIn");
+			this.setOutput(true, null);
+			this.setColour(180);
+		},
+		outputType:'ir_sensor',
+		outputName:'signalIn',
+		name:'ir_sensor',
 	};
 }
 
@@ -549,6 +685,42 @@ function makeservo(tab, count, name){
 	};
 }
 
+//bool_duplicator_out
+function makebool_duplicator_out(tab, count, name){
+	var ans = name;
+	if (name === undefined){
+		ans="bool_duplicator_out"+(count);
+	}
+	Blockly.Blocks['bool_duplicator_out' + tab + '|' + count] = {
+		init: function(){
+			this.appendDummyInput().appendField("bool_duplicator_out ").appendField(new Blockly.FieldTextInput(ans), "NAME");
+			for(var i = 0; i < this.params.length; i++){
+				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
+			}
+			this.setPreviousStatement(true, null);
+			this.setNextStatement(true, null);
+			this.setColour(180);
+		},
+		name: ans,
+		params:[["variable_name", "variable_name"], ],
+		category:'code',
+		inputs:[],
+		outputs:['outBool', ],
+	};
+
+	//outBool- bool_duplicator_out
+	Blockly.Blocks['bool_duplicator_out' + tab + '|' + count + '\\0'] = {
+		init: function(){
+			this.appendDummyInput("NAME").appendField(ans + "->outBool");
+			this.setOutput(true, null);
+			this.setColour(180);
+		},
+		outputType:'bool_duplicator_out',
+		outputName:'outBool',
+		name:'bool_duplicator_out',
+	};
+}
+
 //driver
 function makedriver(tab, count, name){
 	var ans = name;
@@ -569,6 +741,80 @@ function makedriver(tab, count, name){
 		params:[],
 		category:'code, electrical',
 		inputs:[],
+	};
+}
+
+//gain_block
+function makegain_block(tab, count, name){
+	var ans = name;
+	if (name === undefined){
+		ans="gain_block"+(count);
+	}
+	Blockly.Blocks['gain_block' + tab + '|' + count] = {
+		init: function(){
+			this.appendDummyInput().appendField("gain_block ").appendField(new Blockly.FieldTextInput(ans), "NAME");
+			for(var i = 0; i < this.params.length; i++){
+				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
+			}
+			this.appendValueInput("inDetected").setCheck("gain_block").appendField("inDetected");
+			this.appendValueInput("inString").setCheck("gain_block").appendField("inString");
+			this.setPreviousStatement(true, null);
+			this.setNextStatement(true, null);
+			this.setColour(180);
+		},
+		name: ans,
+		params:[["compareString", "compareString"], ],
+		category:'code',
+		inputs:['inDetected', 'inString', ],
+		outputs:['isMatch', ],
+	};
+
+	//isMatch- gain_block
+	Blockly.Blocks['gain_block' + tab + '|' + count + '\\0'] = {
+		init: function(){
+			this.appendDummyInput("NAME").appendField(ans + "->isMatch");
+			this.setOutput(true, null);
+			this.setColour(180);
+		},
+		outputType:'gain_block',
+		outputName:'isMatch',
+		name:'gain_block',
+	};
+}
+
+//int_duplicator_out
+function makeint_duplicator_out(tab, count, name){
+	var ans = name;
+	if (name === undefined){
+		ans="int_duplicator_out"+(count);
+	}
+	Blockly.Blocks['int_duplicator_out' + tab + '|' + count] = {
+		init: function(){
+			this.appendDummyInput().appendField("int_duplicator_out ").appendField(new Blockly.FieldTextInput(ans), "NAME");
+			for(var i = 0; i < this.params.length; i++){
+				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
+			}
+			this.setPreviousStatement(true, null);
+			this.setNextStatement(true, null);
+			this.setColour(180);
+		},
+		name: ans,
+		params:[["variable_name", "variable_name"], ],
+		category:'code',
+		inputs:[],
+		outputs:['outInt', ],
+	};
+
+	//outInt- int_duplicator_out
+	Blockly.Blocks['int_duplicator_out' + tab + '|' + count + '\\0'] = {
+		init: function(){
+			this.appendDummyInput("NAME").appendField(ans + "->outInt");
+			this.setOutput(true, null);
+			this.setColour(180);
+		},
+		outputType:'int_duplicator_out',
+		outputName:'outInt',
+		name:'int_duplicator_out',
 	};
 }
 
@@ -631,6 +877,30 @@ function makename(tab, count, name){
 	};
 }
 
+//int_duplicator_in
+function makeint_duplicator_in(tab, count, name){
+	var ans = name;
+	if (name === undefined){
+		ans="int_duplicator_in"+(count);
+	}
+	Blockly.Blocks['int_duplicator_in' + tab + '|' + count] = {
+		init: function(){
+			this.appendDummyInput().appendField("int_duplicator_in ").appendField(new Blockly.FieldTextInput(ans), "NAME");
+			for(var i = 0; i < this.params.length; i++){
+				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
+			}
+			this.appendValueInput("inInt").setCheck("int_duplicator_in").appendField("inInt");
+			this.setPreviousStatement(true, null);
+			this.setNextStatement(true, null);
+			this.setColour(180);
+		},
+		name: ans,
+		params:[["variable_name", "variable_name"], ],
+		category:'code',
+		inputs:['inInt', ],
+	};
+}
+
 //car
 function makecar(tab, count, name){
 	var ans = name;
@@ -651,6 +921,50 @@ function makecar(tab, count, name){
 		params:[],
 		category:'code, electrical',
 		inputs:[],
+	};
+}
+
+//fto_int_multiplexer
+function makefto_int_multiplexer(tab, count, name){
+	var ans = name;
+	if (name === undefined){
+		ans="fto_int_multiplexer"+(count);
+	}
+	Blockly.Blocks['fto_int_multiplexer' + tab + '|' + count] = {
+		init: function(){
+			this.appendDummyInput().appendField("fto_int_multiplexer ").appendField(new Blockly.FieldTextInput(ans), "NAME");
+			for(var i = 0; i < this.params.length; i++){
+				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
+			}
+			this.appendValueInput("inputFour").setCheck("fto_int_multiplexer").appendField("inputFour");
+			this.appendValueInput("inputTwo").setCheck("fto_int_multiplexer").appendField("inputTwo");
+			this.appendValueInput("switchThree").setCheck("fto_int_multiplexer").appendField("switchThree");
+			this.appendValueInput("switchOne").setCheck("fto_int_multiplexer").appendField("switchOne");
+			this.appendValueInput("switchTwo").setCheck("fto_int_multiplexer").appendField("switchTwo");
+			this.appendValueInput("inputOne").setCheck("fto_int_multiplexer").appendField("inputOne");
+			this.appendValueInput("switchFour").setCheck("fto_int_multiplexer").appendField("switchFour");
+			this.appendValueInput("inputThree").setCheck("fto_int_multiplexer").appendField("inputThree");
+			this.setPreviousStatement(true, null);
+			this.setNextStatement(true, null);
+			this.setColour(180);
+		},
+		name: ans,
+		params:[],
+		category:'code',
+		inputs:['inputFour', 'inputTwo', 'switchThree', 'switchOne', 'switchTwo', 'inputOne', 'switchFour', 'inputThree', ],
+		outputs:['output', ],
+	};
+
+	//output- fto_int_multiplexer
+	Blockly.Blocks['fto_int_multiplexer' + tab + '|' + count + '\\0'] = {
+		init: function(){
+			this.appendDummyInput("NAME").appendField(ans + "->output");
+			this.setOutput(true, null);
+			this.setColour(180);
+		},
+		outputType:'fto_int_multiplexer',
+		outputName:'output',
+		name:'fto_int_multiplexer',
 	};
 }
 
@@ -687,6 +1001,30 @@ function makestring_source(tab, count, name){
 		outputType:'string_source',
 		outputName:'outStr',
 		name:'string_source',
+	};
+}
+
+//bool_duplicator_in
+function makebool_duplicator_in(tab, count, name){
+	var ans = name;
+	if (name === undefined){
+		ans="bool_duplicator_in"+(count);
+	}
+	Blockly.Blocks['bool_duplicator_in' + tab + '|' + count] = {
+		init: function(){
+			this.appendDummyInput().appendField("bool_duplicator_in ").appendField(new Blockly.FieldTextInput(ans), "NAME");
+			for(var i = 0; i < this.params.length; i++){
+				this.appendDummyInput().appendField("Parameter " + this.params[i][0]).appendField(new Blockly.FieldTextInput(this.params[i][1]), "PARAM" + i);
+			}
+			this.appendValueInput("inBool").setCheck("bool_duplicator_in").appendField("inBool");
+			this.setPreviousStatement(true, null);
+			this.setNextStatement(true, null);
+			this.setColour(180);
+		},
+		name: ans,
+		params:[["variable_name", "variable_name"], ],
+		category:'code',
+		inputs:['inBool', ],
 	};
 }
 
@@ -745,16 +1083,26 @@ function makeAllPrevComps(tab, count) {
 	makestring_compare(tab, count);
 	makenode_mcu(tab, count);
 	makepot_driver(tab, count);
+	makeir_driver(tab, count);
 	makereverse_string(tab, count);
 	makesort_string(tab, count);
 	makeservo_driver(tab, count);
+	makestr_duplicator_out(tab, count);
+	makeir_sensor(tab, count);
+	makebool_duplicator_out(tab, count);
+	makegain_block(tab, count);
+	makeint_duplicator_out(tab, count);
 	makeConstant(tab, count);
+	makefto_int_multiplexer(tab, count);
 	makestring_source(tab, count);
 	makeserial_in(tab, count);
 	makestring_to_motor(tab, count);
+	makestr_duplicator_in(tab, count);
 	makeDrivenServo(tab, count);
 	makeservo(tab, count);
 	makedriver(tab, count);
 	makename(tab, count);
+	makeint_duplicator_in(tab, count);
 	makecar(tab, count);
+	makebool_duplicator_in(tab, count);
 }
