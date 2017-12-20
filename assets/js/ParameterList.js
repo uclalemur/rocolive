@@ -4,75 +4,58 @@ import ListOfThings from './listOfThings'
 class ParameterFieldList extends React.Component {
   constructor(props) {
     super(props);
+
+    this.state = {};
+    this.getParameterVals = this.getParameterVals.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+    this.scObj = props.scObj;
+  }
+
+  componentDidMount() {
+    for (var param in this.scObj.parameters) {
+      this.setState({
+        [param]: this.scObj.solved[param]
+      });
+    }
+  }
+
+  getParameterVals() {
+    // TODO: verify input values are valid
+    return this.state;
+  }
+
+  handleChange(event) {
+    var target = event.target;
+    var name = target.name;
+
+    this.setState({
+      [name]: target.value
+    }, () => {
+        console.log('currentState', this.state);
+    });
   }
 
   render() {
     const {
       scObj,
-      inputEnabled
+      inputEnabled,
+      inputRef,
+      parameterListClassName
     } = this.props;
 
+    // store all the inputFields in parameterList so that values of inputFields
+    // can be retrieved when the form is submitted
     return (
       <ListOfThings listType='regular' elementName='parameter' elementClassName='parameterField'
-        listClassName='parameterList' container='ul'>
-        {Object.keys(scObj.parameters).map((k) => {
-          return (<ParameterField inputEnabled={inputEnabled} paramKey={k} paramVal={scObj.solved[k]}/>);
+        listClassName={parameterListClassName} elementStyle={{listStyleType: 'none outside none', margin:0, padding: 0, float: 'left'}} container='ul'>
+        {Object.keys(scObj.parameters).map((k, idx) => {
+          return (<li style={{display: 'inline'}} key={"param"+idx}>
+            <label>{k}</label>
+            {(!inputEnabled) ? <label>{'->'+this.state[k]}</label> : <input type="text" name={k} size={4}
+            value={this.state[k]} onChange={this.handleChange} />}
+          </li>);
         })}
       </ListOfThings>
-    );
-  }
-}
-
-class ParameterField extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      paramVal: props.paramVal
-    }
-  }
-
-  parseValue() {
-    // call when upon submitting (only for parameterFields with input enabled)
-  }
-
-  handleChange(event) {
-    this.setState({paramVal: event.target.value});
-  }
-
-  render() {
-    let {
-      paramKey,
-      inputEnabled
-    } = this.props;
-
-    let {
-      paramVal
-    } = this.state;
-    // root layer
-    // if (layer == 0) {
-
-    return (
-      <li>
-        <span>
-          <label>{paramKey}</label>
-          {(!inputEnabled) ? <label>{'->'+paramVal}</label> : <input type="text" value={paramVal} onChange={this.handleChange} />}
-        </span>
-      </li>
-
-      //
-      //     {Object.keys(obj.parameters).map((p, idx) => {
-      //       let inputField = null;
-      //       if (enableInput)
-      //         inputField = <input type="text" value={this.state.value} onChange={() => this.handleChange} />
-      //
-      //       return (
-      //         <a href={"#item-"+idx} className="list-group-item">
-      //           {p}<i className="glyphicon glyphicon-chevron-right"></i>{obj.solved[p]}
-      //         </a>
-      //       )
-      //     })}
-
     );
   }
 }

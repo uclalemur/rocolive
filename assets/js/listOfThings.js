@@ -19,7 +19,7 @@ export default class ListOfThings extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    // keep track of element positions
+    // TODO: keep track of element positions
   }
 
   render() {
@@ -42,23 +42,22 @@ export default class ListOfThings extends Component {
     var childrenWithProps = React.Children.map(children, child =>
       React.cloneElement(child, propsObj));
 
-      if (container=='div') {
-        return (
-          <div className={listClassName}>
-            {childrenWithProps}
-          </div>
-        );
-      } else if (container=='ul') {
-        return (
-          <ul className={listClassName}>
-            {childrenWithProps}
-          </ul>
-        );
-      } else {
-        return (
+    if (container=='div') {
+      return (
+        <div className={listClassName}>
           {childrenWithProps}
-        )
-      }
-
+        </div>
+      );
+    } else if (container=='ul') {
+      return (
+        <ul className={listClassName}>
+          {childrenWithProps}
+        </ul>
+      );
+    } else {
+      return (
+        <div></div>
+      )
+    }
   }
 }

@@ -14,7 +14,6 @@ import NavBar from './navBar'
 import ListOfThings from './listOfThings'
 import _ from 'lodash'
 
-
 var OrbitControls = require('three-orbit-controls')(THREE)
 var TransformControls = require('./TransformControls')(THREE);
 
@@ -87,17 +86,21 @@ function shallowCompare(instance, nextProps, nextState) {
   );
 }
 
+var popUpProps = {
+  popupClass: 'popup',
+  backgroundColor: "#d3d3d3"
+}
 class MechanicalInterface extends React.Component {
   constructor(props) {
     super(props);
-    this.id = 0;
+    this.compId = 0;
     this.state = {
       cubeRotation: new THREE.Euler(),
       subcomponents: [],
       loading: false,
       componentList: undefined,
       containerWidth: 1300,
-      containerHeight: 650,
+      containerHeight: 670,
       ambientLightColor: '666666',
       directionalLightColor: 'dfebff',
       material: {
@@ -118,7 +121,6 @@ class MechanicalInterface extends React.Component {
       subcomponents: [],
 
     };
-    this.id = props.testData.id;
 
     // this.cameraPosition = new THREE.Vector3(0, 0, 5);
 
@@ -133,7 +135,8 @@ class MechanicalInterface extends React.Component {
       // we will get this callback every frame
     };
 
-    this.addConnection.bind(this);
+    this.addConnection = this.addConnection.bind(this);
+    this.removePopUp = this.removePopUp.bind(this);
   }
 
   splitComponent() {
@@ -178,13 +181,10 @@ class MechanicalInterface extends React.Component {
 
       var objMesh = loadSymbolic(this, resp, scName);
       // console.log('objMesh: ', instanceof(objMesh));
-       console.log('objMesh', objMesh);
       this.refs.scene.add(objMesh);
       this.setState({
         subcomponents: this.state.subcomponents.concat([objMesh])
       });
-      // console.log('newState', this.state.subcomponents);
-      // this.forceUpdate();
     })
   }
   // fetch componentList and render to left-panel asynchronously
@@ -201,7 +201,7 @@ class MechanicalInterface extends React.Component {
 
   componentDidMount() {
 
-      createComponent(this.id);
+      createComponent(this.compId);
       // var material = new THREE.MeshBasicMaterial();
       // var object = new THREE.Object3D();
       // var plane = new THREE.Mesh(new THREE.PlaneGeometry(25, 5));
@@ -231,8 +231,8 @@ class MechanicalInterface extends React.Component {
     Temporary fixes:
     y coordinate of popups not showing properly on chrome
     */
-    var rightPanelEl = document.getElementById('right-panel')
-    this.mouse.x = e.clientX - getLeftPos(rightPanelEl);
+    this.mouse.x = e.clientX;
+    // console.log('pposition', getLeftPos(rightPanelEl), e.clientX)
     this.mouse.y = e.clientY;
     this.normalizeMouse.x = (this.mouse.x / this.state.containerWidth)*2-1;
     this.normalizeMouse.y = -((this.mouse.y) / this.state.containerHeight) * 2 + 1;
@@ -269,23 +269,19 @@ class MechanicalInterface extends React.Component {
         obj = this.state.selected;
     else
         obj = this.state.selected2;
-    console.log(obj)
+
     if (intersects.length>0) {
       if(obj != undefined && obj.parent.type != "Scene") {
           obj.material.color = new THREE.Color(0xff0000);
           if(!event.shiftKey) {
               this.setState({selected: undefined});
-              console.log('no shift')
             }
           else {
-              console.log('with shift')
               this.setState({selected2: undefined});
             }
       }
 
-
       var clickedMesh = intersects[0];
-      console.log('clickedMesh', clickedMesh)
 
       if(clickedMesh.object.parent.type != "Scene"){
           clickedMesh.object.material.color = new THREE.Color(0x00ff00);
@@ -293,12 +289,10 @@ class MechanicalInterface extends React.Component {
               if(this.state.selected != undefined && this.state.selected.parent.type == "Scene")
                   this.control.detach(this.state.selected);
               this.setState({selected: clickedMesh.object}, () => {
-                console.log('selected', this.state.selected, this.state.selected2)
               })
           }
           else {
             this.setState({selected2: clickedMesh.object}, () => {
-              console.log('selected', this.state.selected, this.state.selected2)
               this.addConnection();
             })
           }
@@ -327,8 +321,9 @@ class MechanicalInterface extends React.Component {
     thisComponent.parameters = this.state.parameters;
     thisComponent.connections = this.state.connections;
 
-    makeComponent(this.id, (response) => {
+    makeComponent(this.compId, (response) => {
       response = JSON.parse(response).response;
+      console.log('response', response)
 
       if(this.state.selected != undefined){
           this.control.detach(this.state.selected);
@@ -348,9 +343,6 @@ class MechanicalInterface extends React.Component {
       }
       this.onComponentSymbolic(response)
 
-      console.log('return', response);
-
-      $('#overlay').remove();
       this.viewSVG();
 
     })
@@ -431,7 +423,7 @@ class MechanicalInterface extends React.Component {
             s2pname = this.state.selected2.parent.name;
             s2name = this.state.selected2.name;
         }
-        addComponentConnection(this.id,s1pname,s1name,s2pname,s2name, angle, function(){$('#overlay').remove();});//function(){buildComponent()});
+        addComponentConnection(this.compId,s1pname,s1name,s2pname,s2name, angle, ()=>{});//function(){buildComponent()});
         this.setState({connections: [...this.state.connections, newConn]})
         let newSelected = _.extend({}, this.state.selected)
         let newSelected2 = _.extend({}, this.state.selected2)
@@ -468,7 +460,7 @@ class MechanicalInterface extends React.Component {
         let newInterfaces = _.extend({}, this.state.interfaces);
         newInterfaces[name] = s1pname + "." + s1name;
         this.setState({interfaces: newInterfaces});
-        inheritInterface(this.id,name, s1pname, s1name);
+        inheritInterface(this.compId,name, s1pname, s1name);
     }
   }
 
@@ -478,6 +470,18 @@ class MechanicalInterface extends React.Component {
 
   viewSVG() {
 
+  }
+
+  // passed down to popups so that they can remove themselves when
+  // they are not needed
+  removePopUp(scName) {
+    // remove popup
+    let newPopupList = this.state.popupList.filter((popup) => {
+      return popup.object.name !=scName;
+    })
+
+
+    this.setState({popupList: newPopupList});
   }
 
   render() {
@@ -496,13 +500,15 @@ class MechanicalInterface extends React.Component {
 
     if (this.state.hover != undefined) {
       // console.log('render', popUp)
-      hoverPopUp = <Popup scObj={this.state.hover.object} popupType='hover' backgroundColor="#d3d3d3" compParams={this.state.parameters}/>
+      hoverPopUp = <Popup scObj={this.state.hover.object} popupType='hover' compParams={this.state.parameters} {...popUpProps}
+      {...this.props}/>
     }
     if (this.state.popupList.length != 0) {
       clickedPopUps = (
         this.state.popupList.map((popup) => {
           return (
-            <Popup scObj={popup.object} popupType='clicked' backgroundColor="#d3d3d3" compParams={this.state.parameters}/>
+            <Popup scObj={popup.object} popupType='clicked' compParams={this.state.parameters} {...popUpProps}
+            popupStyle={{position: 'absolute', right: 100, top: 50}} removePopUp={this.removePopUp} compId={this.compId}/>
           )
         })
       )
@@ -573,6 +579,8 @@ class MechanicalInterface extends React.Component {
     );
   }
 }
+
+
 
 // return (<React3
 //     mainCamera="camera" // this points to the perspectiveCamera which has the name set to "camera" below

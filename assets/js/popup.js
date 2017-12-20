@@ -40,6 +40,9 @@ export default class PopUp extends React.Component {
     this.state = {
       value: ''
     }
+
+    this.submitPopUp = this.submitPopUp.bind(this);
+    this.inputFields = {}
   }
 
   componentDidMount() {
@@ -56,10 +59,6 @@ export default class PopUp extends React.Component {
       return [nodePath.reverse()];
   }
 
-  handleSubmit(event) {
-    event.preventDefault();
-  }
-
   /* recursively build the hierarchy */
   // hierarchicalTree(startNode, nodePath, endNode) {
   //   console.log(startNode, nodePath, endNode)
@@ -71,18 +70,27 @@ export default class PopUp extends React.Component {
   // submit popup with popup id: when constraining parameters,
   // the current interface id, the subcomponentName, the parameter
   // name, and the new values are passed.
-  // submitPopUp() {
-  //   var {
-  //     interfaceName,
-  //     scObj
-  //   }
-  //
-  //   for (param in scObj.params) {
-  //       constrainParameter(interfaceName, scObj.name, param, scObj.solved[param]);
-  //   }
-  // }
+  submitPopUp() {
+    event.preventDefault();
+    var {
+      compId,
+      scObj
+    } = this.props;
 
-// popupType could be for hover or click
+    let keyVals = this.refs.parameterList.getParameterVals()
+
+    Object.keys(keyVals).map((param, idx) => {
+      // console.log("here, ", param)
+        setTimeout(() => {constrainParameter(compId, scObj.name, param, keyVals[param])}, idx*500);
+
+        // TODO: why does this not work?
+        // constrainParameter(compId, scObj.name, param, keyVals[param]);
+    });
+
+    this.props.removePopUp(this.props.scObj.name);
+  }
+
+  // popupType could be for hover or click
   render() {
     let {
       popupClass,
@@ -107,35 +115,21 @@ export default class PopUp extends React.Component {
     // recursively show hierarchical tree
     if (popupType == 'hover') {
       return (
-        <div className="card" backgroundColor={backgroundColor}>
+        <div className="card">
           {this.findNodePath(scObj).join('-->')}
           <ParameterList inputEnabled={false} scObj={scObj} />
         </div>
       );
     } else {
       return (
-        <div className={popupClass+" draggable"} backgroundColor={backgroundColor} style={popupStyle}>
-          <form onSubmit={() => this.handleSubmit}>
-            <ParameterList inputEnabled={true} scObj={scObj} />
+        <div className={"card draggable"} style={{position: 'absolute', top: 50, right: 100, opacity: 1}}>
+          <h4>{scObj.name}</h4>
+          <form onSubmit={this.submitPopUp}>
+            <ParameterList ref="parameterList" inputEnabled={true} scObj={scObj} />
+            <input className="btn btn-secondary" type='submit' onClick={this.submitPopUp} value='Submit' />
           </form>
         </div>
       )
     }
   }
 }
-
-
-
-// {Object.keys(compParams).map((p) => {
-//   return (<p style={{color: compParameterColor, leftMargin: 5}}>  {"  {0}->{1}".format(p,compParams[p])}</p>)
-// })}
-//
-// {Object.keys(scObj.parameters).map((p) => {
-//   return (<p style={{color: scParameterColor, leftMargin: 5}}>    {"     {0}->{1}".format(p,scObj.solved[p])}</p>)
-// })}
-
-
-
-// <h4>Parameter List</h4>
-//   <ParameterList keys={sc.paramUsed} values={parameters}
-//     paramListClassName='parameterList' paramListElementClassNam='param' />
