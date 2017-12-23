@@ -1124,6 +1124,7 @@ function updateComponent(component, response)
 	else
 	    component["solved"][k] = solution[component.name + "_" + k];
     }
+    component["solved"] = Object.assign({},component["solved"],solution);
     component['faces'] = {}
     for(var face in response['faces']){
         if (face.startsWith(component.name))
