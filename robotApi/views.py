@@ -117,10 +117,10 @@ def addSubcomponent(request):
             data = ast.literal_eval(request.body)
             scname = data['name']
             type = data['type']
-
+            flip = data['flip'].lower() == "true"
             #Add the subcomponent to the session component
             sessionComponent = request.session['component'][data['id']]
-            sessionComponent.add_subcomponent(scname,type)
+            sessionComponent.add_subcomponent(scname,type,flip=flip)
             #sc = {"class": type, "parameters": {}, "constants": None, "baseclass": "FoldedComponent", "component": None}
             #sessionComponent.subcomponents.set_default(scname, sc)
             #sessionComponent.resolve_subcomponent(scname)
@@ -128,6 +128,8 @@ def addSubcomponent(request):
 #            pdb.set_trace()
             #Return information about subcomponent
             c = get_component(type)#, baseclass="FoldedComponent")
+            if flip:
+                c.flip()
             c.make_output(remake=False, placeOnly=True)
             #print "Before extract"
             responseDict = extractFromComponent(c)
@@ -178,11 +180,10 @@ def addConnection(request):
             sc2 = data['sc2']
             port2 = data['port2']
             angle = int(data['angle'])
-            flip = data['flip'].lower() == "true"
             if angle == 0:
-                fc.add_connection((sc1,port1),(sc2,port2), flip=flip)
+                fc.add_connection((sc1,port1),(sc2,port2))
             else:
-                fc.add_connection((sc1,port1),(sc2,port2), angle=angle, flip=flip)
+                fc.add_connection((sc1,port1),(sc2,port2), angle=angle)
             request.session.modified = True
             print 'Connection from {}:{} to {}:{} Added to Component {}'.format(sc1,port1,sc2,port2,"")
             return HttpResponse('Connection from {}:{} to {}:{} Added to Component {}'.format(sc1,port1,sc2,port2,""))
@@ -221,7 +222,7 @@ def addTabConnection(request):
             sc2 = data['sc2']
             port2 = data['port2']
             angle = int(data['angle'])
-            fc.add_connection((sc1,port1),(sc2,port2), tab=True, angle=angle)
+            fc.add_connection((sc1,port1),(sc2,port2), angle=angle, tab=True)
             request.session.modified = True
             print 'Connection from {}:{} to {}:{} Added to Component {}'.format(sc1,port1,sc2,port2,"")
             return HttpResponse('Connection from {}:{} to {}:{} Added to Component {}'.format(sc1,port1,sc2,port2,""))
