@@ -8,3 +8,6 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
+*js/blocks.js
+*js/init.js
+*js/prevCompCode.js
