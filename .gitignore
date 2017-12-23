@@ -11,3 +11,6 @@ Thumbs.db
 *js/blocks.js
 *js/init.js
 *js/prevCompCode.js
+compDatabase.db
+db.sqlite3
+silhouette.dxf
