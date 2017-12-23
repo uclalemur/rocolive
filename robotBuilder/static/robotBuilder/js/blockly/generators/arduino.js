@@ -122,7 +122,7 @@ Blockly.Arduino.init = function(workspace) {
   for (var varName in varsWithTypes) {
     Blockly.Arduino.addVariable(varName,
         Blockly.Arduino.getArduinoType_(varsWithTypes[varName]) +' ' +
-        Blockly.Arduino.variableDB_.getName(varName, Blockly.Variables.NAME_TYPE) + ';');
+        Blockly.Arduino.variableDB_.getName(varName, Blockly.Variables.NAME_TYPE) + '_@@name@@;');
   }
 };
 
@@ -176,14 +176,14 @@ Blockly.Arduino.finish = function(code) {
   }
 
   // Clean up temporary data
-  delete Blockly.Arduino.includes_;
-  delete Blockly.Arduino.definitions_;
-  delete Blockly.Arduino.codeFunctions_;
-  delete Blockly.Arduino.userFunctions_;
-  delete Blockly.Arduino.functionNames_;
-  delete Blockly.Arduino.setups_;
-  delete Blockly.Arduino.pins_;
-  Blockly.Arduino.variableDB_.reset();
+  // delete Blockly.Arduino.includes_;
+  // delete Blockly.Arduino.definitions_;
+  // delete Blockly.Arduino.codeFunctions_;
+  // delete Blockly.Arduino.userFunctions_;
+  // delete Blockly.Arduino.functionNames_;
+  // delete Blockly.Arduino.setups_;
+  // delete Blockly.Arduino.pins_;
+  // Blockly.Arduino.variableDB_.reset();
 
   var allDefs = includes.join('\n') + variables.join('\n') +
       definitions.join('\n') + functions.join('\n\n');
