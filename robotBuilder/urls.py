@@ -22,6 +22,6 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^mech/', views.main),
     url(r'^test/', views.test),
-    url(r'^new/', views.new_index),
+    url(r'^$', views.new_index),
     url(r'^', include('robotApi.urls')),
 ]
