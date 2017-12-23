@@ -433,22 +433,22 @@ class MechanicalInterface {
     }
 
     loadGui() {
-        var search = {
+/*        var search = {
             Search: ""
         };
         var filters = {
             Mechanical: true,
             Electrical: true,
             Software: true
-        };
+        };*/
         this.gui = new dat.GUI({ autoPlace: false, width: this.tabDom.getElementsByClassName('left-panel')[0].clientWidth, scrollable: true });
         this.gui.domElement.removeChild(this.gui.__closeButton);
         this.tabDom.getElementsByClassName('left-panel')[0].appendChild(this.gui.domElement);
-        this.gui.add(search, "Search");
+/*        this.gui.add(search, "Search");
         this.searchFilters = this.gui.addFolder("Filters");
         this.searchFilters.add(filters, "Mechanical");
         this.searchFilters.add(filters, "Electrical");
-        this.searchFilters.add(filters, "Software");
+        this.searchFilters.add(filters, "Software");*/
         this.componentsFolder = this.gui.addFolder('Components');
         this.componentsFolder.open();
         //componentMenus["mechanical"] = componentsFolder.addFolder("Mechanical");
@@ -738,7 +738,6 @@ class MechanicalInterface {
         this.comp.parameters.add(objectbuttons,'parameterAdd').name("Add");
         this.comp.parameters.add(objectbuttons,'parameterDelete').name("Delete");
         this.comp.connections.add(objectbuttons,'connectionAdd').name("Add");
-        this.comp.connections.add(objectbuttons,'connectionAddFlipped').name("Add Non-Flipped");
         this.comp.connections.add(objectbuttons,'connectionAddTab').name("Add Tab");
         this.comp.connections.add(objectbuttons,'cutoutAdd').name("Add Cutout");
         this.comp.interfaces.add(objectbuttons, 'interfaceAdd').name("Add");
