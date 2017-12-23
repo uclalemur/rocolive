@@ -8,4 +8,4 @@ To start the server locally, cd into the interface_roco folder. Now, execute
 python manaage.py runserver
 ```
 on the command line.
-Now on your browser, visit localhost:8000 to open the interface.
+On your browser, visit localhost:8000 to open the interface.
