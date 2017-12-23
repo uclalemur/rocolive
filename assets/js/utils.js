@@ -156,8 +156,6 @@ function loadSymbolic(that, obj, n) {
   objMesh.parameterfuncs = {};
   highlightInterfaces(objMesh);
 
-  // TODO: should this be here??
-  that.setState({subcomponents: [...that.state.subcomponents, objMesh]});
   // this.comp.subcomponents[objMesh.name] = this.comp.subcomponents.addFolder(objMesh.name);
   // var constrs = this.comp.subcomponents[objMesh.name].addFolder("Constrain Parameters");
   objMesh.parameters = obj['parameters'];

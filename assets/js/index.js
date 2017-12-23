@@ -124,8 +124,7 @@ class MechanicalInterface extends React.Component {
       hover: undefined,
       connections: [],
       connectedSubcomponents: [],
-      subcomponents: [],
-      _subcomponents: [],
+      subcomponents: {},
       componentObj: null,
       svg: {__html: '<svg width="100%" height="40%"></svg>'}
     };
@@ -154,19 +153,20 @@ class MechanicalInterface extends React.Component {
     this.builderFileController = new BuilderFileController(this.compId, "test")
   }
 
-  splitComponent() {
-      this.refs.scene.remove(this.state.componentObj);
-      delete this.state.componentObj;
-      this.setState({componentObj: undefined});
-      while(this.state.connectedSubcomponents.length > 0) {
-        this.refs.scene.add(this.state.connectedSubcomponents[this.state.connectedSubcomponents.length-1]);
-        let componentToSplit = this.state.connectedSubcomponents[this.state.connectedSubcomponents.length-1]
-        this.setState({subcomponents: [...this.state.subcomponents, componentToSplit]});
-        this.setState({connectedSubComponents: this.state.connectedSubcomponents.slice(0, this.state.connectedSubcomponents.length-2)})
-      }
-  }
+  // splitComponent() {
+  //     this.refs.scene.remove(this.state.componentObj);
+  //     delete this.state.componentObj;
+  //     this.setState({componentObj: undefined});
+  //     while(this.state.connectedSubcomponents.length > 0) {
+  //       this.refs.scene.add(this.state.connectedSubcomponents[this.state.connectedSubcomponents.length-1]);
+  //       let componentToSplit = this.state.connectedSubcomponents[this.state.connectedSubcomponents.length-1]
+  //       this.setState({subcomponents: [...this.state.subcomponents, componentToSplit]});
+  //       this.setState({connectedSubComponents: this.state.connectedSubcomponents.slice(0, this.state.connectedSubcomponents.length-2)})
+  //     }
+  // }
 
   subcomponentList() {
+    console.log(this.state.subcomponents)
     return Object.keys(this.state.subcomponents).map((key) => this.state.subcomponents[key].mesh);
   }
 
@@ -192,12 +192,18 @@ class MechanicalInterface extends React.Component {
       // this.setState({
       //   subcomponents: this.state.subcomponents.concat([objMesh])
       // });
+
+      var newSubcomponents = Object.assign({}, this.state.subcomponents);
+      var newSubcomponent = {}
+      newSubcomponent.mesh = objMesh;
+      for (var param in resp.solved)
+        newSubcomponent[param] = resp.solved[param]
+      newSubcomponents[scName] = newSubcomponent
       this.setState({
-        subcomponents: Object.assign({}, {[scName]: {
-          mesh: objMesh,
-          ...resp.solved
-        }})
+        subcomponents: newSubcomponents
       });
+
+      console.log('newsubcomponent added', this.state.subcomponents);
 
       // add to builderFileController buffer
       if (record) {
@@ -260,8 +266,11 @@ class MechanicalInterface extends React.Component {
     this.normalizeMouse.y = -((this.mouse.y) / this.state.containerHeight) * 2 + 1;
     this.raycaster.setFromCamera(this.normalizeMouse, this.refs.camera );
     var objs = this.subcomponentList();
+
     if(this.state.componentObj != undefined)
       objs = objs.concat(this.state.componentObj);
+    console.log('objs', objs);
+    // console.log('state', this.state.subcomponents)
     var intersects = this.raycaster.intersectObjects(objs,true);
 
     if (intersects.length>0) {
@@ -286,6 +295,7 @@ class MechanicalInterface extends React.Component {
     var objs = this.subcomponentList();
     if(this.state.componentObj != undefined)
         objs = objs.concat(this.state.componentObj);
+
     var intersects = this.raycaster.intersectObjects(objs,true);
     var obj;
     if(!event.shiftKey)
