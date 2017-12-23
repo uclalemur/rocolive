@@ -47,9 +47,9 @@ function addTabConnection(id, sc1, port1, sc2, port2, args, callback)
     httpPostAsync(addTabURL,"{'sc1': '" + sc1 + "','id': '" + id + "','sc2': '" + sc2 + "','port1': '" + port1 + "','port2': '" + port2 + "','angle': '" + args + "'}",callback);
 }
 
-function constrainParameter(id, sc, parameter, constr)
+function constrainParameter(id, sc, parameter, constr, callback)
 {
-    httpPostAsync(cParameterURL, "{'sc': '" + sc + "', 'id': '" + id + "','parameter': '" + parameter + "', 'constraint': '" + constr + "'}", function(){});
+    httpPostAsync(cParameterURL, "{'sc': '" + sc + "', 'id': '" + id + "','parameter': '" + parameter + "', 'constraint': '" + constr + "'}", callback);
 }
 
 function makeComponent(id, callback)
@@ -106,8 +106,9 @@ function httpPostAsync(theUrl, data, callback)
 {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() {
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-            callback(xmlHttp.responseText);
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+          callback(xmlHttp.responseText);
+        }
     }
     xmlHttp.open("POST", theUrl, true); // true for asynchronous
     xmlHttp.send(data);

@@ -60,7 +60,7 @@ function evalPrefix(eq, map) {
 
 function createMeshFromObject(obj)
 {
-    var material = new THREE.MeshPhongMaterial( { color:0xffffff, shading: THREE.FlatShading } );
+    var material = new THREE.MeshPhongMaterial( { color:0x33b5e5, shading: THREE.FlatShading } );
     var geometry = new THREE.Geometry();
     for(var face in obj["faces"]){
         var transf = new THREE.Matrix4();
@@ -145,6 +145,7 @@ function highlightInterfaces(objMesh) {
 }
 
 function loadSymbolic(that, obj, n) {
+  console.log('loadSymbolic')
   var objMesh = createMeshFromObject(obj);
 
   objMesh.name = n;

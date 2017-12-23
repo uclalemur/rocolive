@@ -78,14 +78,13 @@ export default class PopUp extends React.Component {
     } = this.props;
 
     let keyVals = this.refs.parameterList.getParameterVals()
-
-    Object.keys(keyVals).map((param, idx) => {
-      // console.log("here, ", param)
-        setTimeout(() => {constrainParameter(compId, scObj.name, param, keyVals[param])}, idx*500);
-
-        // TODO: why does this not work?
-        // constrainParameter(compId, scObj.name, param, keyVals[param]);
-    });
+    let newKeyVals = Object.keys(keyVals)
+          .filter(key => keyVals[key] != scObj.solved[key])
+          .reduce((res, key) => {
+            res[key] = keyVals[key]
+            return res;
+          }, {})
+    this.props.constrainParameter(compId, scObj.name, newKeyVals, true)
 
     this.props.removePopUp(this.props.scObj.name);
   }
@@ -115,14 +114,14 @@ export default class PopUp extends React.Component {
     // recursively show hierarchical tree
     if (popupType == 'hover') {
       return (
-        <div className="card">
+        <div className="card" style={{'z-index': 10}}>
           {this.findNodePath(scObj).join('-->')}
           <ParameterList inputEnabled={false} scObj={scObj} />
         </div>
       );
     } else {
       return (
-        <div className={"card draggable"} style={{position: 'absolute', top: 50, right: 100, opacity: 1}}>
+        <div className={"card draggable"} style={{position: 'absolute', top: 50, right: 100, opacity: 1, 'z-index': 10}}>
           <h4>{scObj.name}</h4>
           <form onSubmit={this.submitPopUp}>
             <ParameterList ref="parameterList" inputEnabled={true} scObj={scObj} />

@@ -21,25 +21,33 @@ export default class ComponentList extends Component {
   }
 
   addComponent(comp) {
+    var scType = comp[0]
+    var scName = window.prompt("Name for new " + scType);
     // add subcomponent of type comp[0]
-    this.props.addSubcomponent(comp[0]);
+    this.props.addSc(scName, scType);
   }
 
   render() {
     return (
-      <div id="sidebar-wrapper" style={{color: '#33b5e5'}}>
 
-        <i className={(this.state.expanded) ? "fa fa-caret-down" : "fa fa-caret-right"} aria-hidden="true"></i>
-        <div style={{display: 'inline'}} onClick={() => this.setState({expanded: !this.state.expanded})}> Components </div>
-        {(this.state.expanded) ?
+      <div id="sidebar-wrapper">
+        <div style=
+          {{color: '#33b5e5', height: 320, overflow: 'auto'}}
+           className='force-overflow'>
+          <i className={(this.state.expanded) ? "fa fa-caret-down" : "fa fa-caret-right"} aria-hidden="true"></i>
+          <div style={{display: 'inline'}} onClick={() => this.setState({expanded: !this.state.expanded})}> Components </div>
+          {(this.state.expanded) ?
 
-        <ul className="sidebar-nav">
-            {this.props.componentList.map((comp) => {
-              return (<li onClick={this.addComponent.bind(this, comp)} style={{height: 30}}>
-                <a href="#">{comp[0]}</a>
-                </li>);
-            })}
-        </ul> : null}
+          <ul className="sidebar-nav" style={{listStyleType: 'none'}}>
+              {this.props.componentList.map((comp) => {
+                return (<li onClick={this.addComponent.bind(this, comp)} style={{height: 30}}>
+                  <a href="#">{comp[0]}</a>
+                  </li>);
+              })}
+          </ul> : null}
+        </div>
+        <div className="svgDisplay" dangerouslySetInnerHTML={this.props.svg} style={{height: 250, width: 250}}>
+        </div>
       </div>
     );
   }

@@ -30,5 +30,8 @@ module.exports = {
     modules: ['node_modules'],
     extensions: ['.js', '.jsx']
   },
+  node: {
+    fs: 'empty'
+  },
   watch: true,
 }

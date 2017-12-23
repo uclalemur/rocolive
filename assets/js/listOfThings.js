@@ -29,7 +29,6 @@ export default class ListOfThings extends Component {
       elementStyle,
       elementClassName,
       children,
-      position,
       container
     } = this.props;
 

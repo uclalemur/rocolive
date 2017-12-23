@@ -225,9 +225,8 @@ class MechanicalInterface extends React.Component {
       // var object = new THREE.Object3D();
       // var plane = new THREE.Mesh(new THREE.PlaneGeometry(25, 5));
 
-      const orbit = new OrbitControls(this.refs.camera, ReactDOM.findDOMNode(this.refs.react3));
-      orbit.addEventListener('change', () => this.render);
-      this.orbit = orbit;
+      const controls = new OrbitControls(this.refs.camera);
+      this.controls = controls;
 
       const control = new TransformControls(this.refs.camera, ReactDOM.findDOMNode(this.refs.react3));
 
@@ -236,8 +235,8 @@ class MechanicalInterface extends React.Component {
     }
 
   componentWillUnmount() {
-      // this.control.dispose();
-      // delete this.control;
+      this.control.dispose();
+      delete this.control;
 
       this.controls.dispose();
     delete this.controls;
