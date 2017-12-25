@@ -1,5 +1,4 @@
-'use strict';
-var fs = require('file-system');
+// console.log('fs', fs.existsSync, fs.writeFileSync)
 /*
 This class object manages the builderFile of a component
 
@@ -25,9 +24,10 @@ Notes:
 
 class BuilderFileController {
   constructor(compId, compName) {
-    this.compId = compId
-    this.compName = compName
-    this.builderFile = compName+"_"+compId
+    // this.compId = compId
+    // this.compName = compName
+    // this.builderFile = compName+"_"+compId
+    this.history = []
 
     // buffer stores the steps that it takes to build the component
     this.buffer = []
@@ -35,14 +35,13 @@ class BuilderFileController {
 
     // keep current line number of builderfile
     this.lineNo = 1
+
+    // this.flush.setCallback()
   }
 
   // flush() writes the steps stored in buffer to file when user builds component
   flush(callback) {
-    var content = this.buffer.join('\n')
-
-    console.log('writetofile: ', this.buffer);
-    // fs.writeFile(this.builderFile, content, callback);
+    this.history = this.history.concat(this.buffer)
   }
 
   // appendToBuilderFile(line, callback) {

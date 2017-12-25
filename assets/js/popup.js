@@ -115,7 +115,6 @@ export default class PopUp extends React.Component {
     if (popupType == 'hover') {
       return (
         <div className="card" style={{'z-index': 10}}>
-          {this.findNodePath(scObj).join('-->')}
           <ParameterList inputEnabled={false} scObj={scObj} />
         </div>
       );

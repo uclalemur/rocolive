@@ -103,6 +103,7 @@ function createMeshFromObject(obj)
         }
     }
     var mesh = new THREE.Mesh( geometry, material );
+    mesh["parameters"] = obj["parameters"];
     mesh["solved"] = obj["solved"];
     mesh["faces"] = obj["faces"];
     mesh["edges"] = obj["edges"];

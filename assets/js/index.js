@@ -124,7 +124,14 @@ class MechanicalInterface extends React.Component {
       hover: undefined,
       connections: [],
       connectedSubcomponents: [],
-      subcomponents: {},
+      subcomponents: {
+        count: {
+          'Rectangle': 0,
+          'Triangle': 0,
+          'Connections': 0
+        }
+      },
+      builtSubcomponents: {},
       componentObj: null,
       svg: {__html: '<svg width="100%" height="40%"></svg>'}
     };
@@ -166,7 +173,6 @@ class MechanicalInterface extends React.Component {
   // }
 
   subcomponentList() {
-    console.log(this.state.subcomponents)
     return Object.keys(this.state.subcomponents).map((key) => this.state.subcomponents[key].mesh);
   }
 
@@ -188,10 +194,8 @@ class MechanicalInterface extends React.Component {
       resp = JSON.parse(resp).response;
 
       var objMesh = loadSymbolic(this, resp, scName);
+
       this.refs.scene.add(objMesh);
-      // this.setState({
-      //   subcomponents: this.state.subcomponents.concat([objMesh])
-      // });
 
       var newSubcomponents = Object.assign({}, this.state.subcomponents);
       var newSubcomponent = {}
@@ -203,13 +207,13 @@ class MechanicalInterface extends React.Component {
         subcomponents: newSubcomponents
       });
 
-      console.log('newsubcomponent added', this.state.subcomponents);
-
       // add to builderFileController buffer
       if (record) {
         let instruction = functionSignatures.addSubcomponent.replace('scName', scName).replace('scType', scType);
         this.builderFileController.addToBuffer(instruction);
       }
+
+      console.log('state after add sc:', this.state)
     })
   }
 
@@ -260,7 +264,6 @@ class MechanicalInterface extends React.Component {
     y coordinate of popups not showing properly on chrome
     */
     this.mouse.x = e.clientX;
-    // console.log('pposition', getLeftPos(rightPanelEl), e.clientX)
     this.mouse.y = e.clientY;
     this.normalizeMouse.x = (this.mouse.x / this.state.containerWidth)*2-1;
     this.normalizeMouse.y = -((this.mouse.y) / this.state.containerHeight) * 2 + 1;
@@ -269,13 +272,10 @@ class MechanicalInterface extends React.Component {
 
     if(this.state.componentObj != undefined)
       objs = objs.concat(this.state.componentObj);
-    console.log('objs', objs);
-    // console.log('state', this.state.subcomponents)
     var intersects = this.raycaster.intersectObjects(objs,true);
 
     if (intersects.length>0) {
       this.setState({hover: intersects[0]})
-      console.log(intersects[0])
 
     } else {
       this.setState({hover: undefined})
@@ -304,6 +304,9 @@ class MechanicalInterface extends React.Component {
         obj = this.state.selected2;
 
     if (intersects.length>0) {
+      console.log('intersect', intersects[0])
+
+      console.log('OBJ', obj)
       if(obj != undefined && obj.parent.type != "Scene") {
           obj.material.color = new THREE.Color(0xff0000);
           if(!event.shiftKey) {
@@ -316,7 +319,7 @@ class MechanicalInterface extends React.Component {
 
       var clickedMesh = intersects[0];
 
-      if(clickedMesh.object.parent.type != "Scene"){
+      if(clickedMesh.object.parent != null && clickedMesh.object.parent.type != "Scene"){
           clickedMesh.object.material.color = new THREE.Color(0x00ff00);
           if(!event.shiftKey){
               if(this.state.selected != undefined && this.state.selected.parent.type == "Scene")
@@ -364,6 +367,7 @@ class MechanicalInterface extends React.Component {
           this.setState({selected: undefined});
       }
 
+      // remove previous subcomponents
       let copySubcomponents = this.subcomponentList();
       let copyConnectedSubcomponents = this.state.connectedSubcomponents;
 
@@ -375,17 +379,17 @@ class MechanicalInterface extends React.Component {
           copyConnectedSubcomponents.push(copySubcomponents[copySubcomponents.length-1]);
           copySubcomponents.splice(copySubcomponents.length-1,1);
       }
+
+      // load newly built component
       this.onComponentSymbolic(response)
-
       this.viewSVG();
-      console.log('subcomponents: ', this.state.subcomponents);
 
-      this.builderFileController.flush((err) => {
-        if (err) throw err;
-        console.log('The file has been saved!');
-      });
-
-      var updatedSubcomponents = Object.assign({}, this.state.subcomponents);
+      // this.builderFileController.flush((err) => {
+      //   if (err) throw err;
+      //   console.log('The file has been saved!');
+      // });
+      console.log('HERE')
+      var updatedSubcomponents = Object.assign({}, this.state.subcomponents, this.state.builtSubcomponents);
       Object.keys(response.solved).map((key) => {
         let scParam = key.split('_')
         let sc = scParam[0]
@@ -395,7 +399,10 @@ class MechanicalInterface extends React.Component {
       })
 
       this.setState({
-        subcomponents: updatedSubcomponents
+        builtSubcomponents: Object.assign({}, updatedSubcomponents),
+        subcomponents: {}
+      }, () => {
+        console.log('state after build sc:', this.state)
       });
     })
   }
@@ -406,6 +413,7 @@ class MechanicalInterface extends React.Component {
           //.replaceAll("**","^");
 
       let componentObj = createMeshFromObject(obj);
+      console.log('onComponentSymbolic', componentObj)
       componentObj.type = "MasterComponent";
       componentObj.interfaceEdges = obj["interfaceEdges"]
       componentObj.connectedInterfaces = {};
@@ -424,7 +432,9 @@ class MechanicalInterface extends React.Component {
       }
 
       highlightInterfaces(componentObj);
+      componentObj.name=Object.keys(this.state.subcomponents).join('+')
       this.setState({componentObj: componentObj});
+
       this.refs.scene.add(componentObj);
   }
 
@@ -609,10 +619,10 @@ class MechanicalInterface extends React.Component {
       <div id='react-app' onClick={(e) => this._onClick(e)} onMouseMove={this._onMouseMove.bind(this)}>
          <div id="wrapper">
             <div id="sidebar-container">
-              { this.state.loading ? (<div>loading</div>) : <ComponentList componentList={this.state.componentList}
+              { this.state.loading ? (<div>loading</div>) : <ComponentList
               addSc={(scName, scType) => {
                 this._addSc(scName, scType, true);
-              }} svg={this.state.svg} />}
+              }} {...this.state} />}
             </div>
             <div id="page-content-wrapper">
               <div id="right-panel">

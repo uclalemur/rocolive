@@ -23,6 +23,9 @@ export default class ComponentList extends Component {
   addComponent(comp) {
     var scType = comp[0]
     var scName = window.prompt("Name for new " + scType);
+
+    // check ComponentName
+    
     // add subcomponent of type comp[0]
     this.props.addSc(scName, scType);
   }
