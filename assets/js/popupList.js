@@ -1,7 +1,7 @@
 /*
 popup List Component containing popups
 
-popupList (inheriting from ComponentListWrapper)
+popupList
   props:
     List of popups to render,
     ComponentListName,

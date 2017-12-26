@@ -14,6 +14,7 @@ import NavBar from './navBar'
 import ListOfThings from './listOfThings'
 import {BuilderFileController} from './builderFiles/builderFile'
 import _ from 'lodash'
+import SVG from './svg'
 
 var OrbitControls = require('three-orbit-controls')(THREE)
 var TransformControls = require('./TransformControls')(THREE);
@@ -124,15 +125,15 @@ class MechanicalInterface extends React.Component {
       hover: undefined,
       connections: [],
       connectedSubcomponents: [],
-      subcomponents: {
-        count: {
-          'Rectangle': 0,
-          'Triangle': 0,
-          'Connections': 0
-        }
-      },
+      subcomponents: {},
       builtSubcomponents: {},
       componentObj: null,
+      subcomponentCounts: {
+        'Rectangle': 0,
+        'Triangle': 0,
+        'Connections': 0
+      },
+      displaySVG: false,
       svg: {__html: '<svg width="100%" height="40%"></svg>'}
     };
 
@@ -213,7 +214,8 @@ class MechanicalInterface extends React.Component {
         this.builderFileController.addToBuffer(instruction);
       }
 
-      console.log('state after add sc:', this.state)
+      this.setState({subcomponentCounts: Object.assign({}, this.state.subcomponentCounts,
+        {[scType]: this.state.subcomponentCounts[scType]+1})})
     })
   }
 
@@ -283,6 +285,7 @@ class MechanicalInterface extends React.Component {
   }
 
   _onClick(event) {
+    console.log('hot ')
     // use raycaster to find the subcomponent clicked on
     event.preventDefault();
 
@@ -304,9 +307,6 @@ class MechanicalInterface extends React.Component {
         obj = this.state.selected2;
 
     if (intersects.length>0) {
-      console.log('intersect', intersects[0])
-
-      console.log('OBJ', obj)
       if(obj != undefined && obj.parent.type != "Scene") {
           obj.material.color = new THREE.Color(0xff0000);
           if(!event.shiftKey) {
@@ -339,7 +339,14 @@ class MechanicalInterface extends React.Component {
         // double click
         if(!event.shiftKey){
           if (clickedMesh.object == this.state.selected) {
-            this.setState({popupList: [...this.state.popupList, clickedMesh]});
+            var alreadyDisplay = this.state.popupList.map(mesh => mesh.object.name)
+              .reduce((showing, meshName) => {
+                if (meshName == clickedMesh.object.name)
+                  return true
+              }, false);
+
+            if (!alreadyDisplay)
+              this.setState({popupList: [...this.state.popupList, clickedMesh]});
           }
           this.setState({selected: clickedMesh.object}, () => {
             // console.log('selected', this.state.selected, this.state.selected2)
@@ -571,6 +578,10 @@ class MechanicalInterface extends React.Component {
            __html: response
          }
        })
+
+       var parser = new DOMParser();
+       var doc = parser.parseFromString(response, "image/svg+xml");
+       console.log('svg response', doc)
      });
   }
 
@@ -618,11 +629,12 @@ class MechanicalInterface extends React.Component {
     return (
       <div id='react-app' onClick={(e) => this._onClick(e)} onMouseMove={this._onMouseMove.bind(this)}>
          <div id="wrapper">
+            {(this.state.displaySVG) ? <SVG className="enlargedSVG" svg={this.state.svg}
+            style={{height: this.state.containerHeight-100, width: this.state.containerWidth-100,
+            position: 'fixed', left: 50, top: 50, zIndex: 100, background: '#fff'}}/> : null}
             <div id="sidebar-container">
               { this.state.loading ? (<div>loading</div>) : <ComponentList
-              addSc={(scName, scType) => {
-                this._addSc(scName, scType, true);
-              }} {...this.state} />}
+              addSc={(scName, scType) => {this._addSc(scName, scType, true);}} {...this.state} />}
             </div>
             <div id="page-content-wrapper">
               <div id="right-panel">
@@ -674,6 +686,12 @@ class MechanicalInterface extends React.Component {
                 style={{position: 'fixed', bottom: 10, left:10}}>TM</a>
               <a href="#buildComponent" className="btn btn-secondary" id="menu-toggle"
                 style={{position: 'fixed', bottom: 10, left:60}} onClick={()=>this.buildComponent()}>BC</a>
+              <a href="#expandSVG" className="btn btn-secondary" id="expand-svg"
+                style={{position: 'fixed', bottom: 10, left:110}} onClick={()=>{this.setState({
+                  displaySVG: !this.state.displaySVG
+                })}}>
+                <i className="fa fa-expand" aria-hidden="true"></i>
+              </a>
             </div>
           </div>
         </div>

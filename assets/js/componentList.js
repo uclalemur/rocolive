@@ -2,7 +2,7 @@
 Component List Component containing components to be displayed
 as list elements.
 
-ComponentList (inheriting from ComponentListWrapper)
+ComponentList
   props:
     List of components to render,
     ComponentListName,
@@ -12,6 +12,8 @@ ComponentList (inheriting from ComponentListWrapper)
 */
 import React, {Component} from 'react'
 import ListOfThings from './listOfThings'
+import SVG from './svg'
+
 export default class ComponentList extends Component {
   constructor(props) {
     super(props);
@@ -22,10 +24,27 @@ export default class ComponentList extends Component {
 
   addComponent(comp) {
     var scType = comp[0]
-    var scName = window.prompt("Name for new " + scType);
+    var scName;
+    var a = true;
+
+    while (a) {
+      // default value is the scName+{count+1}
+      scName = window.prompt("Name for new " + scType, scType+this.props.subcomponentCounts[scType]);
+      console.log('scName', scName, scName.length, parseInt(scName[0]))
+      if (scName.length != 0 && isNaN(parseInt(scName[0]))) {
+        a = Object.keys(this.props.subcomponents).map(key => this.props.subcomponents[key].name)
+          .reduce((same, _scName) => {
+            if (_scName == scName) {
+              console.log('same')
+              return true;
+            }
+          }, false)
+          console.log('a', a)
+      }
+    }
+
 
     // check ComponentName
-    
     // add subcomponent of type comp[0]
     this.props.addSc(scName, scType);
   }
@@ -35,7 +54,7 @@ export default class ComponentList extends Component {
 
       <div id="sidebar-wrapper">
         <div style=
-          {{color: '#33b5e5', height: 320, overflow: 'auto'}}
+          {{color: '#fff', height: '90%', overflow: 'auto'}}
            className='force-overflow'>
           <i className={(this.state.expanded) ? "fa fa-caret-down" : "fa fa-caret-right"} aria-hidden="true"></i>
           <div style={{display: 'inline'}} onClick={() => this.setState({expanded: !this.state.expanded})}> Components </div>
@@ -48,17 +67,11 @@ export default class ComponentList extends Component {
                   </li>);
               })}
           </ul> : null}
-        </div>
-        <div className="svgDisplay" dangerouslySetInnerHTML={this.props.svg} style={{height: 250, width: 250}}>
+          <div>
+            <SVG style={{height: 250, width: 250}} svg={this.props.svg} className="smallSVGDisplay" />
+          </div>
         </div>
       </div>
     );
   }
 }
-
-/*
-<ListOfThings listClassName="sidebar-nav" elementName="component" elementStyle={{height: 30}} container="ul"
-elementClassName="componentListElement">
-
-</ListOfThings>
-*/

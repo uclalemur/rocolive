@@ -114,13 +114,14 @@ export default class PopUp extends React.Component {
     // recursively show hierarchical tree
     if (popupType == 'hover') {
       return (
-        <div className="card" style={{'z-index': 10}}>
+        <div className="card" style={{'zIndex': 10}}>
+          <h4>{scObj.name}</h4>
           <ParameterList inputEnabled={false} scObj={scObj} />
         </div>
       );
     } else {
       return (
-        <div className={"card draggable"} style={{position: 'absolute', top: 50, right: 100, opacity: 1, 'z-index': 10}}>
+        <div className={"card draggable"} style={{position: 'absolute', top: 50, right: 100, opacity: 1, 'zIndex': 10}}>
           <h4>{scObj.name}</h4>
           <form onSubmit={this.submitPopUp}>
             <ParameterList ref="parameterList" inputEnabled={true} scObj={scObj} />

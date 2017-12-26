@@ -5,17 +5,21 @@ var BundleTracker = require('webpack-bundle-tracker')
 module.exports = {
   context: __dirname,
 
-  entry: './assets/js/index',// entry point of our app. assets/js/index.js should require other js modules and dependencies it needs
+  entry: [
+    'webpack-dev-server/client?http://localhost:3000',
+    'webpack/hot/only-dev-server',
+    './assets/js/index',// entry point of our app. assets/js/index.js should require other js modules and dependencies it needs
+  ],
 
   output: {
       path: path.resolve(__dirname, 'assets/bundles/'),
       filename: "[name]-[hash].js",
-      // publicPath: './assets/bundles/',
+      publicPath: 'http://localhost:3000/assets/bundles/', // tell django to use this
   },
 
   plugins: [
-    // new webpack.HotModuleReplacementPlugin(),
-    // new webpack.NoEmitOnErrorsPlugin(), // don't reload if there is an error
+    new webpack.HotModuleReplacementPlugin(),
+    new webpack.NoEmitOnErrorsPlugin(), // don't reload if there is an error
     new BundleTracker({filename: './webpack-stats.json'}),
   ],
 
