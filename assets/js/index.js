@@ -14,7 +14,7 @@ import NavBar from './navBar'
 import ListOfThings from './listOfThings'
 import {BuilderFileController} from './builderFiles/builderFile'
 import _ from 'lodash'
-import SVG from './svg'
+import Roco2DComponent from './Roco2DComponent'
 
 var OrbitControls = require('three-orbit-controls')(THREE)
 var TransformControls = require('./TransformControls')(THREE);
@@ -134,7 +134,7 @@ class MechanicalInterface extends React.Component {
         'Connections': 0
       },
       displaySVG: false,
-      svg: {__html: '<svg width="100%" height="40%"></svg>'}
+      svg: null
     };
 
     // this.cameraPosition = new THREE.Vector3(0, 0, 5);
@@ -157,6 +157,7 @@ class MechanicalInterface extends React.Component {
     this._addComponentConnection = this._addComponentConnection.bind(this);
     this._constrainParameter = this._constrainParameter.bind(this);
     this.subcomponentList = this.subcomponentList.bind(this);
+    this.handleKeyDown = this.handleKeyDown.bind(this);
 
     this.builderFileController = new BuilderFileController(this.compId, "test")
   }
@@ -395,7 +396,6 @@ class MechanicalInterface extends React.Component {
       //   if (err) throw err;
       //   console.log('The file has been saved!');
       // });
-      console.log('HERE')
       var updatedSubcomponents = Object.assign({}, this.state.subcomponents, this.state.builtSubcomponents);
       Object.keys(response.solved).map((key) => {
         let scParam = key.split('_')
@@ -571,17 +571,35 @@ class MechanicalInterface extends React.Component {
   }
 
   viewSVG() {
+    console.log('viewSVG')
     getSVG(this.compId, (response) => {
        response = JSON.parse(response).response;
-       this.setState({
-         svg: {
-           __html: response
-         }
-       })
 
        var parser = new DOMParser();
-       var doc = parser.parseFromString(response, "image/svg+xml");
-       console.log('svg response', doc)
+
+       var svgDOM = parser.parseFromString(response, "image/svg+xml")
+       console.log('svgdom', svgDOM)
+       var children = svgDOM.childNodes;
+
+       // convert Nodelist children into proper array
+       var svgArray = Array.from(children[0].childNodes)
+
+       var def = svgArray.splice(0,1);
+       // group svg elements
+       var svgObj = svgArray.reduce((res, svgEle) => {
+         let eleName = svgEle.id.split('_')[0];
+         console.log(svgEle)
+         if (!res.hasOwnProperty(eleName)) {
+           res[eleName] = []
+         }
+
+         res[eleName].push(svgEle);
+         return res;
+       }, {})
+
+       this.setState({svg: svgObj}, () => {
+         console.log('state after viewSVG', this.state.svg)
+       })
      });
   }
 
@@ -596,9 +614,9 @@ class MechanicalInterface extends React.Component {
     this.setState({popupList: newPopupList});
   }
 
-  // _onKeyPress() {
-  //   // TODO: add rotate mode
-  // }
+  handleKeyDown(event) {
+    console.log('eventkey', event.key)
+  }
 
   render() {
     const width = this.state.containerWidth;
@@ -625,13 +643,17 @@ class MechanicalInterface extends React.Component {
         })
       )
     }
-
+    
     return (
       <div id='react-app' onClick={(e) => this._onClick(e)} onMouseMove={this._onMouseMove.bind(this)}>
-         <div id="wrapper">
-            {(this.state.displaySVG) ? <SVG className="enlargedSVG" svg={this.state.svg}
-            style={{height: this.state.containerHeight-100, width: this.state.containerWidth-100,
-            position: 'fixed', left: 50, top: 50, zIndex: 100, background: '#fff'}}/> : null}
+         <div id="wrapper" tabIndex="0" onKeyDown={this.handleKeyDown}>
+            {(this.state.displaySVG && this.state.svg != null) ?
+              <div className="svgDisplay" style={{height: this.state.containerHeight-100, width: this.state.containerWidth-100,
+              position: 'fixed', left: 50, top: 50, zIndex: 100, background: '#fff'}}>
+                <Roco2DComponent svg={this.state.svg} />
+              </div>
+
+             : null}
             <div id="sidebar-container">
               { this.state.loading ? (<div>loading</div>) : <ComponentList
               addSc={(scName, scType) => {this._addSc(scName, scType, true);}} {...this.state} />}

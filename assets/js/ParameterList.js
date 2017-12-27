@@ -25,7 +25,7 @@ class ParameterFieldList extends React.Component {
   }
 
   handleChange(event) {
-    console.log('change')
+    event.stopPropagation();
     var target = event.target;
     var name = target.name;
 

@@ -30,7 +30,6 @@ export default class ComponentList extends Component {
     while (a) {
       // default value is the scName+{count+1}
       scName = window.prompt("Name for new " + scType, scType+this.props.subcomponentCounts[scType]);
-      console.log('scName', scName, scName.length, parseInt(scName[0]))
       if (scName.length != 0 && isNaN(parseInt(scName[0]))) {
         a = Object.keys(this.props.subcomponents).map(key => this.props.subcomponents[key].name)
           .reduce((same, _scName) => {
@@ -67,11 +66,13 @@ export default class ComponentList extends Component {
                   </li>);
               })}
           </ul> : null}
-          <div>
-            <SVG style={{height: 250, width: 250}} svg={this.props.svg} className="smallSVGDisplay" />
-          </div>
+
         </div>
       </div>
     );
   }
 }
+
+// <div>
+//   <SVG style={{height: 250, width: 250}} svg={this.props.svg} className="smallSVGDisplay" />
+// </div>
