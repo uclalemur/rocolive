@@ -1,3 +1,4 @@
+var THREE = require('three')
 var debugObj;
 var idGenerator = 0;
 // store the uuid of the last face whose parameters were displayed
@@ -57,7 +58,7 @@ class MechanicalInterface {
         //camera = new THREE.OrthographicCamera(container.offsetWidth / -2, container.offsetWidth / 2, container.offsetHeight / 2, container.offsetHeight / -2, 0.1, 100000);
         this.svgcamera = new THREE.OrthographicCamera(this.svgcontainer.offsetWidth / -2, this.svgcontainer.offsetWidth / 2, this.svgcontainer.offsetHeight / 2, this.svgcontainer.offsetHeight / -2, 1, 1000);
 
-        this.stl_loader = new THREE.STLLoader();
+        // this.stl_loader = new THREE.STLLoader();
         this.renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
         this.renderer.setSize( this.container.clientWidth, this.container.clientHeight);
         this.renderer.setClearColor( 0x000000,0);
@@ -85,47 +86,47 @@ class MechanicalInterface {
         this.control = new THREE.TransformControls( this.camera, this.renderer.domElement );
         this.control.addEventListener( 'change', this.render );
         this.orbit = new THREE.OrbitControls( this.camera, this.renderer.domElement );
-        this.loadGui();
-        console.log('init')
-        this.getComponents();
-        createComponent(this.id);
+        this.render();
+        // this.loadGui();
+        // this.getComponents();
+        // createComponent(this.id);
         this.renderer.domElement.addEventListener( 'mousemove', onDocumentMouseMove(this), false );
         this.renderer.domElement.addEventListener( 'mousedown', onDocumentMouseDown(this), false );
         this.renderer.domElement.addEventListener( 'mouseup', onDocumentMouseUp, false );
     }
 
-    blinker() {
-        $('.blink_me').fadeOut(750);
-        $('.blink_me').fadeIn(750);
-    }
+    // blinker() {
+    //     $('.blink_me').fadeOut(750);
+    //     $('.blink_me').fadeIn(750);
+    // }
+    //
+    // downloadSVG() {
+    //     var name = this.componentName + ".dxf";
+    //     this.getSVGDownload(this.id, function(response){
+    //         var data = JSON.parse(response).response;
+    //         this.download(name, data)
+    //     });
+    // }
 
-    downloadSVG() {
-        var name = this.componentName + ".dxf";
-        this.getSVGDownload(this.id, function(response){
-            var data = JSON.parse(response).response;
-            this.download(name, data)
-        });
-    }
-
-    splitComponent() {
-        this.scene.remove(this.componentObj);
-        delete this.componentObj;
-        this.componentObj = undefined;
-        while(this.connectedSubcomponents.length > 0) {
-	        this.scene.add(this.connectedSubcomponents[this.connectedSubcomponents.length-1]);
-	        this.subcomponents.push(this.connectedSubcomponents[this.connectedSubcomponents.length-1]);
-	        this.connectedSubcomponents.splice(this.connectedSubcomponents.length-1,1);
-        }
-        this.tabDom.getElementsByClassName("sComp")[0].disabled = true;
-    }
-
-    downloadYaml() {
-        var name = this.componentName + ".yaml"
-        this.getYamlDownload(this.id, function(response){
-            var data = JSON.parse(response).response;
-            this.download(name, data);
-        })
-    }
+    // splitComponent() {
+    //     this.scene.remove(this.componentObj);
+    //     delete this.componentObj;
+    //     this.componentObj = undefined;
+    //     while(this.connectedSubcomponents.length > 0) {
+	  //       this.scene.add(this.connectedSubcomponents[this.connectedSubcomponents.length-1]);
+	  //       this.subcomponents.push(this.connectedSubcomponents[this.connectedSubcomponents.length-1]);
+	  //       this.connectedSubcomponents.splice(this.connectedSubcomponents.length-1,1);
+    //     }
+    //     this.tabDom.getElementsByClassName("sComp")[0].disabled = true;
+    // }
+    //
+    // downloadYaml() {
+    //     var name = this.componentName + ".yaml"
+    //     this.getYamlDownload(this.id, function(response){
+    //         var data = JSON.parse(response).response;
+    //         this.download(name, data);
+    //     })
+    // }
 
     saveComponent() {
         componentSave(this.id,this.componentName, function(){});
@@ -199,7 +200,9 @@ class MechanicalInterface {
                 controller: undefined,
                 c: pars,
                 constrain:function(){
-                    console.log(this.mechInterface.parameters);
+                  console.log("constrain");
+                  console.log(this.mechInterface.id, objMesh.name, this.c, value);
+
                     var value = window.prompt("Set " + objMesh.name + "_" + this.c + " to: ");
                     constrainParameter(this.mechInterface.id, objMesh.name, this.c, value);
                     this.controller.name(this.c + " = " + value);
@@ -404,9 +407,7 @@ class MechanicalInterface {
         //for(var key in componentMenus){
             var mech = this;
             getComponentList("" ,function(response){
-
             response = JSON.parse(response).response;
-            console.log('componentList', response)
             for(var i = 0; i < response.length; i++){
                 mech.componentLibrary[response[i][0]] = { interfaces: response[i][1] };
                 var button = {
@@ -431,10 +432,8 @@ class MechanicalInterface {
                             '</div>';
                         $(over).appendTo('body');
                         var mechInterface = this.mechInterface;
-                        console.log('compName', this.mechInterface.id, n, this.mechInterface.compName)
-                        addSubcomponent(this.mechInterface.id, n, this.mechInterface.compName, function(response) {
+                        addSubcomponent(this.mechInterface.id, n, this.mechInterface.compName, function(response){
                             response = JSON.parse(response).response;
-                            console.log(response);
                             mechInterface.tempParams = {};
                             mechInterface.loadSymbolic(response, n);
                             /*interfaceEdges = response;
@@ -892,7 +891,6 @@ function onDocumentMouseMove(mechInterface) {
         event.preventDefault();
         mechInterface.mouse.x = ((event.clientX - getLeftPos(mechInterface.container)) / mechInterface.container.clientWidth) * 2 - 1;
         mechInterface.mouse.y = -((event.clientY - $("#tabButtons").outerHeight(true)) / mechInterface.container.clientHeight) * 2 + 1;
-        console.log(event.clientX - getLeftPos(mechInterface.container));
         mechInterface.raycaster.setFromCamera( mechInterface.mouse, mechInterface.camera );
         var objs = mechInterface.subcomponents;
         if(mechInterface.componentObj != undefined)
@@ -924,6 +922,7 @@ function onDocumentMouseMove(mechInterface) {
 }
 
 function onDocumentMouseDown(mechInterface) {
+  console.log("document mouse down");
     return function(event) {
         event.preventDefault();
         mechInterface.raycaster.setFromCamera( mechInterface.mouse, mechInterface.camera );
@@ -931,11 +930,13 @@ function onDocumentMouseDown(mechInterface) {
         if(mechInterface.componentObj != undefined)
             objs = mechInterface.subcomponents.concat(mechInterface.componentObj);
         var intersects = mechInterface.raycaster.intersectObjects( objs, true );
+        console.log("intersects", intersects);
         var obj;
         if(!event.shiftKey)
             obj = mechInterface.SELECTED;
         else
             obj = mechInterface.SELECTED_2;
+        console.log("obj", obj);
         if ( intersects.length > 0 ) {
             if(obj != undefined && obj.parent.type != "Scene") {
 
@@ -1278,3 +1279,5 @@ String.prototype.replaceAll = function(search, replacement) {
     var target = this;
     return target.split(search).join(replacement);
 };
+
+export {MechanicalInterface}
