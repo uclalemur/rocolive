@@ -15,6 +15,8 @@ var delParameterURL = "/api/component/delParameter/"
 var delInterfaceURL = "/api/component/delInterface/"
 var inheritInterfaceURL = "/api/component/inheritInterface/"
 var componentSaveURL = "/api/component/save/"
+var builderFileSaveURL = "/api/component/builderFileSave/"
+var builderFileLoadURL = "/api/component/builderFileLoad/"
 
 function getComponentList(key, callback)
 {
@@ -77,9 +79,10 @@ function addParameter(id, name, def)
     httpPostAsync(addParameterURL, "{'name': '" + name + "', 'id': '" + id + "','def': '" + def + "'}", function(){});
 }
 
-function delSubcomponent(id, name)
+function delSubcomponent(id, name, callback)
 {
-    httpPostAsync(delSubcomponentURL, "{'id': '" + id + "','name': '" + name + "'}", function(){});
+    console.log('del ', name)
+    httpPostAsync(delSubcomponentURL, "{'id': '" + id + "','name': '" + name + "'}", callback);
 }
 
 function delParameter(id, name)
@@ -100,6 +103,16 @@ function inheritInterface(id, name, scname, interface)
 function componentSave(id, name, callback)
 {
     httpPostAsync(componentSaveURL, "{'id': '" + id + "','name': '" + name + "'}", callback)
+}
+
+function builderFileSave(id, name, instructions, callback)
+{
+    httpPostAsync(builderFileSaveURL, "{'id': '" + id + "','name': '" + name + "', 'instructions': ['" + instructions.join(',') + "']}", callback)
+}
+
+function builderFileLoad(fname, callback)
+{
+    httpPostAsync(builderFileLoadURL, "{'fname': '" + fname + "'}", callback)
 }
 
 function httpPostAsync(theUrl, data, callback)

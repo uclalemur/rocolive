@@ -7,6 +7,7 @@ urlpatterns = [
     url(r'^api/component/addSubcomponent/$', views.addSubcomponent),
     url(r'^api/component/addConnection/$', views.addConnection),
     url(r'^api/component/addTab/$', views.addTabConnection),
+    url(r'^api/component/builderFileSave/$', views.builderFileSave),
     url(r'^api/component/make/$', views.make),
     url(r'^api/component/svg/$', views.getSVG),
     url(r'^api/component/download/svg/$', views.downloadSVG),
@@ -20,6 +21,6 @@ urlpatterns = [
     url(r'^api/component/inheritInterface/$', views.inheritInterface),
     url(r'^api/component/save/$', views.componentSave),
     url(r'^api/component/export_code/$', base_comp.export_code),
-    url(r'^api/component/export_builder/$', composite_comp.export_builder)
-
+    url(r'^api/component/export_builder/$', composite_comp.export_builder),
+    url(r'^api/component/builderFileLoad/$', views.builderFileLoad)
 ]

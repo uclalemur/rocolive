@@ -1,3 +1,154 @@
+//string_to_motor
+function makeOutputstring_to_motor(tab, count){
+	Blockly.Arduino['string_to_motor' + tab + '|' + count] = function() {
+		var code = "string_to_motor" + (count) + '|';
+		code += (this.getFieldValue('NAME') + '|');
+		code += (this.inputs.length + '|');
+		code += (this.params.length + '|');
+		for(var i = 0; i < this.inputs.length; i++){
+			code += this.inputs[i];
+			code += '\\';
+			code += Blockly.Arduino.valueToCode(this, this.inputs[i], Blockly.Arduino.ORDER_NONE);
+		}
+
+		code += '#';
+		for(var i = 0; i < this.params.length; i++){
+			code += (this.params[i][0] + "|" + this.params[i][1] + "|");
+		}
+
+		code += '#';
+		return code;
+	}
+}
+
+//pot
+function makeOutputpot(tab, count){
+	Blockly.Arduino['pot' + tab + '|' + count] = function() {
+		var code = "pot" + (count) + '|';
+		code += (this.getFieldValue('NAME') + '|');
+		code += (this.inputs.length + '|');
+		code += (this.params.length + '|');
+		for(var i = 0; i < this.inputs.length; i++){
+			code += this.inputs[i];
+			code += '\\';
+			code += Blockly.Arduino.valueToCode(this, this.inputs[i], Blockly.Arduino.ORDER_NONE);
+		}
+
+		code += '#';
+		for(var i = 0; i < this.params.length; i++){
+			code += (this.params[i][0] + "|" + this.params[i][1] + "|");
+		}
+
+		code += '#';
+		return code;
+	}
+
+	//vOut- pot
+	Blockly.Arduino['pot' + tab + '|' + count + '\\0'] = function() {
+		var n = this.getInput("NAME").fieldRow[0].getText()
+		n = n.substring(0, n.indexOf("->"))
+		var code = n + '_';
+		code += 'vOut'+'>';
+		return [code, Blockly.Arduino.ORDER_ATOMIC];
+	};
+}
+
+//serial_to_string
+function makeOutputserial_to_string(tab, count){
+	Blockly.Arduino['serial_to_string' + tab + '|' + count] = function() {
+		var code = "serial_to_string" + (count) + '|';
+		code += (this.getFieldValue('NAME') + '|');
+		code += (this.inputs.length + '|');
+		code += (this.params.length + '|');
+		for(var i = 0; i < this.inputs.length; i++){
+			code += this.inputs[i];
+			code += '\\';
+			code += Blockly.Arduino.valueToCode(this, this.inputs[i], Blockly.Arduino.ORDER_NONE);
+		}
+
+		code += '#';
+		for(var i = 0; i < this.params.length; i++){
+			code += (this.params[i][0] + "|" + this.params[i][1] + "|");
+		}
+
+		code += '#';
+		return code;
+	}
+
+	//cameOut- serial_to_string
+	Blockly.Arduino['serial_to_string' + tab + '|' + count + '\\0'] = function() {
+		var n = this.getInput("NAME").fieldRow[0].getText()
+		n = n.substring(0, n.indexOf("->"))
+		var code = n + '_';
+		code += 'cameOut'+'>';
+		return [code, Blockly.Arduino.ORDER_ATOMIC];
+	};
+}
+
+//getSerialString
+function makeOutputgetSerialString(tab, count){
+	Blockly.Arduino['getSerialString' + tab + '|' + count] = function() {
+		var code = "getSerialString" + (count) + '|';
+		code += (this.getFieldValue('NAME') + '|');
+		code += (this.inputs.length + '|');
+		code += (this.params.length + '|');
+		for(var i = 0; i < this.inputs.length; i++){
+			code += this.inputs[i];
+			code += '\\';
+			code += Blockly.Arduino.valueToCode(this, this.inputs[i], Blockly.Arduino.ORDER_NONE);
+		}
+
+		code += '#';
+		for(var i = 0; i < this.params.length; i++){
+			code += (this.params[i][0] + "|" + this.params[i][1] + "|");
+		}
+
+		code += '#';
+		return code;
+	}
+
+	//out1- getSerialString
+	Blockly.Arduino['getSerialString' + tab + '|' + count + '\\0'] = function() {
+		var n = this.getInput("NAME").fieldRow[0].getText()
+		n = n.substring(0, n.indexOf("->"))
+		var code = n + '_';
+		code += 'out1'+'>';
+		return [code, Blockly.Arduino.ORDER_ATOMIC];
+	};
+
+	//out2- getSerialString
+	Blockly.Arduino['getSerialString' + tab + '|' + count + '\\1'] = function() {
+		var n = this.getInput("NAME").fieldRow[0].getText()
+		n = n.substring(0, n.indexOf("->"))
+		var code = n + '_';
+		code += 'out2'+'>';
+		return [code, Blockly.Arduino.ORDER_ATOMIC];
+	};
+}
+
+//string_compare
+function makeOutputstring_compare(tab, count){
+	Blockly.Arduino['string_compare' + tab + '|' + count] = function() {
+		var code = "string_compare" + (count) + '|';
+		code += (this.getFieldValue('NAME') + '|');
+		code += (this.inputs.length + '|');
+		code += (this.params.length + '|');
+		for(var i = 0; i < this.inputs.length; i++){
+			code += this.inputs[i];
+			code += '\\';
+			code += Blockly.Arduino.valueToCode(this, this.inputs[i], Blockly.Arduino.ORDER_NONE);
+		}
+
+		code += '#';
+		for(var i = 0; i < this.params.length; i++){
+			code += (this.params[i][0] + "|" + this.params[i][1] + "|");
+		}
+
+		code += '#';
+		return code;
+	}
+}
+
 //node_mcu
 function makeOutputnode_mcu(tab, count){
 	Blockly.Arduino['node_mcu' + tab + '|' + count] = function() {
@@ -143,61 +294,6 @@ function makeOutputpot_driver(tab, count){
 	};
 }
 
-//driver
-function makeOutputdriver(tab, count){
-	Blockly.Arduino['driver' + tab + '|' + count] = function() {
-		var code = "driver" + (count) + '|';
-		code += (this.getFieldValue('NAME') + '|');
-		code += (this.inputs.length + '|');
-		code += (this.params.length + '|');
-		for(var i = 0; i < this.inputs.length; i++){
-			code += this.inputs[i];
-			code += '\\';
-			code += Blockly.Arduino.valueToCode(this, this.inputs[i], Blockly.Arduino.ORDER_NONE);
-		}
-
-		code += '#';
-		for(var i = 0; i < this.params.length; i++){
-			code += (this.params[i][0] + "|" + this.params[i][1] + "|");
-		}
-
-		code += '#';
-		return code;
-	}
-}
-
-//serial_to_string
-function makeOutputserial_to_string(tab, count){
-	Blockly.Arduino['serial_to_string' + tab + '|' + count] = function() {
-		var code = "serial_to_string" + (count) + '|';
-		code += (this.getFieldValue('NAME') + '|');
-		code += (this.inputs.length + '|');
-		code += (this.params.length + '|');
-		for(var i = 0; i < this.inputs.length; i++){
-			code += this.inputs[i];
-			code += '\\';
-			code += Blockly.Arduino.valueToCode(this, this.inputs[i], Blockly.Arduino.ORDER_NONE);
-		}
-
-		code += '#';
-		for(var i = 0; i < this.params.length; i++){
-			code += (this.params[i][0] + "|" + this.params[i][1] + "|");
-		}
-
-		code += '#';
-		return code;
-	}
-
-	//cameOut- serial_to_string
-	Blockly.Arduino['serial_to_string' + tab + '|' + count + '\\0'] = function() {
-		var n = this.getInput("NAME").fieldRow[0].getText()
-		n = n.substring(0, n.indexOf("->"))
-		var code = n + '_';
-		code += 'cameOut'+'>';
-		return [code, Blockly.Arduino.ORDER_ATOMIC];
-	};
-}
-
 //reverse_string
 function makeOutputreverse_string(tab, count){
 	Blockly.Arduino['reverse_string' + tab + '|' + count] = function() {
@@ -228,6 +324,29 @@ function makeOutputreverse_string(tab, count){
 		code += 'outStr'+'>';
 		return [code, Blockly.Arduino.ORDER_ATOMIC];
 	};
+}
+
+//DrivenServo
+function makeOutputDrivenServo(tab, count){
+	Blockly.Arduino['DrivenServo' + tab + '|' + count] = function() {
+		var code = "DrivenServo" + (count) + '|';
+		code += (this.getFieldValue('NAME') + '|');
+		code += (this.inputs.length + '|');
+		code += (this.params.length + '|');
+		for(var i = 0; i < this.inputs.length; i++){
+			code += this.inputs[i];
+			code += '\\';
+			code += Blockly.Arduino.valueToCode(this, this.inputs[i], Blockly.Arduino.ORDER_NONE);
+		}
+
+		code += '#';
+		for(var i = 0; i < this.params.length; i++){
+			code += (this.params[i][0] + "|" + this.params[i][1] + "|");
+		}
+
+		code += '#';
+		return code;
+	}
 }
 
 //sort_string
@@ -262,6 +381,107 @@ function makeOutputsort_string(tab, count){
 	};
 }
 
+//servo_driver
+function makeOutputservo_driver(tab, count){
+	Blockly.Arduino['servo_driver' + tab + '|' + count] = function() {
+		var code = "servo_driver" + (count) + '|';
+		code += (this.getFieldValue('NAME') + '|');
+		code += (this.inputs.length + '|');
+		code += (this.params.length + '|');
+		for(var i = 0; i < this.inputs.length; i++){
+			code += this.inputs[i];
+			code += '\\';
+			code += Blockly.Arduino.valueToCode(this, this.inputs[i], Blockly.Arduino.ORDER_NONE);
+		}
+
+		code += '#';
+		for(var i = 0; i < this.params.length; i++){
+			code += (this.params[i][0] + "|" + this.params[i][1] + "|");
+		}
+
+		code += '#';
+		return code;
+	}
+
+	//eOut- servo_driver
+	Blockly.Arduino['servo_driver' + tab + '|' + count + '\\0'] = function() {
+		var n = this.getInput("NAME").fieldRow[0].getText()
+		n = n.substring(0, n.indexOf("->"))
+		var code = n + '_';
+		code += 'eOut'+'>';
+		return [code, Blockly.Arduino.ORDER_ATOMIC];
+	};
+}
+
+//servo
+function makeOutputservo(tab, count){
+	Blockly.Arduino['servo' + tab + '|' + count] = function() {
+		var code = "servo" + (count) + '|';
+		code += (this.getFieldValue('NAME') + '|');
+		code += (this.inputs.length + '|');
+		code += (this.params.length + '|');
+		for(var i = 0; i < this.inputs.length; i++){
+			code += this.inputs[i];
+			code += '\\';
+			code += Blockly.Arduino.valueToCode(this, this.inputs[i], Blockly.Arduino.ORDER_NONE);
+		}
+
+		code += '#';
+		for(var i = 0; i < this.params.length; i++){
+			code += (this.params[i][0] + "|" + this.params[i][1] + "|");
+		}
+
+		code += '#';
+		return code;
+	}
+}
+
+//driver
+function makeOutputdriver(tab, count){
+	Blockly.Arduino['driver' + tab + '|' + count] = function() {
+		var code = "driver" + (count) + '|';
+		code += (this.getFieldValue('NAME') + '|');
+		code += (this.inputs.length + '|');
+		code += (this.params.length + '|');
+		for(var i = 0; i < this.inputs.length; i++){
+			code += this.inputs[i];
+			code += '\\';
+			code += Blockly.Arduino.valueToCode(this, this.inputs[i], Blockly.Arduino.ORDER_NONE);
+		}
+
+		code += '#';
+		for(var i = 0; i < this.params.length; i++){
+			code += (this.params[i][0] + "|" + this.params[i][1] + "|");
+		}
+
+		code += '#';
+		return code;
+	}
+}
+
+//Constant
+function makeOutputConstant(tab, count){
+	Blockly.Arduino['Constant' + tab + '|' + count] = function() {
+		var code = "Constant" + (count) + '|';
+		code += (this.getFieldValue('NAME') + '|');
+		code += (this.inputs.length + '|');
+		code += (this.params.length + '|');
+		for(var i = 0; i < this.inputs.length; i++){
+			code += this.inputs[i];
+			code += '\\';
+			code += Blockly.Arduino.valueToCode(this, this.inputs[i], Blockly.Arduino.ORDER_NONE);
+		}
+
+		code += '#';
+		for(var i = 0; i < this.params.length; i++){
+			code += (this.params[i][0] + "|" + this.params[i][1] + "|");
+		}
+
+		code += '#';
+		return code;
+	}
+}
+
 //string_source
 function makeOutputstring_source(tab, count){
 	Blockly.Arduino['string_source' + tab + '|' + count] = function() {
@@ -294,61 +514,6 @@ function makeOutputstring_source(tab, count){
 	};
 }
 
-//string_to_motor
-function makeOutputstring_to_motor(tab, count){
-	Blockly.Arduino['string_to_motor' + tab + '|' + count] = function() {
-		var code = "string_to_motor" + (count) + '|';
-		code += (this.getFieldValue('NAME') + '|');
-		code += (this.inputs.length + '|');
-		code += (this.params.length + '|');
-		for(var i = 0; i < this.inputs.length; i++){
-			code += this.inputs[i];
-			code += '\\';
-			code += Blockly.Arduino.valueToCode(this, this.inputs[i], Blockly.Arduino.ORDER_NONE);
-		}
-
-		code += '#';
-		for(var i = 0; i < this.params.length; i++){
-			code += (this.params[i][0] + "|" + this.params[i][1] + "|");
-		}
-
-		code += '#';
-		return code;
-	}
-}
-
-//pot
-function makeOutputpot(tab, count){
-	Blockly.Arduino['pot' + tab + '|' + count] = function() {
-		var code = "pot" + (count) + '|';
-		code += (this.getFieldValue('NAME') + '|');
-		code += (this.inputs.length + '|');
-		code += (this.params.length + '|');
-		for(var i = 0; i < this.inputs.length; i++){
-			code += this.inputs[i];
-			code += '\\';
-			code += Blockly.Arduino.valueToCode(this, this.inputs[i], Blockly.Arduino.ORDER_NONE);
-		}
-
-		code += '#';
-		for(var i = 0; i < this.params.length; i++){
-			code += (this.params[i][0] + "|" + this.params[i][1] + "|");
-		}
-
-		code += '#';
-		return code;
-	}
-
-	//vOut- pot
-	Blockly.Arduino['pot' + tab + '|' + count + '\\0'] = function() {
-		var n = this.getInput("NAME").fieldRow[0].getText()
-		n = n.substring(0, n.indexOf("->"))
-		var code = n + '_';
-		code += 'vOut'+'>';
-		return [code, Blockly.Arduino.ORDER_ATOMIC];
-	};
-}
-
 //serial_in
 function makeOutputserial_in(tab, count){
 	Blockly.Arduino['serial_in' + tab + '|' + count] = function() {
@@ -373,14 +538,20 @@ function makeOutputserial_in(tab, count){
 }
 
 function makeAllPrevComps(tab, count) {
+	makepot(tab, count);
+	makeserial_to_string(tab, count);
+	makegetSerialString(tab, count);
 	makenode_mcu(tab, count);
 	makepot_driver(tab, count);
-	makeserial_to_string(tab, count);
 	makereverse_string(tab, count);
 	makesort_string(tab, count);
+	makeservo_driver(tab, count);
 	makestring_source(tab, count);
-	makepot(tab, count);
-	makedriver(tab, count);
 	makestring_to_motor(tab, count);
+	makestring_compare(tab, count);
+	makeDrivenServo(tab, count);
+	makeservo(tab, count);
+	makedriver(tab, count);
+	makeConstant(tab, count);
 	makeserial_in(tab, count);
 }

@@ -298,8 +298,6 @@ def getSVG(request):
         try:
             data = ast.literal_eval(request.body)
             fc = request.session['component'][data['id']]
-            #pdb.set_trace()
-            #####
             svg = fc.composables['graph'].make_output(filedir=".",svgString = True)
             try:
                 if not isinstance(request.session['svg'], dict):
@@ -324,7 +322,6 @@ def downloadSVG(request):
     """
     Create a new Component
     """
-    #pdb.set_trace()
     if request.method == 'GET' or request.method == 'POST':
         try:
             dxf = open('silhouette.dxf', 'r')
@@ -370,6 +367,39 @@ def componentSave(request):
             traceback.print_exc()
             return HttpResponse(status=611)
     return HttpResponse(status=611)
+
+@api_view(['GET', 'POST'])
+def builderFileSave(request):
+    if request.method == 'GET' or request.method == 'POST':
+        try:
+            data = ast.literal_eval(request.body)
+            compName = data['name']
+            with open(compName+'.json', 'w') as f:
+                json.dump(data, f, separators=(',', ': '))
+
+            print "builder file of component {} saved".format(compName)
+            return HttpResponse("builderfile of {} saved".format(compName))
+        except Exception as e:
+            print '%s (%s)' % (e.message, type(e))
+            traceback.print_exc()
+            return HttpResponse(status=611)
+    return HttpResponse(status=611)
+
+@api_view(['GET', 'POST'])
+def builderFileLoad(request):
+    if request.method == 'GET' or request.method == 'POST':
+        try:
+            data = ast.literal_eval(request.body)
+            fname = data['fname']
+            with open(fname, 'r') as f:
+                buildInstructions = f.readline()
+                # response = {"response": buildInstructions}.__str__().replace("'", '"')
+                return HttpResponse(buildInstructions, content_type="application/json")
+        except Exception as e:
+            print '%s (%s)' % (e.message, type(e))
+            traceback.print_exc()
+            return HttpResponse(status=611)
+    return HttpResponse(status=501)
 
 @api_view(['GET','POST'])
 def inheritInterface(request):

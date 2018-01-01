@@ -967,14 +967,6 @@ function onDocumentMouseDown(mechInterface) {
                 }
 
                 popup.appendChild(cname);
-                popup.appendChild(parametersContainer);
-
-
-                var viewContainer = document.getElementById("popup_container");
-                viewContainer.append(popup);
-
-                // console.log("g");
-
 
                 obj.material.color = new THREE.Color(0xff0000);
                 if(!event.shiftKey)

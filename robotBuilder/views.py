@@ -17,7 +17,7 @@ def new_index(request):
     template = loader.get_template('robotBuilder/new_index.html')
     context = {}
     return HttpResponse(template.render(context, request))
-def reactHot(request):
-    template = loader.get_template('robotBuilder/hot-test.html')
+def react(request):
+    template = loader.get_template('robotBuilder/react.html')
     context = {}
     return HttpResponse(template.render(context, request))
