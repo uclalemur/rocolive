@@ -2,6 +2,7 @@ var listURL     = "/api/component/list/"
 var createURL   = "/api/component/create/"
 var addScURL    = "/api/component/addSubcomponent/"
 var addCnURL    = "/api/component/addConnection/"
+var addCutCnURL    = "/api/component/addCutoutConnection/"
 var addTabURL    = "/api/component/addTab/"
 var makeURL     = "/api/component/make/"
 var svgURL      = "/api/component/svg/"
@@ -28,10 +29,9 @@ function createComponent(id)
     httpPostAsync(createURL,"{'id': '" + id + "'}",function(){});
 }
 
-function addSubcomponent(id, name, type, callback)
+function addSubcomponent(id, name, type, flip, callback)
 {
-  console.log('interface', id, name, type, callback)
-    httpPostAsync(addScURL,"{'name': '" + name + "','id': '" + id + "','type': '" + type + "'}",callback);
+    httpPostAsync(addScURL,"{'name': '" + name + "','id': '" + id + "','type': '" + type + "', 'flip': '" + flip + "'}",callback);
 }
 
 function fixComponentEdgeInterface(id, name, interface, value)
@@ -42,6 +42,11 @@ function fixComponentEdgeInterface(id, name, interface, value)
 function addComponentConnection(id, sc1, port1, sc2, port2, args, callback)
 {
     httpPostAsync(addCnURL,"{'sc1': '" + sc1 + "','id': '" + id + "','sc2': '" + sc2 + "','port1': '" + port1 + "','port2': '" + port2 + "','angle': '" + args + "'}",callback);
+}
+
+function addCutoutConnection(id, sc1, port1, sc2, port2, offsetX, offsetY, callback)
+{
+    httpPostAsync(addCutCnURL,"{'sc1': '" + sc1 + "','id': '" + id + "','sc2': '" + sc2 + "','port1': '" + port1 + "','port2': '" + port2 + "', 'offsetX': '" + offsetX+ "', 'offsetY': '" + offsetY + "'}",callback);
 }
 
 function addTabConnection(id, sc1, port1, sc2, port2, args, callback)

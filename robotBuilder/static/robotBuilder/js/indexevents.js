@@ -88,11 +88,11 @@ function createIndexEvents(tab){
                 };
                 Blockly.Arduino['parameter' + getActiveTabNum() + event.name.substring(8)] = function(){
                     this.codeName = event.newValue.trim();
-                    return ["<<"+event.newValue.trim()+getActiveTab().mangler+">>", Blockly.Arduino.ORDER_ATOMIC];
+                    return ["@@param@@"+event.newValue.trim()+"@@", Blockly.Arduino.ORDER_ATOMIC];
                 }
                 Blockly.Python['parameter' + getActiveTabNum() + event.name.substring(8)] = function(){
                     this.codeName = event.newValue.trim();
-                    return ["<<"+event.newValue.trim()+getActiveTab().mangler+">>", Blockly.Python.ORDER_ATOMIC];
+                    return ["@@param@@"+event.newValue.trim()+"@@", Blockly.Python.ORDER_ATOMIC];
                 }
                 var blocks = tab.workspace.getAllBlocks();
                 for(var key in tab.paramStubs){
@@ -188,11 +188,11 @@ function createIndexEvents(tab){
                         Blockly.Blocks['parameter' + getActiveTabNum() + parameterCount].mut_name = clauseBlock.name;
                         Blockly.Arduino['parameter' + getActiveTabNum() + parameterCount] = function(){
                             this.codeName = this.mut_name + getActiveTabNum() + parameterCount;
-                            return ["<<" + this.mut_name + getActiveTab().mangler+">>" + getActiveTabNum() + parameterCount, Blockly.Arduino.ORDER_ATOMIC];
+                            return ["@@param@@" + this.mut_name +"@@" + getActiveTabNum() + parameterCount, Blockly.Arduino.ORDER_ATOMIC];
                         }
                         Blockly.Python['parameter' + getActiveTabNum() + parameterCount] = function(){
                             this.codeName = this.mut_name + getActiveTabNum() + parameterCount;
-                            return ["<<" + this.mut_name + getActiveTab().mangler+">>" + getActiveTabNum() + parameterCount, Blockly.Python.ORDER_ATOMIC];
+                            return ["@@param@@" + this.mut_name +"@@" + getActiveTabNum() + parameterCount, Blockly.Python.ORDER_ATOMIC];
                         }
                         parameterCount++;
                         break;
@@ -217,7 +217,7 @@ function createIndexEvents(tab){
 
     tab.onStubDeleted = function(event) {
         if (event.type == Blockly.Events.DELETE) {
-            countStubs();
+            tab.countStubs();
         }
     }
 }

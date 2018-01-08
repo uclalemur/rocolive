@@ -37,14 +37,14 @@
         </div>
         <button class="only_blockly" id="export" onclick="exportCode(event)">Export</button>
         <!-- JS imports for wrapper interface -->
-        <script src="{% static "robotBuilder/js/action.js" %}"></script>
-        <script src="{% static "robotBuilder/js/tabs.js" %}"></script>
+        <script src="{% static 'robotBuilder/js/action.js' %}"></script>
+        <script src="{% static 'robotBuilder/js/tabs.js' %}"></script>
     	<script>
     	   var mech_interface_src = "{% static "robotBuilder/html/mech_index.html" %}"
            var export_buttons = [];
     	</script>
         <!-- JS imports for Blockly Base Code Component interface -->
-        <script src="{% static "robotBuilder/js/blockly/appengine/storage.js" %}"></script>
+        <script src="{% static 'robotBuilder/js/blockly/appengine/storage.js' %}"></script>
 		<script src="{% static 'robotBuilder/js/blockly/blockly_compressed.js' %}"></script>
 		<script src="{% static 'robotBuilder/js/blockly/core/static_typing.js' %}"></script>
         <script src="{% static 'robotBuilder/js/blockly/core/type.js' %}"></script>
@@ -53,19 +53,19 @@
 		<script src="{% static 'robotBuilder/js/blockly/javascript_compressed.js' %}"></script>
 		<script src="{% static 'robotBuilder/js/blockly/python_compressed.js' %}"></script>
 		<script src="{% static 'robotBuilder/js/blockly/arduino_compressed.js' %}"></script>
-		<script src="{% static "robotBuilder/js/blockly/msg/js/en.js" %}"></script>
-		<script src="{% static "robotBuilder/js/comps.js" %}"></script>
-		<script src="{% static "robotBuilder/js/indextoolbox.js" %}"></script>
-		<script src="{% static "robotBuilder/js/indexPortsBlocks.js" %}"></script>
-		<script src="{% static "robotBuilder/js/indexPortsXML.js" %}"></script>
-		<script src="{% static "robotBuilder/js/portCodeGen.js" %}"></script>
-		<script src="{% static "robotBuilder/js/indexsave.js" %}"></script>
-        <script src="{% static "robotBuilder/js/indexevents.js" %}"></script>
-		<script src="{% static "robotBuilder/js/codegen.js" %}"></script>
-		<script src="{% static "robotBuilder/js/python.js" %}"></script>
-        <script src="{% static "robotBuilder/js/blocks.js" %}"></script>
-		<script src="{% static "robotBuilder/js/blockly/msg/js/en.js" %}"></script>
-        <script src="{% static "robotBuilder/js/populateBase.js" %}"></script> <!-- TODO: FILL this file out. -->
+		<script src="{% static 'robotBuilder/js/blockly/msg/js/en.js' %}"></script>
+		<script src="{% static 'robotBuilder/js/comps.js' %}"></script>
+		<script src="{% static 'robotBuilder/js/indextoolbox.js' %}"></script>
+		<script src="{% static 'robotBuilder/js/indexPortsBlocks.js' %}"></script>
+		<script src="{% static 'robotBuilder/js/indexPortsXML.js' %}"></script>
+		<script src="{% static 'robotBuilder/js/portCodeGen.js' %}"></script>
+		<script src="{% static 'robotBuilder/js/indexsave.js' %}"></script>
+        <script src="{% static 'robotBuilder/js/indexevents.js' %}"></script>
+		<script src="{% static 'robotBuilder/js/codegen.js' %}"></script>
+		<script src="{% static 'robotBuilder/js/python.js' %}"></script>
+        <script src="{% static 'robotBuilder/js/blocks.js' %}"></script>
+		<script src="{% static 'robotBuilder/js/blockly/msg/js/en.js' %}"></script>
+        <script src="{% static 'robotBuilder/js/populateBase.js' %}"></script> <!-- TODO: FILL this file out. -->
 
         <!-- JS imports for Blockly Composite Component interface -->
 		<script src="{% static 'robotBuilder/js/download.js' %}"></script>
@@ -78,19 +78,19 @@
         <script src="{% static 'robotBuilder/js/init.js' %}"></script>
         <script src="{% static 'robotBuilder/js/prevtoolbox.js' %}"></script>
         <script src="{% static 'robotBuilder/js/prevevents.js' %}"></script>  <!-- TODO: FILL this file out. -->
-        <script src="{% static "robotBuilder/js/populateComp.js" %}"></script> <!-- TODO: FILL this file out. --> -->
+        <script src="{% static 'robotBuilder/js/populateComp.js' %}"></script> <!-- TODO: FILL this file out. -->
 
         <!-- JS imports for Mechanical Component interface -->
-        <script src="{% static "robotBuilder/js/populateMech.js" %}"></script> <!-- TODO: FILL this file out. -->
-        <script src="{% static "robotBuilder/js/three.min.js" %}"></script>
-        <script src="{% static "robotBuilder/js/interface.js" %}"></script>
-        <script src="{% static "robotBuilder/js/dat.gui.min.js" %}"></script>
-        <script src="{% static "robotBuilder/js/STLLoader.js" %}"></script>
-        <script src="{% static "robotBuilder/js/TransformControls.js" %}"></script>
-        <script src="{% static "robotBuilder/js/OrbitControls.js" %}"></script>
+        <script src="{% static 'robotBuilder/js/populateMech.js' %}"></script> <!-- TODO: FILL this file out. -->
+        <script src="{% static 'robotBuilder/js/three.min.js' %}"></script>
+        <script src="{% static 'robotBuilder/js/interface.js' %}"></script>
+        <script src="{% static 'robotBuilder/js/dat.gui.min.js' %}"></script>
+        <script src="{% static 'robotBuilder/js/STLLoader.js' %}"></script>
+        <script src="{% static 'robotBuilder/js/TransformControls.js' %}"></script>
+        <script src="{% static 'robotBuilder/js/OrbitControls.js' %}"></script>
         <script src="http://cdnjs.cloudflare.com/ajax/libs/mathjs/2.7.0/math.min.js"></script>
-        <script src="{% static "robotBuilder/js/constraintSolver.js" %}"></script>
-        <script src="{% static "robotBuilder/js/componentView.js" %}"></script>
+        <script src="{% static 'robotBuilder/js/constraintSolver.js' %}"></script>
+        <script src="{% static 'robotBuilder/js/componentView.js' %}"></script>
         <script>
             render();
             window.addEventListener('resize', onWindowResize, false);

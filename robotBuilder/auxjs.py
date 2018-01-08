@@ -39,6 +39,7 @@ def writePrevFiles():
     p["output"] = []
     p["other"] = []
     for port in code_ports:
+        # import pdb; pdb.set_trace()
         if "Out" in port.__name__:
             p["output"].append(port.__name__)
         elif "In" in port.__name__:
@@ -48,26 +49,35 @@ def writePrevFiles():
     c.writePorts(p)
     c.writeXML(p)
     c.writePortCodeGen(p)
-    # c = CustomBlockFile()
-    comps = filter_components(["electrical", "code"])
-    print comps
-    print "Number of Components: ", len(comps)
-    print comps
 
-    build_database(comps)
+    comps = filter_database(["electrical", "code"])
+    
 
     ports = {}
 
+    # import pdb; pdb.set_trace()
     for i in comps:
+        # if i.get_name() == "serial_in":
+            # import pdb; pdb.set_trace()
         item = {}
         # print i.getName(), i.interfaces
-        # import pdb; pdb.set_trace()
+        
         for k, v in i.interfaces.iteritems():
-            if "out" in k.lower() or "out" in v.name.lower() or "do" in k.lower() or "do" in v.name.lower():
+            # if i.get_name() == "servo":
+            #     import pdb; pdb.set_trace()
+            if "out" in v.lower():
                 if 'out' not in item.keys():
                     item['out'] = {}
                 item['out'][k] = v
-            elif "in" in k.lower() or "in" in v.name.lower() or "di" in k.lower() or "di" in v.name.lower() or ("a" in v.name.lower() and v.name.lower()[1:].isdigit()):
+            elif "in" in v.lower():
+                if 'in' not in item.keys():
+                    item['in'] = {}
+                item['in'][k] = v
+            elif "out" in k.lower():
+                if 'out' not in item.keys():
+                    item['out'] = {}
+                item['out'][k] = v
+            elif "in" in k.lower():
                 if 'in' not in item.keys():
                     item['in'] = {}
                 item['in'][k] = v
@@ -94,6 +104,8 @@ def writePrevFiles():
 
     # Write block.js file that describes blockly blocks.
     for i in comps:
+        # if i.get_name() == "DrivenServo":
+        #     import pdb; pdb.set_trace()
         c.writeComponent(i, ports[i.get_name()])
         c.writePrevCompCode(i, ports[i.get_name()])
     c.finishComponents()

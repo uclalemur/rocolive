@@ -1,4 +1,4 @@
-import os
+import os, json
 from roco.library import all_components, get_component, instance_of, build_database, query_database, filter_components, filter_database, update_component_lists
 from roco.api.component import Component
 from roco.derived.ports.code_port import CodePort
@@ -57,7 +57,128 @@ def formatIndent(snippet, trimBegin=False, python = False):
 
     return dCode
 
+def is_int(s):
+    try: 
+        int(s)
+        return True
+    except ValueError:
+        return False
+
 def export_code(request):
+    code = json.loads(request.body)
+    name = code["name"]
+    ard = code["arduino"]
+
+
+    component = "from roco.derived.composables.target.arduino_target import Arduino\n"
+    component += "from roco.derived.components.code_component import CodeComponent\n"
+    component += "from roco.derived.ports import *\n\n"
+
+    component += "class {}(CodeComponent):\n\n".format(to_camel_case(name))
+
+    component += "\tdef __init__(self,  yaml_file=None, name=\"{}\", **kwargs):\n".format(code["name"])
+    # component += "\t\timport pdb; pdb.set_trace()\n"
+
+    component += "\t\tCodeComponent.__init__(self, yaml_file, name, **kwargs)\n"
+    component += "\t\tname = self.get_name()\n\n"
+
+
+    component += "\tdef define(self, **kwargs):\n"
+    for i in ard["params"]:
+        if is_int(i["value"]):
+            pass
+        else:
+            i["value"] = "\"" + i["value"] + "\""
+        component += "\t\tself.add_parameter(\"{}\", {}, is_symbol=False)\n".format(i["name"], i["value"])
+    component += "\t\tself.meta = {\n"
+    component += "\t\t\tArduino: {\n"
+
+    component += "\t\t\t\t\"code\": \"\""
+    component += "\t\t\t\t,\n\n"
+
+    component += "\t\t\t\t\"inputs\": {\n"
+    for i in ard["inputs"]:
+        component += "\t\t\t\t\t\"" + i["mangled"] + "\": None,\n"
+    component += "\t\t\t\t},\n\n"
+
+
+    component += "\t\t\t\t\"outputs\": {\n"
+    funcs = [function["name"] for function in ard["functions"]]
+    for out in ard["outputs"]:
+        name = out["code"][0:out["code"].find('(')]
+        if name in funcs:
+            out["code"] = out["code"].replace(name, name + "@@name@@")
+        component += "\t\t\t\t\t\"" + out["mangled"] + "\" : \"" + out["code"] + "\",\n"
+    component += "\t\t\t\t},\n\n"
+
+    declarations = "\n".join(['\t\t\t\t\t"'+i + '\\n"' for i in ard["decl"]])
+
+    
+    for f in ard["functions"]:
+        fn = f["mangled_code"].split("\n")
+        a = "\n".join(['\t\t\t\t\t"'+i + '\\n"' for i in fn])
+        declarations += "\n" + a
+    if len(declarations) > 0:
+        declarations = "(\n" + declarations + "),\n"
+    else:
+        declarations = "\"\",\n"
+    # declarations += "),\n"
+    
+
+    
+    component += "\t\t\t\t\"declarations\": "
+    component += declarations
+    
+    setupCode = '(\n' + "\n".join(['\t\t\t\t\t"'+i[2:] + '\\n"' for i in ard["setup"].split("\n")]) + "),\n"
+    component += "\t\t\t\t\"setup\": "
+    component += setupCode
+    
+    
+    loopCode = '(\n' + "\n".join(['\t\t\t\t\t"'+i[2:] + '\\n"' for i in ard["loop"].split("\n")]) + "),\n"
+    component += "\t\t\t\t\"loop\": "
+    component += loopCode
+    
+    component += "\t\t\t\t\"needs\": set()\n"
+    component += "\t\t\t},\n\n"
+
+    component += "\t\t}\n\n"
+
+    for i in ard["inputs"]:
+        component += "\t\tself.add_interface(\"" + i["name"] + "\", " + i["port"] +"(self, \"" + i["name"] + "\", " + "\"" + i["mangled"] + "\"))\n"
+
+    for i in ard["outputs"]:
+        component += "\t\tself.add_interface(\"" + i["name"] + "\", " + i["port"] +"(self, \"" + i["name"] + "\", " + "\"" + i["mangled"] + "\"))\n"
+
+    
+    
+    component += "\t\tCodeComponent.define(self, **kwargs)\n"
+
+    component += "\n"
+
+    component += "\tdef assemble(self):\n"
+    component += "\t\tCodeComponent.assemble(self)\n\n"
+
+    component += "if __name__ == \"__main__\":\n"
+    component += "\tpass\n\n"
+    print component
+
+    cmpath = os.path.join(get_lib_dir(), code["name"] + ".py")
+    print "cmpath: ", cmpath
+    cmFile = open(cmpath, 'wb', 0)
+    cmFile.write(component)
+    print cmFile
+
+    
+    comp = get_component(code["name"], name=code["name"], baseclass=code["name"])
+    build_database([comp])
+    update_component_lists()
+
+    return HttpResponse("ok")
+
+
+
+
+def export_code_old(request):
     code = request.body
     print "Code: ", code
     codeP = code[code.find("...---...") + 9:]

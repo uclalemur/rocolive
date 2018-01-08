@@ -56,7 +56,11 @@ Blockly.Arduino['procedures_defreturn'] = function(block) {
   if (block.getReturnType) {
     returnType = block.getReturnType();
   }
-  returnType = Blockly.Arduino.getArduinoType_(returnType);
+  if(!returnValue)
+    returnType = Blockly.Arduino.getArduinoType_(returnType);
+  else
+    returnType = Blockly.Arduino.getArduinoType_(Blockly.Types.NUMBER);
+
 
   // Construct code
   var code = returnType + ' ' + funcName + '(' + args.join(', ') + ') {\n' +
@@ -89,7 +93,7 @@ Blockly.Arduino['procedures_callreturn'] = function(block) {
     args[x] = Blockly.Arduino.valueToCode(block, 'ARG' + x,
         Blockly.Arduino.ORDER_NONE) || 'null';
   }
-  var code = funcName + '(' + args.join(', ') + ')';
+  var code = funcName + "@@name@@" + '(' + args.join(', ') + ')';
   return [code, Blockly.Arduino.ORDER_UNARY_POSTFIX];
 };
 
@@ -107,7 +111,7 @@ Blockly.Arduino['procedures_callnoreturn'] = function(block) {
     args[x] = Blockly.Arduino.valueToCode(block, 'ARG' + x,
         Blockly.Arduino.ORDER_NONE) || 'null';
   }
-  var code = funcName + '(' + args.join(', ') + ');\n';
+  var code = funcName + "@@name@@" + '(' + args.join(', ') + ');\n';
   return code;
 };
 

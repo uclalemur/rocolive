@@ -9,8 +9,12 @@
 ehthumbs.db
 Thumbs.db
 assets/bundles
+robotBuilder/static/robotBuilder/js/blocks.js
+robotBuilder/static/robotBuilder/js/init.js
+robotBuilder/static/robotBuilder/js/prevCompCode.js
+testInterface.json
 compDatabase.db
 db.sqlite3
-testInterface.json
+silhouette.dxf
 react_spec
 wiring_instructions.txt
