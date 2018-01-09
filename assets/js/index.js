@@ -191,7 +191,7 @@ class MechanicalInterface extends React.Component {
   // add subcomponent function passed down to each subcomponent to add itself to the
   // list of subcomponents of the component.
   _addSc(scName, scType, record) {
-    addSubcomponent(0, scName, scType, (resp) => {
+    addSubcomponent(0, scName, scType, false, (resp) => {
       // arrow function implicitly binds this!
       resp = JSON.parse(resp).response;
 
@@ -643,7 +643,7 @@ class MechanicalInterface extends React.Component {
         })
       )
     }
-    
+
     return (
       <div id='react-app' onClick={(e) => this._onClick(e)} onMouseMove={this._onMouseMove.bind(this)}>
          <div id="wrapper" tabIndex="0" onKeyDown={this.handleKeyDown}>
