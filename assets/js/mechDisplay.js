@@ -1,3 +1,4 @@
+var THREE = require('three')
 var debugObj;
 var idGenerator = 0;
 // store the uuid of the last face whose parameters were displayed
@@ -57,7 +58,7 @@ class MechanicalInterface {
         //camera = new THREE.OrthographicCamera(container.offsetWidth / -2, container.offsetWidth / 2, container.offsetHeight / 2, container.offsetHeight / -2, 0.1, 100000);
         this.svgcamera = new THREE.OrthographicCamera(this.svgcontainer.offsetWidth / -2, this.svgcontainer.offsetWidth / 2, this.svgcontainer.offsetHeight / 2, this.svgcontainer.offsetHeight / -2, 1, 1000);
 
-        this.stl_loader = new THREE.STLLoader();
+        // this.stl_loader = new THREE.STLLoader();
         this.renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
         this.renderer.setSize( this.container.clientWidth, this.container.clientHeight);
         this.renderer.setClearColor( 0x000000,0);
@@ -85,54 +86,67 @@ class MechanicalInterface {
         this.control = new THREE.TransformControls( this.camera, this.renderer.domElement );
         this.control.addEventListener( 'change', this.render );
         this.orbit = new THREE.OrbitControls( this.camera, this.renderer.domElement );
-        this.loadGui();
-        console.log('init')
-        this.getComponents();
-        createComponent(this.id);
+        this.render();
+        // this.loadGui();
+        // this.getComponents();
+        // createComponent(this.id);
         this.renderer.domElement.addEventListener( 'mousemove', onDocumentMouseMove(this), false );
         this.renderer.domElement.addEventListener( 'mousedown', onDocumentMouseDown(this), false );
         this.renderer.domElement.addEventListener( 'mouseup', onDocumentMouseUp, false );
     }
 
-    blinker() {
-        $('.blink_me').fadeOut(750);
-        $('.blink_me').fadeIn(750);
-    }
+    // blinker() {
+    //     $('.blink_me').fadeOut(750);
+    //     $('.blink_me').fadeIn(750);
+    // }
+    //
+    // downloadSVG() {
+    //     var name = this.componentName + ".dxf";
+    //     this.getSVGDownload(this.id, function(response){
+    //         var data = JSON.parse(response).response;
+    //         this.download(name, data)
+    //     });
+    // }
 
-    downloadSVG() {
-        var name = this.componentName + ".dxf";
-        getSVGDownload(this.id, function(response){
-            var data = JSON.parse(response).response;
-            this.download(name, data)
-        });
-    }
-
-    splitComponent() {
-        this.scene.remove(this.componentObj);
-        delete this.componentObj;
-        this.componentObj = undefined;
-        while(this.connectedSubcomponents.length > 0) {
-	        this.scene.add(this.connectedSubcomponents[this.connectedSubcomponents.length-1]);
-	        this.subcomponents.push(this.connectedSubcomponents[this.connectedSubcomponents.length-1]);
-	        this.connectedSubcomponents.splice(this.connectedSubcomponents.length-1,1);
-        }
-        this.tabDom.getElementsByClassName("sComp")[0].disabled = true;
-    }
-
-    downloadYaml() {
-        var name = this.componentName + ".yaml"
-        this.getYamlDownload(this.id, function(response){
-            var data = JSON.parse(response).response;
-            this.download(name, data);
-        })
-    }
+    // splitComponent() {
+    //     this.scene.remove(this.componentObj);
+    //     delete this.componentObj;
+    //     this.componentObj = undefined;
+    //     while(this.connectedSubcomponents.length > 0) {
+	  //       this.scene.add(this.connectedSubcomponents[this.connectedSubcomponents.length-1]);
+	  //       this.subcomponents.push(this.connectedSubcomponents[this.connectedSubcomponents.length-1]);
+	  //       this.connectedSubcomponents.splice(this.connectedSubcomponents.length-1,1);
+    //     }
+    //     this.tabDom.getElementsByClassName("sComp")[0].disabled = true;
+    // }
+    //
+    // downloadYaml() {
+    //     var name = this.componentName + ".yaml"
+    //     this.getYamlDownload(this.id, function(response){
+    //         var data = JSON.parse(response).response;
+    //         this.download(name, data);
+    //     })
+    // }
 
     saveComponent() {
-	var over = '<div id="overlay">' +
-            '<span class="blink_me">LOADING...</span>' +
-            '</div>';
-        $(over).appendTo('body');
-        componentSave(this.id,this.componentName, function(response){$('#overlay').remove();});
+        componentSave(this.id,this.componentName, function(){});
+    }
+
+    fixEdgeInterface() {
+        var name, interfaceToFix, value;
+        if(this.SELECTED != undefined && this.SELECTED.parent != "Scene") {
+            if(this.SELECTED.parent.type == "MasterComponent") {
+                var spl = this.SELECTED.name.split("_");
+		        name = spl[0];
+		        interfaceToFix = spl[1];
+            }
+            else {
+                name = this.SELECTED.parent.name;
+		        interfaceToFix = this.SELECTED.name;
+            }
+            var value = window.prompt("Value to fix interface to");
+            this.fixComponentEdgeInterface(this.id,name, interfaceToFix, value);
+        }
     }
 
     downloadModel() {
@@ -173,7 +187,6 @@ class MechanicalInterface {
         objMesh.className = this.compName;
         objMesh.interfaces = {};
         objMesh.interfaceEdges = obj["interfaceEdges"];
-        objMesh.interfaceFaces = obj["interfaceFaces"];
         objMesh.connectedInterfaces = {};
         objMesh.parameterfuncs = {};
         this.subcomponents.push(objMesh);
@@ -187,7 +200,9 @@ class MechanicalInterface {
                 controller: undefined,
                 c: pars,
                 constrain:function(){
-                    console.log(this.mechInterface.parameters);
+                  console.log("constrain");
+                  console.log(this.mechInterface.id, objMesh.name, this.c, value);
+
                     var value = window.prompt("Set " + objMesh.name + "_" + this.c + " to: ");
                     constrainParameter(this.mechInterface.id, objMesh.name, this.c, value);
                     this.controller.name(this.c + " = " + value);
@@ -392,9 +407,7 @@ class MechanicalInterface {
         //for(var key in componentMenus){
             var mech = this;
             getComponentList("" ,function(response){
-
             response = JSON.parse(response).response;
-            console.log('componentList', response)
             for(var i = 0; i < response.length; i++){
                 mech.componentLibrary[response[i][0]] = { interfaces: response[i][1] };
                 var button = {
@@ -414,15 +427,13 @@ class MechanicalInterface {
                                 return;
                             }
                         }
-			var flip = confirm('Flip component?');
                         var over = '<div id="overlay">' +
                             '<span class="blink_me">LOADING...</span>' +
                             '</div>';
                         $(over).appendTo('body');
                         var mechInterface = this.mechInterface;
-                        addSubcomponent(this.mechInterface.id, n, this.mechInterface.compName, flip, function(response){
+                        addSubcomponent(this.mechInterface.id, n, this.mechInterface.compName, function(response){
                             response = JSON.parse(response).response;
-                            console.log(response);
                             mechInterface.tempParams = {};
                             mechInterface.loadSymbolic(response, n);
                             /*interfaceEdges = response;
@@ -438,22 +449,22 @@ class MechanicalInterface {
     }
 
     loadGui() {
-/*        var search = {
+        var search = {
             Search: ""
         };
         var filters = {
             Mechanical: true,
             Electrical: true,
             Software: true
-        };*/
+        };
         this.gui = new dat.GUI({ autoPlace: false, width: this.tabDom.getElementsByClassName('left-panel')[0].clientWidth, scrollable: true });
         this.gui.domElement.removeChild(this.gui.__closeButton);
         this.tabDom.getElementsByClassName('left-panel')[0].appendChild(this.gui.domElement);
-/*        this.gui.add(search, "Search");
+        this.gui.add(search, "Search");
         this.searchFilters = this.gui.addFolder("Filters");
         this.searchFilters.add(filters, "Mechanical");
         this.searchFilters.add(filters, "Electrical");
-        this.searchFilters.add(filters, "Software");*/
+        this.searchFilters.add(filters, "Software");
         this.componentsFolder = this.gui.addFolder('Components');
         this.componentsFolder.open();
         //componentMenus["mechanical"] = componentsFolder.addFolder("Mechanical");
@@ -540,7 +551,18 @@ class MechanicalInterface {
                     this.mechInterface.SELECTED_2.parent.connectedInterfaces[this.mechInterface.SELECTED_2.name] = newConn.interface1;
                     var folder = this.mechInterface.comp.connections.addFolder(newConn.name);
                     newConn.args = "";
+                    var connFixButton = {
+                        mechInterface: undefined,
+                        s1pname: s1pname,
+                        s1name: s1name,
+                        fixConnection:function(){
+                            var value = window.prompt("Value to fix interface to");
+                            fixComponentEdgeInterface(this.mechInterface.id,this.s1pname, this.s1name, value);
+                        }
+                    }
+                    connFixButton.mechInterface = this.mechInterface;
                     folder.add(newConn,"interface2").name(newConn.interface1);
+                    folder.add(connFixButton, "fixConnection").name("Set Length");
                 }
                 /*else{
                 var joinedList = subcomponents.concat(connectedSubcomponents);
@@ -557,46 +579,6 @@ class MechanicalInterface {
                 }
                 $("#dialog").dialog("open");
                 }*/
-            },
-            cutoutAdd: function(){
-                if(this.mechInterface.SELECTED.interfaceFaces && this.mechInterface.SELECTED.interfaceFaces.length > 0){
-                    var cutout = {};
-                    var faceoptions = "";
-                    for(var i = 0; i < this.mechInterface.SELECTED.interfaceFaces.length; i++){
-                        faceoptions += "\n" + this.mechInterface.SELECTED.interfaceFaces[i];
-                    }
-                    cutout.face = "";
-                    while(this.mechInterface.SELECTED.interfaceFaces.indexOf(cutout.face) < 0){
-                        cutout.face = window.prompt("Choose face to attach cutout: " + faceoptions);
-                        if(cutout.face == "" || cutout.face == null)
-                            return;
-                    }
-                    cutout.type = "";
-                    while(cutout.type !== "cutout" && cutout.type !== "header"){
-                        cutout.type = window.prompt("Cutout or Header?");
-                        if(cutout.type == "" || cutout.type == null)
-                            return;
-                    }
-                    cutout.name = window.prompt("Cutout Name:");
-                    if(cutout.name == "" || cutout.name == null)
-                        return;
-                    cutout.x = window.prompt("X offset:");
-                    if(cutout.x == "" || cutout.x == null || isNaN(parseFloat(cutout.x)))
-                        cutout.x = 0;
-                    cutout.y = window.prompt("Y offset:");
-                    if(cutout.y == "" || cutout.y == null || isNaN(parseFloat(cutout.y)))
-                        cutout.y = 0;
-                    var over = '<div id="overlay">' +
-                                '<span class="blink_me">LOADING...</span>' +
-                                '</div>';
-                        $(over).appendTo('body');
-                    var id = this.mechInterface.id;
-                    var componentName = this.mechInterface.SELECTED.name;
-                    addSubcomponent(this.mechInterface.id, cutout.name, cutout.type, false, function(){
-                        addCutoutConnection(id,componentName,cutout.face,cutout.name,"mount", cutout.x, cutout.y, function(){$('#overlay').remove();});
-                    });
-
-                }
             },
             connectionAddTab: function(){
                 if(this.mechInterface.SELECTED != undefined && this.mechInterface.SELECTED_2 != undefined && this.mechInterface.SELECTED.parent != "Scene" && this.mechInterface.SELECTED_2.parent != "Scene") {
@@ -636,11 +618,7 @@ class MechanicalInterface {
                         s2pname = this.mechInterface.SELECTED_2.parent.name;
                         s2name = this.mechInterface.SELECTED_2.name;
                     }
-		    var over = '<div id="overlay">' +
-                        '<span class="blink_me">LOADING...</span>' +
-                        '</div>';
-                    $(over).appendTo('body');
-		    addTabConnection(this.mechInterface.id,s1pname,s1name,s2pname,s2name, angle, function(){$('#overlay').remove();});//function(){buildComponent()});
+                    addTabConnection(this.mechInterface.id,s1pname,s1name,s2pname,s2name, angle, function(){});//function(){buildComponent()});
                     this.mechInterface.connections.push(newConn);
                     this.mechInterface.SELECTED.parent.connectedInterfaces[this.mechInterface.SELECTED.name] = newConn.interface2;
                     this.mechInterface.SELECTED_2.parent.connectedInterfaces[this.mechInterface.SELECTED_2.name] = newConn.interface1;
@@ -747,7 +725,6 @@ class MechanicalInterface {
         this.comp.parameters.add(objectbuttons,'parameterDelete').name("Delete");
         this.comp.connections.add(objectbuttons,'connectionAdd').name("Add");
         this.comp.connections.add(objectbuttons,'connectionAddTab').name("Add Tab");
-        this.comp.connections.add(objectbuttons,'cutoutAdd').name("Add Cutout");
         this.comp.interfaces.add(objectbuttons, 'interfaceAdd').name("Add");
         this.comp.interfaces.add(objectbuttons, 'interfaceDelete').name("Delete");
         //comp.connections.add(objectbuttons,'connectionDelete').name("Remove");
@@ -914,7 +891,6 @@ function onDocumentMouseMove(mechInterface) {
         event.preventDefault();
         mechInterface.mouse.x = ((event.clientX - getLeftPos(mechInterface.container)) / mechInterface.container.clientWidth) * 2 - 1;
         mechInterface.mouse.y = -((event.clientY - $("#tabButtons").outerHeight(true)) / mechInterface.container.clientHeight) * 2 + 1;
-        console.log(event.clientX - getLeftPos(mechInterface.container));
         mechInterface.raycaster.setFromCamera( mechInterface.mouse, mechInterface.camera );
         var objs = mechInterface.subcomponents;
         if(mechInterface.componentObj != undefined)
@@ -946,6 +922,7 @@ function onDocumentMouseMove(mechInterface) {
 }
 
 function onDocumentMouseDown(mechInterface) {
+  console.log("document mouse down");
     return function(event) {
         event.preventDefault();
         mechInterface.raycaster.setFromCamera( mechInterface.mouse, mechInterface.camera );
@@ -953,11 +930,13 @@ function onDocumentMouseDown(mechInterface) {
         if(mechInterface.componentObj != undefined)
             objs = mechInterface.subcomponents.concat(mechInterface.componentObj);
         var intersects = mechInterface.raycaster.intersectObjects( objs, true );
+        console.log("intersects", intersects);
         var obj;
         if(!event.shiftKey)
             obj = mechInterface.SELECTED;
         else
             obj = mechInterface.SELECTED_2;
+        console.log("obj", obj);
         if ( intersects.length > 0 ) {
             if(obj != undefined && obj.parent.type != "Scene") {
 
@@ -989,6 +968,14 @@ function onDocumentMouseDown(mechInterface) {
                 }
 
                 popup.appendChild(cname);
+                popup.appendChild(parametersContainer);
+
+
+                var viewContainer = document.getElementById("popup_container");
+                viewContainer.append(popup);
+
+                // console.log("g");
+
 
                 obj.material.color = new THREE.Color(0xff0000);
                 if(!event.shiftKey)
@@ -1079,9 +1066,7 @@ function createMeshFromObject(obj)
 {
     var material = new THREE.MeshPhongMaterial( { color:0xffffff, shading: THREE.FlatShading } );
     var geometry = new THREE.Geometry();
-    var myGeom = new THREE.Geometry();
     for(var face in obj["faces"]){
-
         transf = new THREE.Matrix4();
         //obj["faces"][face][0] = obj["faces"][face][0].map(function(i){return i.replaceAll("**","^").replaceAll("[","(").replaceAll("]",")")})
         transf.elements = obj["faces"][face][0].map(function(i){return evalPrefix(i,obj["solved"]).value});
@@ -1106,33 +1091,19 @@ function createMeshFromObject(obj)
             var period = element["value"].indexOf(",");
             vertices.push(new THREE.Vector3(Number(element["value"].substring(0,period)),Number(element["value"].substring(period+1)),0));
         }
-
-
-        if(obj["faces"][face][1]["hole_vertices"]){
-            for(var j = 0; j < obj["faces"][face][1]["hole_vertices"].length; j++){
-                var hole = new THREE.Path();
-                var holePoints = [];
-                 for(var i = 0; i < obj["faces"][face][1]["hole_vertices"][j].length; i++){
-                     holePoints.push(new THREE.Vector3(Number(obj["faces"][face][1]["hole_vertices"][j][i][0]),Number(obj["faces"][face][1]["hole_vertices"][j][i][1]),0));
-                 }
-                 holePoints.push(holePoints[0])
-                 hole.fromPoints(holePoints);
-                 holes.push(hole);
-            }
-        }
-        var shape = new THREE.Shape(vertices.reverse());
-        shape.holes = holes;
-        var points = shape.extractPoints();
         var numverts = geometry.vertices.length;
-        var tempGeom = new THREE.ShapeGeometry(shape);
-        for(var v = 0, len = tempGeom.vertices.length; v < len; v++){
-            var vert = new THREE.Vector4(tempGeom.vertices[v].x,tempGeom.vertices[v].y,0,1);
+        var triangles = THREE.Shape.Utils.triangulateShape ( vertices, holes );
+        for(var v = 0, len = vertices.length; v < len; v++){
+            var vert = new THREE.Vector4(vertices[v].x,vertices[v].y,0,1);
             vert.applyMatrix4(transf);
-            tempGeom.vertices[v].x = vert.x; tempGeom.vertices[v].y = vert.y; tempGeom.vertices[v].z = vert.z;
+            vertices[v].x = vert.x; vertices[v].y = vert.y; vertices[v].z = vert.z;
         }
-        myGeom.merge(tempGeom);
+        geometry.vertices = geometry.vertices.concat(vertices);
+        for(var t = 0, len = triangles.length; t < len; t++){
+            geometry.faces.push(new THREE.Face3(triangles[t][0]+numverts, triangles[t][1]+numverts, triangles[t][2]+numverts));
+        }
     }
-    var mesh = new THREE.Mesh( myGeom, material );
+    var mesh = new THREE.Mesh( geometry, material );
     mesh["solved"] = obj["solved"];
     mesh["faces"] = obj["faces"];
     mesh["edges"] = obj["edges"];
@@ -1215,7 +1186,6 @@ function updateComponent(component, response)
 	else
 	    component["solved"][k] = solution[component.name + "_" + k];
     }
-    component["solved"] = Object.assign({},component["solved"],solution);
     component['faces'] = {}
     for(var face in response['faces']){
         if (face.startsWith(component.name))
@@ -1309,3 +1279,5 @@ String.prototype.replaceAll = function(search, replacement) {
     var target = this;
     return target.split(search).join(replacement);
 };
+
+export {MechanicalInterface}

@@ -8,9 +8,14 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
-*js/blocks.js
-*js/init.js
-*js/prevCompCode.js
+assets/bundles
+robotBuilder/static/robotBuilder/js/blocks.js
+robotBuilder/static/robotBuilder/js/init.js
+robotBuilder/static/robotBuilder/js/prevCompCode.js
+testInterface.json
 compDatabase.db
 db.sqlite3
 silhouette.dxf
+react_spec
+wiring_instructions.txt
+/node_modules/*

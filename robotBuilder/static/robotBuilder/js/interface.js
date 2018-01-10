@@ -16,6 +16,8 @@ var delParameterURL = "/api/component/delParameter/"
 var delInterfaceURL = "/api/component/delInterface/"
 var inheritInterfaceURL = "/api/component/inheritInterface/"
 var componentSaveURL = "/api/component/save/"
+var builderFileSaveURL = "/api/component/builderFileSave/"
+var builderFileLoadURL = "/api/component/builderFileLoad/"
 
 function getComponentList(key, callback)
 {
@@ -52,9 +54,9 @@ function addTabConnection(id, sc1, port1, sc2, port2, args, callback)
     httpPostAsync(addTabURL,"{'sc1': '" + sc1 + "','id': '" + id + "','sc2': '" + sc2 + "','port1': '" + port1 + "','port2': '" + port2 + "','angle': '" + args + "'}",callback);
 }
 
-function constrainParameter(id, sc, parameter, constr)
+function constrainParameter(id, sc, parameter, constr, callback)
 {
-    httpPostAsync(cParameterURL, "{'sc': '" + sc + "', 'id': '" + id + "','parameter': '" + parameter + "', 'constraint': '" + constr + "'}", function(){});
+    httpPostAsync(cParameterURL, "{'sc': '" + sc + "', 'id': '" + id + "','parameter': '" + parameter + "', 'constraint': '" + constr + "'}", callback);
 }
 
 function makeComponent(id, callback)
@@ -82,9 +84,10 @@ function addParameter(id, name, def)
     httpPostAsync(addParameterURL, "{'name': '" + name + "', 'id': '" + id + "','def': '" + def + "'}", function(){});
 }
 
-function delSubcomponent(id, name)
+function delSubcomponent(id, name, callback)
 {
-    httpPostAsync(delSubcomponentURL, "{'id': '" + id + "','name': '" + name + "'}", function(){});
+    console.log('del ', name)
+    httpPostAsync(delSubcomponentURL, "{'id': '" + id + "','name': '" + name + "'}", callback);
 }
 
 function delParameter(id, name)
@@ -107,12 +110,23 @@ function componentSave(id, name, callback)
     httpPostAsync(componentSaveURL, "{'id': '" + id + "','name': '" + name + "'}", callback)
 }
 
+function builderFileSave(id, name, instructions, callback)
+{
+    httpPostAsync(builderFileSaveURL, "{'id': '" + id + "','name': '" + name + "', 'instructions': ['" + instructions.join(',') + "']}", callback)
+}
+
+function builderFileLoad(fname, callback)
+{
+    httpPostAsync(builderFileLoadURL, "{'fname': '" + fname + "'}", callback)
+}
+
 function httpPostAsync(theUrl, data, callback)
 {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() {
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-            callback(xmlHttp.responseText);
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+          callback(xmlHttp.responseText);
+        }
     }
     xmlHttp.open("POST", theUrl, true); // true for asynchronous
     xmlHttp.send(data);
