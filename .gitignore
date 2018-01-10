@@ -18,3 +18,4 @@ db.sqlite3
 silhouette.dxf
 react_spec
 wiring_instructions.txt
+/node_modules/*
